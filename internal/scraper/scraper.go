@@ -3,14 +3,14 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"github.com/salt-today/salttoday2/internal/sdk"
 	"math"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/salt-today/salttoday2/sdk"
-	"github.com/salt-today/salttoday2/store"
+	"github.com/salt-today/salttoday2/internal/store"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,7 +41,7 @@ func (s *Scraper) Scrape(ctx context.Context, siteUrl string) {
 }
 
 func hasArticlePrefix(href string) bool {
-	//verify these are still correct and if theres any missing
+	//verify these are still correct and if there's any missing
 	potentialPrefixes := []string{
 		"/local-news/",
 		"/spotlight/",
