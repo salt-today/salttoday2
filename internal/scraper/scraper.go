@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/salt-today/salttoday2/internal/sdk"
+	"log"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -69,9 +71,27 @@ func getCommentsFromArticle(ctx context.Context, baseUrl string, article *store.
 	articleId := getArticleId(article.Url)
 	sdk.Logger(ctx).WithField("articleId", articleId)
 	commentsUrl := fmt.Sprintf("%s/comments/load?Type=Comment&ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, articleId)
-	initialCommentDoc, err := goquery.NewDocument(commentsUrl)
+
+	res, err := http.Get(commentsUrl)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Error loading comments from article")
+		log.Fatal(err)
+		return nil, err
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			fmt.Printf("Error closing HTTP. %v", err)
+		}
+	}()
+
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		return nil, nil
+	}
+
+	initialCommentDoc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		fmt.Printf("Error loading HTTP response body. %s", err)
 		return nil, err
 	}
 
@@ -150,9 +170,25 @@ func getComments(ctx context.Context, selection *goquery.Selection, baseUrl, art
 
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
 // We can nly surmise on the usage currently
-func getReplies(ctx context.Context, baseUrl, articleId, lastId, parentId string) []*store.Comment {
+func getReplies(ctx context.Context, baseUrl, articleId, _, parentId string) []*store.Comment {
 	commentsUrl := fmt.Sprintf("%s/comments/get?ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", baseUrl, articleId, parentId)
-	doc, err := goquery.NewDocument(commentsUrl)
+	res, err := http.Get(commentsUrl)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			fmt.Printf("Error closing HTTP. %v", err)
+		}
+	}()
+
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		fmt.Printf("Error loading HTTP response body. %s", err)
 		return nil
@@ -176,7 +212,7 @@ func getContentHelper(s *goquery.Selection) string {
 	return strings.TrimSpace(s.First().Text())
 }
 
-func getUsername(ctx context.Context, s *goquery.Selection) string {
+func getUsername(_ context.Context, s *goquery.Selection) string {
 	return getContentHelper(s.Find("a.comment-un"))
 }
 
@@ -191,7 +227,7 @@ func getTimestamp(ctx context.Context, s *goquery.Selection) time.Time {
 	return commentTime // TODO
 }
 
-func getCommentText(ctx context.Context, s *goquery.Selection) string {
+func getCommentText(_ context.Context, s *goquery.Selection) string {
 	return getContentHelper(s.Find("div.comment-text"))
 }
 
@@ -252,23 +288,37 @@ func getArticleId(url string) string {
 }
 
 func getArticles(ctx context.Context, siteUrl string) []*store.Article {
-	doc, err := goquery.NewDocument(siteUrl)
+	res, err := http.Get(siteUrl)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			fmt.Printf("Error closing HTTP. %v", err)
+		}
+	}()
+
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		sdk.Logger(ctx).WithError(err).Error("Error loading article")
 	}
 
-	articles := []*store.Article{}
+	var articles []*store.Article
 	doc.Find("a.section-item").Each(func(i int, s *goquery.Selection) {
 		if href, exists := s.Attr("href"); exists {
 			if hasArticlePrefix(href) {
 				title := s.Find("div.section-title").First().Text()
 				title = strings.TrimSpace(title)
-				article := &store.Article{
+				articles = append(articles, &store.Article{
 					Title: title,
 					Url:   siteUrl + href,
-				}
-
-				articles = append(articles, article)
+				})
 			}
 		}
 	})
