@@ -3,8 +3,6 @@ package scraper
 import (
 	"context"
 	"fmt"
-	"github.com/salt-today/salttoday2/internal/sdk"
-	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -12,56 +10,65 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/salt-today/salttoday2/internal/store"
 	"github.com/sirupsen/logrus"
+
+	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/store"
 )
 
 type Scraper struct {
+	logger  logrus.Logger
+	siteUrl string
+}
+
+// verify these are still correct and if there's any missing
+var potentialPrefixes = []string{
+	"/local-news/",
+	"/spotlight/",
+	"/great-stories/",
+	"/videos/",
+	"/local-sports/",
+	"/local-entertainment",
+	"/bulletin/",
+	"/more-local/",
+	"/city-police-beat/",
+}
+
+func NewScraper(siteUrl string) *Scraper {
+	return &Scraper{
+		siteUrl: siteUrl,
+	}
 }
 
 func (s *Scraper) Scrape(ctx context.Context, siteUrl string) {
-	sdk.Logger(ctx).WithField("site", siteUrl)
+	logEntry := sdk.Logger(ctx).WithField("site", siteUrl)
 
 	articles := getArticles(ctx, siteUrl)
 	commentCount := 0
 	for _, article := range articles {
 		comments, err := getCommentsFromArticle(ctx, siteUrl, article)
 		if err != nil {
-			fmt.Println(err)
+			logEntry.WithError(err).Error("failed to get comments")
 			continue
 		}
 
 		for _, comment := range comments {
 			commentCount++
-			fmt.Println(comment)
+			logEntry.WithField("comment", comment).Info("retrieved comment")
 		}
 	}
-	sdk.Logger(ctx).WithFields(logrus.Fields{
+	logEntry.WithFields(logrus.Fields{
 		"articles": len(articles),
 		"comments": commentCount,
 	}).Info("Completed scraping site")
 }
 
 func hasArticlePrefix(href string) bool {
-	//verify these are still correct and if there's any missing
-	potentialPrefixes := []string{
-		"/local-news/",
-		"/spotlight/",
-		"/great-stories/",
-		"/videos/",
-		"/local-sports/",
-		"/local-entertainment",
-		"/bulletin/",
-		"/more-local/",
-		"/city-police-beat/",
-	}
-
 	for _, prefix := range potentialPrefixes {
 		if strings.HasPrefix(href, prefix) {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -69,29 +76,32 @@ func hasArticlePrefix(href string) bool {
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
 func getCommentsFromArticle(ctx context.Context, baseUrl string, article *store.Article) ([]*store.Comment, error) {
 	articleId := getArticleId(article.Url)
-	sdk.Logger(ctx).WithField("articleId", articleId)
+	logEntry := sdk.Logger(ctx).WithField("articleId", articleId)
 	commentsUrl := fmt.Sprintf("%s/comments/load?Type=Comment&ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, articleId)
 
 	res, err := http.Get(commentsUrl)
 	if err != nil {
-		log.Fatal(err)
+		logEntry.WithError(err).Fatal("failed to download comments")
 		return nil, err
 	}
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			fmt.Printf("Error closing HTTP. %v", err)
+			logEntry.WithError(err).Error("Error closing HTTP")
 		}
 	}()
 
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		logEntry.WithFields(logrus.Fields{
+			"status_code": res.StatusCode,
+			"status":      res.StatusCode,
+		}).Fatal("status code error")
 		return nil, nil
 	}
 
 	initialCommentDoc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		fmt.Printf("Error loading HTTP response body. %s", err)
+		logEntry.WithError(err).Error("Error loading HTTP response body")
 		return nil, err
 	}
 
@@ -114,6 +124,7 @@ func searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, 
 }
 
 func getComments(ctx context.Context, selection *goquery.Selection, baseUrl, articleId string) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", articleId)
 	comments := make([]*store.Comment, 0)
 	selection.Each(func(i int, s *goquery.Selection) {
 		numRepliesStr := s.AttrOr("data-replies", "0")
@@ -157,7 +168,7 @@ func getComments(ctx context.Context, selection *goquery.Selection, baseUrl, art
 				// TODO - the reply endpoint is different, I'm not sure what happens if there are more than 20 replies
 				// Log added to deal with this
 				if numReplies > 20 {
-					fmt.Println("HUGE REPLY CHAIN FOUND! Article ID:", articleId)
+					logEntry.Warn("HUGE REPLY CHAIN FOUND!")
 				} else {
 					comments = append(comments, getReplies(ctx, baseUrl, articleId, "-1", loadMore.AttrOr("data-parent", ""))...)
 				}
@@ -171,26 +182,30 @@ func getComments(ctx context.Context, selection *goquery.Selection, baseUrl, art
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
 // We can nly surmise on the usage currently
 func getReplies(ctx context.Context, baseUrl, articleId, _, parentId string) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", articleId)
 	commentsUrl := fmt.Sprintf("%s/comments/get?ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", baseUrl, articleId, parentId)
 	res, err := http.Get(commentsUrl)
 	if err != nil {
-		log.Fatal(err)
+		logEntry.WithError(err).Fatal("Failed to load comments")
 		return nil
 	}
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			fmt.Printf("Error closing HTTP. %v", err)
+			logEntry.WithError(err).Error("Error closing HTTP")
 		}
 	}()
 
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		logEntry.WithFields(logrus.Fields{
+			"status_code": res.StatusCode,
+			"status":      res.StatusCode,
+		}).Fatal("status code error")
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		fmt.Printf("Error loading HTTP response body. %s", err)
+		logEntry.WithError(err).Error("Error loading HTTP response body")
 		return nil
 	}
 
@@ -288,25 +303,29 @@ func getArticleId(url string) string {
 }
 
 func getArticles(ctx context.Context, siteUrl string) []*store.Article {
+	logEntry := sdk.Logger(ctx)
 	res, err := http.Get(siteUrl)
 	if err != nil {
-		log.Fatal(err)
+		logEntry.WithError(err).Fatal("Failed to load articles")
 		return nil
 	}
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			fmt.Printf("Error closing HTTP. %v", err)
+			logEntry.WithError(err).Error("Error closing HTTP")
 		}
 	}()
 
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		logEntry.WithFields(logrus.Fields{
+			"status_code": res.StatusCode,
+			"status":      res.StatusCode,
+		}).Fatal("status code error")
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Error loading article")
+		logEntry.WithError(err).Error("Error loading article")
 	}
 
 	var articles []*store.Article
@@ -322,6 +341,6 @@ func getArticles(ctx context.Context, siteUrl string) []*store.Article {
 			}
 		}
 	})
-	sdk.Logger(ctx).WithField("articles", articles).Info("Articles found")
+	logEntry.WithField("articles", articles).Info("Articles found")
 	return articles
 }
