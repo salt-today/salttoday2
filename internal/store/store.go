@@ -13,6 +13,7 @@ type storage struct {
 }
 
 func NewStorage() (*storage, error) {
+	// TODO: conn string should be configurable
 	db, err := sql.Open("mysql", "salt:salt@tcp(localhost:3306)/salt?parseTime=true")
 	if err != nil {
 		return nil, err
@@ -26,7 +27,7 @@ func NewStorage() (*storage, error) {
 func (s *storage) AddComments(comments ...*Comment) error {
 	ds := goqu.Dialect("mysql").Insert(CommentsTable).Cols(CommentsUser, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
-		ds = ds.Vals(goqu.Vals{comment.User, comment.Time, comment.Text, comment.Likes, comment.Dislikes})
+		ds = ds.Vals(goqu.Vals{comment.User, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
 	query, _, err := ds.ToSQL()
 	if err != nil {
@@ -91,7 +92,13 @@ func (s *storage) AddArticles(articles ...*Article) error {
 	for _, article := range articles {
 		ds = ds.Vals(goqu.Vals{article.Url, article.Title})
 	}
-	_, err := s.db.Exec(ds.ToSQL())
+
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
 	return err
 }
 
@@ -101,7 +108,12 @@ func (s *storage) AddUsers(users ...string) error {
 		ds = ds.Vals(goqu.Vals{user})
 	}
 
-	_, err := s.db.Exec(ds.ToSQL())
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
 	return err
 }
 

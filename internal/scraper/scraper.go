@@ -229,7 +229,7 @@ func getCommentText(_ context.Context, s *goquery.Selection) string {
 	return getContentHelper(s.Find("div.comment-text"))
 }
 
-func getLikes(ctx context.Context, s *goquery.Selection) int {
+func getLikes(ctx context.Context, s *goquery.Selection) int32 {
 	likeString := getContentHelper(s.Find("[value=Upvote]"))
 	likes, err := strconv.Atoi(likeString)
 	if err != nil {
@@ -237,10 +237,10 @@ func getLikes(ctx context.Context, s *goquery.Selection) int {
 		return 0
 	}
 
-	return likes
+	return int32(likes)
 }
 
-func getDislikes(ctx context.Context, s *goquery.Selection) int {
+func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 	dislikeString := getContentHelper(s.Find("[value=Downvote]"))
 	dislikes, err := strconv.Atoi(dislikeString)
 	if err != nil {
@@ -248,7 +248,7 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int {
 		return 0
 	}
 
-	return dislikes
+	return int32(dislikes)
 }
 
 func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comment {
