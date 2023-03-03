@@ -27,7 +27,7 @@ func NewStorage() (*storage, error) {
 func (s *storage) AddComments(comments ...*Comment) error {
 	ds := goqu.Dialect("mysql").Insert(CommentsTable).Cols(CommentsUser, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
-		ds = ds.Vals(goqu.Vals{comment.User, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
+		ds = ds.Vals(goqu.Vals{comment.Name, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
 	query, _, err := ds.ToSQL()
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *storage) GetUserComments(user string) ([]*Comment, error) {
 		}
 
 		comments = append(comments, &Comment{
-			User:     foundUser,
+			Name:     foundUser,
 			Time:     tm.Local(),
 			Text:     text,
 			Likes:    likes,
@@ -115,6 +115,11 @@ func (s *storage) AddUsers(users ...string) error {
 
 	_, err = s.db.Exec(query)
 	return err
+}
+
+func (s *storage) GetArticleIDsSince(time.Time) ([]int, error) {
+	// TODO implement him
+	panic("implement me")
 }
 
 func (s *storage) Shutdown() error {
