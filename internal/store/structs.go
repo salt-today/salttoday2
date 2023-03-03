@@ -6,8 +6,8 @@ type Comment struct {
 	User     string
 	Time     time.Time
 	Text     string
-	Likes    int
-	Dislikes int
+	Likes    int32
+	Dislikes int32
 }
 
 type Article struct {
