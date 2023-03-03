@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS salt;
 USE salt;
 CREATE TABLE IF NOT EXISTS Comments (
+    # how to dedupe comments? Do we have some unique ID
     User VARCHAR(255) NOT NULL,
     Time DATETIME NOT NULL,
     Text MEDIUMTEXT NOT NULL,
