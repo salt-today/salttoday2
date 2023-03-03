@@ -68,7 +68,7 @@ func TestStorage_Comments(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		user := users[i%len(users)]
 		comment := &Comment{
-			User:     user,
+			Name:     user,
 			Time:     time.Now().Truncate(time.Second),
 			Text:     texts[i%len(texts)],
 			Likes:    rand.Int31(),
