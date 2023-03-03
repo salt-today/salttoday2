@@ -16,11 +16,6 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-type Scraper struct {
-	logger  logrus.Logger
-	siteUrl string
-}
-
 // verify these are still correct and if there's any missing
 var potentialPrefixes = []string{
 	"/local-news/",
@@ -34,34 +29,29 @@ var potentialPrefixes = []string{
 	"/city-police-beat/",
 }
 
-func NewScraper(siteUrl string) *Scraper {
-	return &Scraper{
-		siteUrl: siteUrl,
-	}
-}
+func ScrapeComments(ctx context.Context, articleIDs []int) []*store.Comment {
+	logEntry := sdk.Logger(ctx)
 
-func (s *Scraper) Scrape(ctx context.Context) {
-	logEntry := sdk.Logger(ctx).WithField("site", s.siteUrl)
-
-	articles := s.getArticles(ctx)
-
-	commentCount := 0
-	for _, article := range articles {
-		comments, err := s.getCommentsFromArticle(ctx, article)
+	comments := make([]*store.Comment, 0)
+	for _, articleID := range articleIDs {
+		articleComments, err := getCommentsFromArticle(ctx, articleID)
 		if err != nil {
 			logEntry.WithError(err).Error("failed to get comments")
 			continue
 		}
 
+		comments = append(comments, articleComments...)
+
 		for _, comment := range comments {
-			commentCount++
 			logEntry.WithField("comment", comment).Info("retrieved comment")
 		}
 	}
 	logEntry.WithFields(logrus.Fields{
-		"articles": len(articles),
-		"comments": commentCount,
+		"articles": len(articleIDs),
+		"comments": len(comments),
 	}).Info("Completed scraping site")
+
+	return comments
 }
 
 func hasArticlePrefix(href string) bool {
@@ -75,10 +65,10 @@ func hasArticlePrefix(href string) bool {
 
 // This logic is ported from the old scraper so blame Tyler if it's bad
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
-func (s *Scraper) getCommentsFromArticle(ctx context.Context, article *store.Article) ([]*store.Comment, error) {
-	articleId := getArticleId(article.Url)
-	logEntry := sdk.Logger(ctx).WithField("articleId", articleId)
-	commentsUrl := fmt.Sprintf("%s/comments/load?Type=Comment&ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest", s.siteUrl, articleId)
+func getCommentsFromArticle(ctx context.Context, articleID int) ([]*store.Comment, error) {
+	logEntry := sdk.Logger(ctx).WithField("articleId", articleID)
+	// Base url hardcoded to sootoday because it literally doesn't matter what the base url is 
+	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/load?Type=Comment&ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest", articleID)
 
 	res, err := http.Get(commentsUrl)
 	if err != nil {
@@ -95,7 +85,7 @@ func (s *Scraper) getCommentsFromArticle(ctx context.Context, article *store.Art
 	if res.StatusCode != 200 {
 		logEntry.WithFields(logrus.Fields{
 			"status_code": res.StatusCode,
-			"status":      res.StatusCode,
+			"status":      res.Status,
 		}).Fatal("status code error")
 		return nil, nil
 	}
@@ -108,24 +98,24 @@ func (s *Scraper) getCommentsFromArticle(ctx context.Context, article *store.Art
 
 	numberOfCommentApiCalls := getNumberOfCommentApiCalls(ctx, initialCommentDoc)
 
-	comments := s.searchArticleForComments(ctx, numberOfCommentApiCalls, initialCommentDoc, articleId)
+	comments := searchArticleForComments(ctx, numberOfCommentApiCalls, initialCommentDoc, articleID)
 	return comments, nil
 }
 
-func (s *Scraper) searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, initialCommentDoc *goquery.Document, articleId string) []*store.Comment {
+func searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, initialCommentDoc *goquery.Document, articleID int) []*store.Comment {
 	if numberOfCommentApiCalls <= 0 {
 		return []*store.Comment{}
 	}
 
 	// Grab all top level comments
-	commentDivs := s.selectTopLevelComments(initialCommentDoc)
-	comments := s.getComments(ctx, commentDivs, articleId)
+	commentDivs := selectTopLevelComments(initialCommentDoc)
+	comments := getComments(ctx, commentDivs, articleID)
 
 	return comments
 }
 
-func (s *Scraper) getComments(ctx context.Context, commentDivs *goquery.Selection, articleId string) []*store.Comment {
-	logEntry := sdk.Logger(ctx).WithField("article_id", articleId)
+func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID int) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", articleID)
 	comments := make([]*store.Comment, 0)
 	commentDivs.Each(func(i int, commentDiv *goquery.Selection) {
 		numRepliesStr := commentDiv.AttrOr("data-replies", "0")
@@ -151,7 +141,7 @@ func (s *Scraper) getComments(ctx context.Context, commentDivs *goquery.Selectio
 				comments = append(comments, newCommentFromDiv(ctx, commentDiv))
 
 				// get the replies
-				comments = append(comments, s.getReplies(ctx, articleId, commentDiv.AttrOr("data-id", ""))...)
+				comments = append(comments, getReplies(ctx, articleID, commentDiv.AttrOr("data-id", ""))...)
 
 			} else { // If the button exists, get all replies
 				// TODO - the reply endpoint is different, I'm not sure what happens if there are more than 20 replies
@@ -159,7 +149,7 @@ func (s *Scraper) getComments(ctx context.Context, commentDivs *goquery.Selectio
 				if numReplies > 20 {
 					logEntry.Warn("HUGE REPLY CHAIN FOUND!")
 				} else {
-					comments = append(comments, s.getReplies(ctx, articleId, loadMore.AttrOr("data-parent", ""))...)
+					comments = append(comments, getReplies(ctx, articleID, loadMore.AttrOr("data-parent", ""))...)
 				}
 			}
 		}
@@ -170,9 +160,9 @@ func (s *Scraper) getComments(ctx context.Context, commentDivs *goquery.Selectio
 
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
 // We can nly surmise on the usage currently
-func (s *Scraper) getReplies(ctx context.Context, articleId, parentId string) []*store.Comment {
-	logEntry := sdk.Logger(ctx).WithField("article_id", articleId)
-	commentsUrl := fmt.Sprintf("%s/comments/get?ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", s.siteUrl, articleId, parentId)
+func getReplies(ctx context.Context, articleID int, parentID string) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", articleID)
+	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/get?ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", articleID, parentID)
 	res, err := http.Get(commentsUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load comments")
@@ -208,6 +198,19 @@ func (s *Scraper) getReplies(ctx context.Context, articleId, parentId string) []
 
 func getContentHelper(s *goquery.Selection) string {
 	return strings.TrimSpace(s.First().Text())
+}
+
+
+func getUserID(ctx context.Context, s *goquery.Selection) int {
+	profileHref := s.Find("a.comment-un").AttrOr("href", "0")
+	splitProfile := strings.Split(profileHref, "/")
+	idString := splitProfile[len(splitProfile)-1]
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		sdk.Logger(ctx).WithError(err).Error("Couldn't parse user ID, using 0")
+		return 0
+	}
+	return id
 }
 
 func getUsername(_ context.Context, s *goquery.Selection) string {
@@ -253,7 +256,8 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 
 func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comment {
 	return &store.Comment{
-		User:     getUsername(ctx, div),
+		ID:       getUserID(ctx, div),
+		Name:     getUsername(ctx, div),
 		Time:     getTimestamp(ctx, div),
 		Text:     getCommentText(ctx, div),
 		Likes:    getLikes(ctx, div),
@@ -264,7 +268,7 @@ func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comme
 // SooToday has two types of return values from their API
 // 1. contains a div.comments element - returned from a page load
 // 2. just contains a body tag with a collection of comments
-func (s *Scraper) selectTopLevelComments(commentsDoc *goquery.Document) *goquery.Selection {
+func selectTopLevelComments(commentsDoc *goquery.Document) *goquery.Selection {
 	// This isn't completely necessary anymore because I found a selector that works for both
 	// However, separating this might still be a good idea incase sootoday changes and allows for deeply nested replies.
 	// This only works but only top level comments have the data-replies attr
@@ -291,13 +295,19 @@ func getNumberOfCommentApiCalls(ctx context.Context, doc *goquery.Document) int 
 	return int(math.Ceil(float64(topLevelCommentCount) / 20))
 }
 
-func getArticleId(url string) string {
-	return url[strings.LastIndex(url, "-")+1:]
+func getArticleId(ctx context.Context, url string) int {
+	articleIdStr := url[strings.LastIndex(url, "-")+1:]
+	articleId, err := strconv.Atoi(articleIdStr)
+	if err != nil {
+		sdk.Logger(ctx).WithError(err).Error("Error converting article ID to int, using 0")
+		return 0
+	}
+	return articleId
 }
 
-func (s *Scraper) getArticles(ctx context.Context) []*store.Article {
-	logEntry := sdk.Logger(ctx)
-	res, err := http.Get(s.siteUrl)
+func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
+	logEntry := sdk.Logger(ctx).WithField("site_url", siteUrl)
+	res, err := http.Get(siteUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load articles")
 		return nil
@@ -328,8 +338,9 @@ func (s *Scraper) getArticles(ctx context.Context) []*store.Article {
 				title := sel.Find("div.section-title").First().Text()
 				title = strings.TrimSpace(title)
 				articles = append(articles, &store.Article{
+					ID:    getArticleId(ctx, href),
 					Title: title,
-					Url:   s.siteUrl + href,
+					Url:   siteUrl + href,
 				})
 			}
 		}
