@@ -1,4 +1,5 @@
-CREATE DATABASE IF NOT EXISTS salt;
+DROP DATABASE salt;
+CREATE DATABASE salt;
 USE salt;
 CREATE TABLE IF NOT EXISTS Comments (
     # how to dedupe comments? Do we have some unique ID
@@ -10,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Comments (
     INDEX `user` (User)
 );
 
-CREATE TABLE IF NOT EXISTS Article (
+CREATE TABLE IF NOT EXISTS Articles (
     #can URL be my primary key? Should it be some generated ID.
     Url VARCHAR(2048) NOT NULL,
     Title VARCHAR(2048) NOT NULL,
@@ -24,6 +25,6 @@ Create TABLE IF NOT EXISTS Users (
 );
 
 FLUSH PRIVILEGES;
-CREATE USER 'salt'@'%' IDENTIFIED BY 'salt';
+CREATE USER IF NOT EXISTS 'salt'@'%' IDENTIFIED BY 'salt';
 GRANT ALL PRIVILEGES ON *.* TO 'salt'@'%';
 FLUSH PRIVILEGES;
