@@ -10,7 +10,6 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-
 func handler(ctx context.Context) {
 	logEntry := sdk.Logger(ctx).WithField("lambda", "scrapper/comments")
 	store, err := store.NewStorage()
@@ -25,9 +24,15 @@ func handler(ctx context.Context) {
 	}
 
 	comments := scraper.ScrapeComments(ctx, articleIDs)
+	for _, comment := range comments {
+		logEntry.WithField("comment", comment.ID).Info("Found comment")
+	}
 	store.AddComments(comments...)
 }
 
 func main() {
+	// TODO remove once we have better local testing story
+	// handler(context.Background())
+
 	lambda.Start(handler)
 }

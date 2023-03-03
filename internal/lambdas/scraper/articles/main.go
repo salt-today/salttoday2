@@ -21,9 +21,19 @@ func handler(ctx context.Context, event scrapeArticlesEvent) {
 	}
 
 	articles := scraper.ScrapeArticles(ctx, event.siteUrl)
-	store.AddArticles(articles...)
+	for _, article := range articles {
+		logEntry.WithField("article", article.ID).Info("Found article")
+	}
+
+	err = store.AddArticles(articles...)
+	if err != nil {
+		logEntry.WithError(err).Fatal("failed to add articles")
+	}
 }
 
 func main() {
+	// TODO remove once we have better local testing story
+	// handler(context.Background(), scrapeArticlesEvent{siteUrl: "https://tbnewswatch.com"})
+
 	lambda.Start(handler)
 }
