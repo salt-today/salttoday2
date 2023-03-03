@@ -3,7 +3,8 @@ package store
 import "time"
 
 type Comment struct {
-	ID		 int
+	ID       int
+	UserID   int
 	Name     string
 	Time     time.Time
 	Text     string
@@ -12,8 +13,8 @@ type Comment struct {
 }
 
 type Article struct {
-	ID 	  int
-	Title string
-	Url   string
+	ID            int
+	Title         string
+	Url           string
 	DiscoveryTime time.Time
 }

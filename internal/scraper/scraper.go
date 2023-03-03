@@ -67,8 +67,8 @@ func hasArticlePrefix(href string) bool {
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
 func getCommentsFromArticle(ctx context.Context, articleID int) ([]*store.Comment, error) {
 	logEntry := sdk.Logger(ctx).WithField("articleId", articleID)
-	// Base url hardcoded to sootoday because it literally doesn't matter what the base url is 
-	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/load?Type=Comment&ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest", articleID)
+	// Base url hardcoded to sootoday because it literally doesn't matter what the base url is
+	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", articleID)
 
 	res, err := http.Get(commentsUrl)
 	if err != nil {
@@ -141,7 +141,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 				comments = append(comments, newCommentFromDiv(ctx, commentDiv))
 
 				// get the replies
-				comments = append(comments, getReplies(ctx, articleID, commentDiv.AttrOr("data-id", ""))...)
+				comments = append(comments, getReplies(ctx, articleID, strconv.Itoa(getCommentID(ctx, commentDiv)))...)
 
 			} else { // If the button exists, get all replies
 				// TODO - the reply endpoint is different, I'm not sure what happens if there are more than 20 replies
@@ -162,7 +162,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 // We can nly surmise on the usage currently
 func getReplies(ctx context.Context, articleID int, parentID string) []*store.Comment {
 	logEntry := sdk.Logger(ctx).WithField("article_id", articleID)
-	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/get?ContentId=%s&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", articleID, parentID)
+	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", articleID, parentID)
 	res, err := http.Get(commentsUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load comments")
@@ -200,6 +200,16 @@ func getContentHelper(s *goquery.Selection) string {
 	return strings.TrimSpace(s.First().Text())
 }
 
+func getCommentID(ctx context.Context, s *goquery.Selection) int {
+	logEntry := sdk.Logger(ctx)
+	idString := s.AttrOr("data-id", "")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		logEntry.WithError(err).Error("Couldn't parse comment ID, using 0")
+		return 0
+	}
+	return id
+}
 
 func getUserID(ctx context.Context, s *goquery.Selection) int {
 	profileHref := s.Find("a.comment-un").AttrOr("href", "0")
@@ -256,7 +266,8 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 
 func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comment {
 	return &store.Comment{
-		ID:       getUserID(ctx, div),
+		ID:       getCommentID(ctx, div),
+		UserID:   getUserID(ctx, div),
 		Name:     getUsername(ctx, div),
 		Time:     getTimestamp(ctx, div),
 		Text:     getCommentText(ctx, div),
