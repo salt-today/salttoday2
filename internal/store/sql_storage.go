@@ -190,6 +190,34 @@ func (s *sqlStorage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Ar
 	return articles, nil
 }
 
+func (s *sqlStorage) SetArticleScrapedNow(articleIDs ...int) error {
+	ds := s.dialect.Update(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: articleIDs}).
+		Set(goqu.Record{ArticlesLastScrapeTime: time.Now().Truncate(time.Second)})
+
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
+	return err
+}
+
+func (s *sqlStorage) SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...int) error {
+	ds := s.dialect.Update(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: articleIDs}).
+		Set(goqu.Record{ArticlesLastScrapeTime: scrapedTime.Truncate(time.Second)})
+
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
+	return err
+}
+
 func (s *sqlStorage) shutdown() error {
 	return s.db.Close()
 }

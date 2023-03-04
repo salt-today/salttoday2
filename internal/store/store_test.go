@@ -80,6 +80,7 @@ func TestStorage_Articles(t *testing.T) {
 		"www.sootoday.com/legit/1204324",
 		"www.sootoday.com/legit/120123",
 	}
+
 	numArts := 10
 	allArticles := make([]*Article, 0, numArts)
 	toScrapeTimes := make([]time.Time, 0, numArts)
