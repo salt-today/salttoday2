@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"github.com/stretchr/testify/require"
 	"math/rand"
 	"testing"
@@ -12,7 +13,9 @@ import (
 // Should probably also mock the DB, but meh.
 // Will remove, probably.
 func TestBasicDB(t *testing.T) {
-	store, err := NewStorage()
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	store, err := NewSQLStorage(ctx)
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
@@ -44,11 +47,11 @@ func TestBasicDB(t *testing.T) {
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
 	require.NoError(t, err)
 
-	require.NoError(t, store.Shutdown())
+	require.NoError(t, store.shutdown())
 }
 
 func TestStorage_Comments(t *testing.T) {
-	store, err := NewStorage()
+	store, err := NewSQLStorage(context.TODO())
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
@@ -94,7 +97,7 @@ func TestStorage_Comments(t *testing.T) {
 }
 
 func TestStorage_Articles(t *testing.T) {
-	store, err := NewStorage()
+	store, err := NewSQLStorage(context.TODO())
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Articles;")

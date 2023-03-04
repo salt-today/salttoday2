@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/samber/lo"
+
 	"github.com/salt-today/salttoday2/internal/scraper"
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/store"
@@ -12,22 +14,26 @@ import (
 
 func handler(ctx context.Context) {
 	logEntry := sdk.Logger(ctx).WithField("lambda", "scrapper/comments")
-	store, err := store.NewStorage()
+	storage, err := store.NewSQLStorage(ctx)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
 
 	// Get articles from the last 7 days
-	articleIDs, err := store.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
+	articles, err := storage.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 	}
+
+	var articleIDs = lo.FlatMap[*store.Article, int](articles, func(item *store.Article, _ int) []int {
+		return []int{item.ID}
+	})
 
 	comments := scraper.ScrapeComments(ctx, articleIDs)
 	for _, comment := range comments {
 		logEntry.WithField("comment", comment.ID).Info("Found comment")
 	}
-	store.AddComments(comments...)
+	storage.AddComments(comments...)
 }
 
 func main() {

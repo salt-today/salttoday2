@@ -15,7 +15,7 @@ type scrapeArticlesEvent struct {
 
 func handler(ctx context.Context, event scrapeArticlesEvent) {
 	logEntry := sdk.Logger(ctx).WithField("lambda", "scrapper/articles")
-	store, err := store.NewStorage()
+	storage, err := store.NewSQLStorage(ctx)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
@@ -25,7 +25,7 @@ func handler(ctx context.Context, event scrapeArticlesEvent) {
 		logEntry.WithField("article", article.ID).Info("Found article")
 	}
 
-	err = store.AddArticles(articles...)
+	err = storage.AddArticles(articles...)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to add articles")
 	}
