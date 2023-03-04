@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/lambda"
+
 	"github.com/salt-today/salttoday2/internal/scraper"
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/store"
