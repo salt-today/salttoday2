@@ -25,7 +25,7 @@ func handler(ctx context.Context, event scrapeArticlesEvent) {
 		logEntry.WithField("article", article.ID).Info("Found article")
 	}
 
-	err = storage.AddArticles(articles...)
+	err = storage.AddArticles(ctx, articles...)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to add articles")
 	}
