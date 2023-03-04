@@ -19,7 +19,7 @@ func handler(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articles, err := storage.GetUnscrapedArticlesSince(context.TODO(), time.Now().Add(-time.Hour*24*7))
+	articles, err := storage.GetRecentlyDiscoveredArticles(context.TODO(), time.Now().Add(-time.Hour*24*7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 		return

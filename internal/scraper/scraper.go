@@ -127,7 +127,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 		// fmt.Println(selection.First().Text())
 		if numReplies == 0 {
 			// If comment has no replies, just get the comment itself
-			comments = append(comments, newCommentFromDiv(ctx, commentDiv))
+			comments = append(comments, newCommentFromDiv(ctx, articleID, commentDiv))
 		} else { // If the comment has replies, check for a "Load More" button
 			loadMore := commentDiv.Find("button.comments-more")
 
@@ -138,7 +138,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 				// Something has changed or I'm bad at converting Clojure to Go
 
 				// get the parent comment
-				comments = append(comments, newCommentFromDiv(ctx, commentDiv))
+				comments = append(comments, newCommentFromDiv(ctx, articleID, commentDiv))
 
 				// get the replies
 				comments = append(comments, getReplies(ctx, articleID, strconv.Itoa(getCommentID(ctx, commentDiv)))...)
@@ -191,7 +191,7 @@ func getReplies(ctx context.Context, articleID int, parentID string) []*store.Co
 	docComments := doc.Find("div.comment")
 	comments := make([]*store.Comment, 0)
 	docComments.Each(func(i int, reply *goquery.Selection) {
-		comments = append(comments, newCommentFromDiv(ctx, reply))
+		comments = append(comments, newCommentFromDiv(ctx, articleID, reply))
 	})
 	return comments
 }
@@ -264,14 +264,15 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 	return int32(dislikes)
 }
 
-func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comment {
+func newCommentFromDiv(ctx context.Context, articleID int, div *goquery.Selection) *store.Comment {
 	return &store.Comment{
-		ID:       getCommentID(ctx, div),
-		UserID:   getUserID(ctx, div),
-		Time:     getTimestamp(ctx, div),
-		Text:     getCommentText(ctx, div),
-		Likes:    getLikes(ctx, div),
-		Dislikes: getDislikes(ctx, div),
+		ID:        getCommentID(ctx, div),
+		ArticleID: articleID,
+		UserID:    getUserID(ctx, div),
+		Time:      getTimestamp(ctx, div),
+		Text:      getCommentText(ctx, div),
+		Likes:     getLikes(ctx, div),
+		Dislikes:  getDislikes(ctx, div),
 	}
 }
 
