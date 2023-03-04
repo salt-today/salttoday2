@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/doug-martin/goqu/v9/exp"
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 )
 
 type storage struct {
-	db *sql.DB
+	db      *sql.DB
+	dialect goqu.DialectWrapper
 }
 
 func NewStorage() (*storage, error) {
@@ -18,16 +20,16 @@ func NewStorage() (*storage, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &storage{
-		db: db,
+		db:      db,
+		dialect: goqu.Dialect("mysql"),
 	}, nil
 }
 
 func (s *storage) AddComments(comments ...*Comment) error {
-	ds := goqu.Dialect("mysql").Insert(CommentsTable).Cols(CommentsUser, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
+	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
-		ds = ds.Vals(goqu.Vals{comment.Name, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
+		ds = ds.Vals(goqu.Vals{comment.ID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
 	query, _, err := ds.ToSQL()
 	if err != nil {
@@ -38,11 +40,11 @@ func (s *storage) AddComments(comments ...*Comment) error {
 	return err
 }
 
-func (s *storage) GetUserComments(user string) ([]*Comment, error) {
-	sd := goqu.Dialect("mysql").
-		Select(CommentsUser, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
+func (s *storage) GetUserComments(userID int) ([]*Comment, error) {
+	sd := s.dialect.
+		Select(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
 		From(CommentsTable).
-		Where(goqu.Ex{CommentsUser: user})
+		Where(goqu.Ex{CommentsUserID: userID})
 
 	query, _, err := sd.ToSQL()
 	if err != nil {
@@ -56,19 +58,19 @@ func (s *storage) GetUserComments(user string) ([]*Comment, error) {
 	defer rows.Close()
 
 	comments := make([]*Comment, 0)
-	var foundUser string
+	var id, foundUserID int
 	var tm time.Time
 	var text string
-	var likes int32
-	var dislikes int32
+	var likes, dislikes int32
 	for rows.Next() {
-		err := rows.Scan(&foundUser, &tm, &text, &likes, &dislikes)
+		err := rows.Scan(&id, &foundUserID, &tm, &text, &likes, &dislikes)
 		if err != nil {
 			return nil, err
 		}
 
 		comments = append(comments, &Comment{
-			Name:     foundUser,
+			ID:       id,
+			UserID:   foundUserID,
 			Time:     tm.Local(),
 			Text:     text,
 			Likes:    likes,
@@ -88,9 +90,9 @@ func (s *storage) GetUserComments(user string) ([]*Comment, error) {
 }
 
 func (s *storage) AddArticles(articles ...*Article) error {
-	ds := goqu.Insert(ArticlesTable).Cols(ArticlesUrl, ArticlesTitle)
+	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime)
 	for _, article := range articles {
-		ds = ds.Vals(goqu.Vals{article.Url, article.Title})
+		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime})
 	}
 
 	query, _, err := ds.ToSQL()
@@ -102,10 +104,10 @@ func (s *storage) AddArticles(articles ...*Article) error {
 	return err
 }
 
-func (s *storage) AddUsers(users ...string) error {
-	ds := goqu.Insert(UsersTable).Cols(UsersUser)
+func (s *storage) AddUsers(users ...*User) error {
+	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
 	for _, user := range users {
-		ds = ds.Vals(goqu.Vals{user})
+		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
 
 	query, _, err := ds.ToSQL()
@@ -117,9 +119,66 @@ func (s *storage) AddUsers(users ...string) error {
 	return err
 }
 
-func (s *storage) GetArticleIDsSince(time.Time) ([]int, error) {
-	// TODO implement him
-	panic("implement me")
+func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error) {
+	sd := s.dialect.
+		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		From(ArticlesTable).
+		Where(
+			goqu.Or(
+				goqu.Ex{
+					ArticlesLastScrapeTime: nil,
+				},
+				goqu.Ex{
+					ArticlesLastScrapeTime: goqu.Op{"lt": scrapeThreshold.Truncate(time.Second)},
+				},
+			),
+		)
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	articles := make([]*Article, 0)
+	var id int
+	var url, title string
+	var first, last sql.NullTime
+	for rows.Next() {
+		err := rows.Scan(&id, &url, &title, &first, &last)
+		if err != nil {
+			return nil, err
+		}
+
+		article := &Article{
+			ID:            id,
+			Url:           url,
+			Title:         title,
+			DiscoveryTime: first.Time.Local(),
+		}
+
+		if last.Valid {
+			localTime := last.Time.Local()
+			article.LastScrapeTime = &localTime
+		}
+
+		articles = append(articles, article)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+
+	return articles, nil
 }
 
 func (s *storage) Shutdown() error {

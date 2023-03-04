@@ -9,14 +9,19 @@ const (
 
 // Columns
 const (
-	CommentsUser     = "User"
+	CommentsID       = "ID"
+	CommentsUserID   = "UserID"
 	CommentsTime     = "Time"
 	CommentsText     = "Text"
 	CommentsLikes    = "Likes"
 	CommentsDislikes = "Dislikes"
 
-	ArticlesUrl   = "Url"
-	ArticlesTitle = "Title"
+	ArticlesID             = "ID"
+	ArticlesUrl            = "Url"
+	ArticlesTitle          = "Title"
+	ArticlesDiscoveryTime  = "DiscoveryTime"
+	ArticlesLastScrapeTime = "LastScrapeTime"
 
-	UsersUser = "User"
+	UsersID   = "ID"
+	UsersName = "User"
 )

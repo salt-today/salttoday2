@@ -18,7 +18,7 @@ func handler(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articleIDs, err := store.GetArticleIDsSince(time.Now().Add(-time.Hour * 24 * 7))
+	articleIDs, err := store.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 	}

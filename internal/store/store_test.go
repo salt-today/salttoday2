@@ -54,7 +54,8 @@ func TestStorage_Comments(t *testing.T) {
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
 	require.NoError(t, err)
 
-	users := []string{"userA", "userB", "userC", "userD", "userE"}
+	users := []int{1, 2, 3, 4, 5}
+
 	texts := []string{
 		"I think this is cool",
 		"i think this is dumb",
@@ -64,11 +65,12 @@ func TestStorage_Comments(t *testing.T) {
 	}
 
 	allComments := make([]*Comment, 0, 100)
-	commentsByUser := make(map[string][]*Comment)
-	for i := 0; i < 100; i++ {
+	commentsByUser := make(map[int][]*Comment)
+	for i := 0; i < 1; i++ {
 		user := users[i%len(users)]
 		comment := &Comment{
-			Name:     user,
+			ID:       i,
+			UserID:   user,
 			Time:     time.Now().Truncate(time.Second),
 			Text:     texts[i%len(texts)],
 			Likes:    rand.Int31(),
@@ -88,5 +90,56 @@ func TestStorage_Comments(t *testing.T) {
 	}
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
+	require.NoError(t, err)
+}
+
+func TestStorage_Articles(t *testing.T) {
+	store, err := NewStorage()
+	require.NoError(t, err)
+
+	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
+	require.NoError(t, err)
+
+	titles := []string{
+		"theres a lot of snow",
+		"people in front of station mall protesting masks",
+		"algoma U running a grad school program lul",
+		"opioid crisis 2.0",
+		"cool title",
+	}
+
+	urls := []string{
+		"www.sootoday.com/legit/12013",
+		"www.sootoday.com/legit/120qwe",
+		"www.sootoday.com/legit/120fff",
+		"www.sootoday.com/legit/1204324",
+		"www.sootoday.com/legit/120123",
+	}
+	numArts := 10
+	allArticles := make([]*Article, 0, numArts)
+	//start := time.Now()
+	now := time.Now()
+	for i := 0; i < numArts; i++ {
+		now = now.Add(-time.Second)
+		article := &Article{
+			ID:             i,
+			Title:          titles[i%len(titles)],
+			Url:            urls[i%len(urls)],
+			DiscoveryTime:  now.Truncate(time.Second),
+			LastScrapeTime: nil,
+		}
+
+		allArticles = append(allArticles, article)
+	}
+
+	require.NoError(t, store.AddArticles(allArticles...))
+	arts, err := store.GetUnscrapedArticlesSince(time.Now())
+	require.ElementsMatch(t, allArticles, arts)
+
+	dur := time.Second * time.Duration(numArts/2)
+	arts, err = store.GetUnscrapedArticlesSince(time.Now().Add(-dur))
+	require.ElementsMatch(t, allArticles[:5], arts[:5])
+
+	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
 	require.NoError(t, err)
 }

@@ -2,26 +2,30 @@ DROP DATABASE salt;
 CREATE DATABASE salt;
 USE salt;
 CREATE TABLE IF NOT EXISTS Comments (
-    # how to dedupe comments? Do we have some unique ID
-    User VARCHAR(255) NOT NULL,
+    ID INT NOT NULL,
+    UserID INT NOT NULL,
     Time DATETIME NOT NULL,
     Text MEDIUMTEXT NOT NULL,
     Likes INT NOT NULL DEFAULT(0),
     Dislikes INT NOT NULL DEFAULT(0),
-    INDEX `user` (User)
+    PRIMARY KEY (ID),
+    INDEX `user` (UserID)
 );
 
 CREATE TABLE IF NOT EXISTS Articles (
-    #can URL be my primary key? Should it be some generated ID.
+    ID INT NOT NULL,
     Url VARCHAR(2048) NOT NULL,
     Title VARCHAR(2048) NOT NULL,
-    PRIMARY KEY (Url)
+    DiscoveryTime DATETIME NOT NULL,
+    LastScrapeTime DATETIME,
+    PRIMARY KEY (ID),
+    INDEX scrape_time (LastScrapeTime)
 );
 
 Create TABLE IF NOT EXISTS Users (
-    #hmm what else to store here? Do I need it?
-    User VARCHAR(255) NOT NULL,
-    PRIMARY KEY (User)
+    ID INT NOT NULL,
+    Name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (ID)
 );
 
 FLUSH PRIVILEGES;
