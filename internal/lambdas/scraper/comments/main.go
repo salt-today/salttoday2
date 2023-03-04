@@ -18,7 +18,7 @@ func handler(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articles, err := storer.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
+	articles, err := storer.GetUnscrapedArticlesSince(context.TODO(), time.Now().Add(-time.Hour*24*7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 		return
@@ -29,7 +29,7 @@ func handler(ctx context.Context) {
 		logEntry.WithField("comment", comment.ID).Info("Found comment")
 	}
 
-	if err := storer.AddComments(comments...); err != nil {
+	if err := storer.AddComments(context.TODO(), comments...); err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 	}
 }
