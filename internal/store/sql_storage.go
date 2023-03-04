@@ -35,7 +35,7 @@ func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	return s, nil
 }
 
-func (s *sqlStorage) AddComments(comments ...*Comment) error {
+func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) error {
 	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
@@ -45,11 +45,11 @@ func (s *sqlStorage) AddComments(comments ...*Comment) error {
 		return err
 	}
 
-	_, err = s.db.Exec(query)
+	_, err = s.db.ExecContext(ctx, query)
 	return err
 }
 
-func (s *sqlStorage) GetUserComments(userID int) ([]*Comment, error) {
+func (s *sqlStorage) GetUserComments(ctx context.Context, userID int) ([]*Comment, error) {
 	sd := s.dialect.
 		Select(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
 		From(CommentsTable).
@@ -60,7 +60,7 @@ func (s *sqlStorage) GetUserComments(userID int) ([]*Comment, error) {
 		return nil, err
 	}
 
-	rows, err := s.db.Query(query)
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (s *sqlStorage) GetUserComments(userID int) ([]*Comment, error) {
 	return comments, nil
 }
 
-func (s *sqlStorage) AddArticles(articles ...*Article) error {
+func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) error {
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime)
 	for _, article := range articles {
 		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime})
@@ -109,11 +109,11 @@ func (s *sqlStorage) AddArticles(articles ...*Article) error {
 		return err
 	}
 
-	_, err = s.db.Exec(query)
+	_, err = s.db.ExecContext(ctx, query)
 	return err
 }
 
-func (s *sqlStorage) AddUsers(users ...*User) error {
+func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
 	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
@@ -124,11 +124,11 @@ func (s *sqlStorage) AddUsers(users ...*User) error {
 		return err
 	}
 
-	_, err = s.db.Exec(query)
+	_, err = s.db.ExecContext(ctx, query)
 	return err
 }
 
-func (s *sqlStorage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error) {
+func (s *sqlStorage) GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error) {
 	sd := s.dialect.
 		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
@@ -148,7 +148,7 @@ func (s *sqlStorage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Ar
 		return nil, err
 	}
 
-	rows, err := s.db.Query(query)
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

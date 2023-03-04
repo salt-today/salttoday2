@@ -20,7 +20,7 @@ func handler(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articles, err := storage.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
+	articles, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
 	}
@@ -33,7 +33,7 @@ func handler(ctx context.Context) {
 	for _, comment := range comments {
 		logEntry.WithField("comment", comment.ID).Info("Found comment")
 	}
-	storage.AddComments(comments...)
+	storage.AddComments(ctx, comments...)
 }
 
 func main() {

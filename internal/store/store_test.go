@@ -13,9 +13,9 @@ import (
 // Should probably also mock the DB, but meh.
 // Will remove, probably.
 func TestBasicDB(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
+	testCtx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	store, err := NewSQLStorage(ctx)
+	store, err := NewSQLStorage(testCtx)
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
@@ -51,7 +51,10 @@ func TestBasicDB(t *testing.T) {
 }
 
 func TestStorage_Comments(t *testing.T) {
-	store, err := NewSQLStorage(context.TODO())
+	testCtx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
+	store, err := NewSQLStorage(testCtx)
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
@@ -85,9 +88,9 @@ func TestStorage_Comments(t *testing.T) {
 		commentsByUser[user] = append(commentsByUser[user], comment)
 	}
 
-	require.NoError(t, store.AddComments(allComments...))
+	require.NoError(t, store.AddComments(testCtx, allComments...))
 	for _, user := range users {
-		comments, err := store.GetUserComments(user)
+		comments, err := store.GetUserComments(testCtx, user)
 		require.NoError(t, err)
 		require.ElementsMatch(t, commentsByUser[user], comments)
 	}
@@ -97,7 +100,9 @@ func TestStorage_Comments(t *testing.T) {
 }
 
 func TestStorage_Articles(t *testing.T) {
-	store, err := NewSQLStorage(context.TODO())
+	testCtx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	store, err := NewSQLStorage(testCtx)
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
@@ -135,12 +140,12 @@ func TestStorage_Articles(t *testing.T) {
 		allArticles = append(allArticles, article)
 	}
 
-	require.NoError(t, store.AddArticles(allArticles...))
-	arts, err := store.GetUnscrapedArticlesSince(time.Now())
+	require.NoError(t, store.AddArticles(testCtx, allArticles...))
+	arts, err := store.GetUnscrapedArticlesSince(testCtx, time.Now())
 	require.ElementsMatch(t, allArticles, arts)
 
 	dur := time.Second * time.Duration(numArts/2)
-	arts, err = store.GetUnscrapedArticlesSince(time.Now().Add(-dur))
+	arts, err = store.GetUnscrapedArticlesSince(testCtx, time.Now().Add(-dur))
 	require.ElementsMatch(t, allArticles[:5], arts[:5])
 
 	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
