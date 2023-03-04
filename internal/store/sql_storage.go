@@ -11,6 +11,8 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
+var _ Storage = (*sqlStorage)(nil)
+
 type sqlStorage struct {
 	db      *sql.DB
 	dialect goqu.DialectWrapper
@@ -190,7 +192,7 @@ func (s *sqlStorage) GetUnscrapedArticlesSince(ctx context.Context, scrapeThresh
 	return articles, nil
 }
 
-func (s *sqlStorage) SetArticleScrapedNow(articleIDs ...int) error {
+func (s *sqlStorage) SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error {
 	ds := s.dialect.Update(ArticlesTable).
 		Where(goqu.Ex{ArticlesID: articleIDs}).
 		Set(goqu.Record{ArticlesLastScrapeTime: time.Now().Truncate(time.Second)})
@@ -200,11 +202,11 @@ func (s *sqlStorage) SetArticleScrapedNow(articleIDs ...int) error {
 		return err
 	}
 
-	_, err = s.db.Exec(query)
+	_, err = s.db.ExecContext(ctx, query)
 	return err
 }
 
-func (s *sqlStorage) SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...int) error {
+func (s *sqlStorage) SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error {
 	ds := s.dialect.Update(ArticlesTable).
 		Where(goqu.Ex{ArticlesID: articleIDs}).
 		Set(goqu.Record{ArticlesLastScrapeTime: scrapedTime.Truncate(time.Second)})
@@ -214,7 +216,7 @@ func (s *sqlStorage) SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...in
 		return err
 	}
 
-	_, err = s.db.Exec(query)
+	_, err = s.db.ExecContext(ctx, query)
 	return err
 }
 

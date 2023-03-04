@@ -1,17 +1,26 @@
 package store
 
 import (
-	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
-	_ "github.com/go-sql-driver/mysql"
+	"context"
 	"time"
 )
 
 type Storage interface {
-	AddComments(comments ...*Comment) error
-	GetUserComments(userID int) ([]*Comment, error)
-	AddArticles(articles ...*Article) error
-	AddUsers(users ...*User) error
-	GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error)
-	SetArticleScrapedNow(articleIDs ...int) error
-	SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...int)
+	AddComments(ctx context.Context, comments ...*Comment) error
+	GetUserComments(ctx context.Context, userID int) ([]*Comment, error)
+	AddArticles(ctx context.Context, articles ...*Article) error
+	AddUsers(ctx context.Context, users ...*User) error
+	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
+	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
+	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
+}
+
+type StorageContent interface {
+	[]*Comment | []*Article
+}
+
+type StoragePage[ContentType StorageContent] struct {
+	Content  ContentType
+	IsLast   bool
+	pageData []byte
 }
