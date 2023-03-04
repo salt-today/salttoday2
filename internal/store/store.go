@@ -27,7 +27,8 @@ func NewStorage() (*storage, error) {
 }
 
 func (s *storage) AddComments(comments ...*Comment) error {
-	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
+	ds := s.dialect.Insert(CommentsTable).
+		Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
@@ -105,7 +106,9 @@ func (s *storage) AddArticles(articles ...*Article) error {
 }
 
 func (s *storage) AddUsers(users ...*User) error {
-	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
+	ds := goqu.Insert(UsersTable).
+		Cols(UsersID, UsersName).
+		OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
@@ -129,7 +132,7 @@ func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Artic
 					ArticlesLastScrapeTime: nil,
 				},
 				goqu.Ex{
-					ArticlesLastScrapeTime: goqu.Op{"lt": scrapeThreshold.Truncate(time.Second)},
+					ArticlesLastScrapeTime: goqu.Op{exp.LteOp.String(): scrapeThreshold.UTC().Truncate(time.Second)},
 				},
 			),
 		)
@@ -179,6 +182,34 @@ func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Artic
 	}
 
 	return articles, nil
+}
+
+func (s *storage) SetArticleScrapedNow(articleIDs ...int) error {
+	ds := s.dialect.Update(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: articleIDs}).
+		Set(goqu.Record{ArticlesLastScrapeTime: time.Now().Truncate(time.Second)})
+
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
+	return err
+}
+
+func (s *storage) SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...int) error {
+	ds := s.dialect.Update(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: articleIDs}).
+		Set(goqu.Record{ArticlesLastScrapeTime: scrapedTime.Truncate(time.Second)})
+
+	query, _, err := ds.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(query)
+	return err
 }
 
 func (s *storage) Shutdown() error {

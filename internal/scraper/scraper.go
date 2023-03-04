@@ -29,12 +29,12 @@ var potentialPrefixes = []string{
 	"/city-police-beat/",
 }
 
-func ScrapeComments(ctx context.Context, articleIDs []int) []*store.Comment {
+func ScrapeComments(ctx context.Context, articles ...*store.Article) []*store.Comment {
 	logEntry := sdk.Logger(ctx)
 
 	comments := make([]*store.Comment, 0)
-	for _, articleID := range articleIDs {
-		articleComments, err := getCommentsFromArticle(ctx, articleID)
+	for _, article := range articles {
+		articleComments, err := getCommentsFromArticle(ctx, article.ID)
 		if err != nil {
 			logEntry.WithError(err).Error("failed to get comments")
 			continue
@@ -47,7 +47,7 @@ func ScrapeComments(ctx context.Context, articleIDs []int) []*store.Comment {
 		}
 	}
 	logEntry.WithFields(logrus.Fields{
-		"articles": len(articleIDs),
+		"articles": len(articles),
 		"comments": len(comments),
 	}).Info("Completed scraping site")
 
@@ -268,7 +268,6 @@ func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comme
 	return &store.Comment{
 		ID:       getCommentID(ctx, div),
 		UserID:   getUserID(ctx, div),
-		Name:     getUsername(ctx, div),
 		Time:     getTimestamp(ctx, div),
 		Text:     getCommentText(ctx, div),
 		Likes:    getLikes(ctx, div),

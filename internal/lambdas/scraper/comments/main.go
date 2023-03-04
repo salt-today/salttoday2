@@ -12,22 +12,26 @@ import (
 
 func handler(ctx context.Context) {
 	logEntry := sdk.Logger(ctx).WithField("lambda", "scrapper/comments")
-	store, err := store.NewStorage()
+	storer, err := store.NewStorage()
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
 
 	// Get articles from the last 7 days
-	articleIDs, err := store.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
+	articleIDs, err := storer.GetUnscrapedArticlesSince(time.Now().Add(-time.Hour * 24 * 7))
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to get article ids")
+		return
 	}
 
-	comments := scraper.ScrapeComments(ctx, articleIDs)
+	comments := scraper.ScrapeComments(ctx, articleIDs...)
 	for _, comment := range comments {
 		logEntry.WithField("comment", comment.ID).Info("Found comment")
 	}
-	store.AddComments(comments...)
+
+	if err := storer.AddComments(comments...); err != nil {
+		logEntry.WithError(err).Fatal("failed to get article ids")
+	}
 }
 
 func main() {

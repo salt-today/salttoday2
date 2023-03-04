@@ -11,42 +11,6 @@ import (
 // Good to validate our db service is working, but not much else.
 // Should probably also mock the DB, but meh.
 // Will remove, probably.
-func TestBasicDB(t *testing.T) {
-	store, err := NewStorage()
-	require.NoError(t, err)
-
-	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
-	require.NoError(t, err)
-
-	rows, err := store.db.Query("SELECT * FROM Comments;")
-	require.NoError(t, err)
-	require.False(t, rows.Next())
-	require.NoError(t, rows.Err())
-	require.NoError(t, rows.Close())
-	expectedUser := "someUser"
-	expectedComment := "someComment"
-
-	result, err := store.db.Exec("INSERT INTO Comments (User, Text) VALUES (?, ?)", "someUser", "someComment")
-	require.NoError(t, err)
-	rowsAffected, err := result.RowsAffected()
-	require.Equal(t, rowsAffected, int64(1))
-
-	rows, err = store.db.Query("SELECT User, Text FROM Comments;")
-	require.NoError(t, err)
-	require.True(t, rows.Next())
-	var user, comment string
-	require.NoError(t, rows.Scan(&user, &comment))
-	require.Equal(t, expectedUser, user)
-	require.Equal(t, expectedComment, comment)
-	require.NoError(t, rows.Err())
-	require.NoError(t, rows.Close())
-
-	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
-	require.NoError(t, err)
-
-	require.NoError(t, store.Shutdown())
-}
-
 func TestStorage_Comments(t *testing.T) {
 	store, err := NewStorage()
 	require.NoError(t, err)
@@ -117,28 +81,51 @@ func TestStorage_Articles(t *testing.T) {
 	}
 	numArts := 10
 	allArticles := make([]*Article, 0, numArts)
-	//start := time.Now()
-	now := time.Now()
+	toScrapeTimes := make([]time.Time, 0, numArts)
+	artIDs := make([]int, 0, numArts)
+	start := time.Now()
+	toScrapeTime := time.Now()
 	for i := 0; i < numArts; i++ {
-		now = now.Add(-time.Second)
 		article := &Article{
 			ID:             i,
 			Title:          titles[i%len(titles)],
 			Url:            urls[i%len(urls)],
-			DiscoveryTime:  now.Truncate(time.Second),
+			DiscoveryTime:  time.Now().Truncate(time.Second),
 			LastScrapeTime: nil,
 		}
-
 		allArticles = append(allArticles, article)
+
+		toScrapeTime = toScrapeTime.Add(-time.Second).Truncate(time.Second)
+		toScrapeTimes = append(toScrapeTimes, toScrapeTime)
+		artIDs = append(artIDs, i)
 	}
 
 	require.NoError(t, store.AddArticles(allArticles...))
-	arts, err := store.GetUnscrapedArticlesSince(time.Now())
+	arts, err := store.GetUnscrapedArticlesSince(start)
+	require.NoError(t, err)
 	require.ElementsMatch(t, allArticles, arts)
 
-	dur := time.Second * time.Duration(numArts/2)
-	arts, err = store.GetUnscrapedArticlesSince(time.Now().Add(-dur))
-	require.ElementsMatch(t, allArticles[:5], arts[:5])
+	// nothing has been scraped yet, should still get all articles
+	dur := time.Second * time.Duration(numArts/2+1)
+	arts, err = store.GetUnscrapedArticlesSince(start.Add(-dur))
+	require.ElementsMatch(t, allArticles, arts)
+
+	for i := 0; i < numArts; i++ {
+		require.NoError(t, store.SetArticleScrapedAt(toScrapeTimes[i], allArticles[i].ID))
+		allArticles[i].LastScrapeTime = &toScrapeTimes[i]
+	}
+	arts, err = store.GetUnscrapedArticlesSince(start)
+	// should still have everything
+	require.ElementsMatch(t, allArticles, arts)
+
+	arts, err = store.GetUnscrapedArticlesSince(toScrapeTimes[numArts/2])
+	require.ElementsMatch(t, allArticles[numArts/2:], arts)
+
+	require.NoError(t, store.SetArticleScrapedNow(artIDs...))
+
+	arts, err = store.GetUnscrapedArticlesSince(time.Now().Add(-time.Second))
+	require.NoError(t, err)
+	require.Empty(t, arts)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
 	require.NoError(t, err)
