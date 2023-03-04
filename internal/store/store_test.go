@@ -47,9 +47,9 @@ func TestStorage_Comments(t *testing.T) {
 		commentsByUser[user] = append(commentsByUser[user], comment)
 	}
 
-	require.NoError(t, store.AddComments(allComments...))
+	require.NoError(t, store.AddComments(context.Background(), allComments...))
 	for _, user := range users {
-		comments, err := store.GetUserComments(user)
+		comments, err := store.GetUserComments(context.Background(), user)
 		require.NoError(t, err)
 		require.ElementsMatch(t, commentsByUser[user], comments)
 	}
@@ -102,30 +102,30 @@ func TestStorage_Articles(t *testing.T) {
 		artIDs = append(artIDs, i)
 	}
 
-	require.NoError(t, store.AddArticles(allArticles...))
-	arts, err := store.GetUnscrapedArticlesSince(start)
+	require.NoError(t, store.AddArticles(context.Background(), allArticles...))
+	arts, err := store.GetUnscrapedArticlesSince(context.Background(), start)
 	require.NoError(t, err)
 	require.ElementsMatch(t, allArticles, arts)
 
 	// nothing has been scraped yet, should still get all articles
 	dur := time.Second * time.Duration(numArts/2+1)
-	arts, err = store.GetUnscrapedArticlesSince(start.Add(-dur))
+	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start.Add(-dur))
 	require.ElementsMatch(t, allArticles, arts)
 
 	for i := 0; i < numArts; i++ {
 		require.NoError(t, store.SetArticleScrapedAt(toScrapeTimes[i], allArticles[i].ID))
 		allArticles[i].LastScrapeTime = &toScrapeTimes[i]
 	}
-	arts, err = store.GetUnscrapedArticlesSince(start)
+	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start)
 	// should still have everything
 	require.ElementsMatch(t, allArticles, arts)
 
-	arts, err = store.GetUnscrapedArticlesSince(toScrapeTimes[numArts/2])
+	arts, err = store.GetUnscrapedArticlesSince(context.Background(), toScrapeTimes[numArts/2])
 	require.ElementsMatch(t, allArticles[numArts/2:], arts)
 
 	require.NoError(t, store.SetArticleScrapedNow(artIDs...))
 
-	arts, err = store.GetUnscrapedArticlesSince(time.Now().Add(-time.Second))
+	arts, err = store.GetUnscrapedArticlesSince(context.Background(), time.Now().Add(-time.Second))
 	require.NoError(t, err)
 	require.Empty(t, arts)
 
