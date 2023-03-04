@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "internal",
+			"name": "scraper"
+		},
+		{
+			"path": "localdev",
+			"name": "db"
+		},
+		{
+			"path": "ui"
+		}
+	],
+	"settings": {}
+}
