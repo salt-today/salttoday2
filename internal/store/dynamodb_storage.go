@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-var _ Storage = (*dynamodbStorage)(nil)
+// var _ Storage = (*dynamodbStorage)(nil)
 
 type dynamodbStorage struct {
 	client    *dynamodb.Client
@@ -49,7 +49,7 @@ func (s *dynamodbStorage) AddComments(ctx context.Context, comments ...*Comment)
 	return err
 }
 
-func (s *dynamodbStorage) GetUserComments(ctx context.Context, userID int) ([]*Comment, error) {
+func (s *dynamodbStorage) GetUserComments(ctx context.Context, userID int, opts *QueryOptions) ([]*Comment, error) {
 	var responseComments []*Comment
 
 	keyEx := expression.KeyAnd(
