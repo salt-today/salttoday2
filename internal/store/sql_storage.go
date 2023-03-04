@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
@@ -55,11 +56,25 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 	return err
 }
 
-func (s *sqlStorage) GetUserComments(ctx context.Context, userID int) ([]*Comment, error) {
+func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts QueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
 		Select(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
 		From(CommentsTable).
 		Where(goqu.Ex{CommentsUserID: userID})
+
+	// TODO Process City and ShowDeleted Parameters
+	if opts.Limit != nil {
+		sd = sd.Limit(*opts.Limit)
+	}
+	if opts.Order != nil {
+		if *opts.Order == OrderByLiked {
+			sd = sd.Order(goqu.I(CommentsLikes).Desc())
+		} else if *opts.Order == OrderByDisliked {
+			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
+		} else {
+			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
+		}
+	}
 
 	query, _, err := sd.ToSQL()
 	if err != nil {
