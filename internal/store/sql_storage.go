@@ -1,42 +1,42 @@
 package store
 
 import (
+	"context"
 	"database/sql"
-	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
-	"github.com/doug-martin/goqu/v9/exp"
-	_ "github.com/go-sql-driver/mysql"
 	"time"
+
+	"github.com/salt-today/salttoday2/internal/sdk"
+
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
-type Storage interface {
-	AddComments(comments ...*Comment) error
-	GetUserComments(userID int) ([]*Comment, error)
-	AddArticles(articles ...*Article) error
-	AddUsers(users ...*User) error
-	GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error)
-}
-
-type storage struct {
+type sqlStorage struct {
 	db      *sql.DB
 	dialect goqu.DialectWrapper
 }
 
-func NewStorage() (*storage, error) {
+func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	// TODO: conn string should be configurable
 	db, err := sql.Open("mysql", "salt:salt@tcp(localhost:3306)/salt?parseTime=true")
 	if err != nil {
 		return nil, err
 	}
-	return &storage{
+	s := &sqlStorage{
 		db:      db,
 		dialect: goqu.Dialect("mysql"),
-	}, nil
+	}
+	go func() {
+		<-ctx.Done()
+		err := s.shutdown()
+		sdk.Logger(ctx).WithError(err).Error("Error shutting down SQL storage")
+	}()
+
+	return s, nil
 }
 
-func (s *storage) AddComments(comments ...*Comment) error {
-	ds := s.dialect.Insert(CommentsTable).
-		Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
+func (s *sqlStorage) AddComments(comments ...*Comment) error {
+	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
@@ -49,7 +49,7 @@ func (s *storage) AddComments(comments ...*Comment) error {
 	return err
 }
 
-func (s *storage) GetUserComments(userID int) ([]*Comment, error) {
+func (s *sqlStorage) GetUserComments(userID int) ([]*Comment, error) {
 	sd := s.dialect.
 		Select(CommentsID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
 		From(CommentsTable).
@@ -98,7 +98,7 @@ func (s *storage) GetUserComments(userID int) ([]*Comment, error) {
 	return comments, nil
 }
 
-func (s *storage) AddArticles(articles ...*Article) error {
+func (s *sqlStorage) AddArticles(articles ...*Article) error {
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime)
 	for _, article := range articles {
 		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime})
@@ -113,10 +113,8 @@ func (s *storage) AddArticles(articles ...*Article) error {
 	return err
 }
 
-func (s *storage) AddUsers(users ...*User) error {
-	ds := goqu.Insert(UsersTable).
-		Cols(UsersID, UsersName).
-		OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
+func (s *sqlStorage) AddUsers(users ...*User) error {
+	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
@@ -130,7 +128,7 @@ func (s *storage) AddUsers(users ...*User) error {
 	return err
 }
 
-func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error) {
+func (s *sqlStorage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Article, error) {
 	sd := s.dialect.
 		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
@@ -140,7 +138,7 @@ func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Artic
 					ArticlesLastScrapeTime: nil,
 				},
 				goqu.Ex{
-					ArticlesLastScrapeTime: goqu.Op{exp.LteOp.String(): scrapeThreshold.UTC().Truncate(time.Second)},
+					ArticlesLastScrapeTime: goqu.Op{"lt": scrapeThreshold.Truncate(time.Second)},
 				},
 			),
 		)
@@ -192,34 +190,6 @@ func (s *storage) GetUnscrapedArticlesSince(scrapeThreshold time.Time) ([]*Artic
 	return articles, nil
 }
 
-func (s *storage) SetArticleScrapedNow(articleIDs ...int) error {
-	ds := s.dialect.Update(ArticlesTable).
-		Where(goqu.Ex{ArticlesID: articleIDs}).
-		Set(goqu.Record{ArticlesLastScrapeTime: time.Now().Truncate(time.Second)})
-
-	query, _, err := ds.ToSQL()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.Exec(query)
-	return err
-}
-
-func (s *storage) SetArticleScrapedAt(scrapedTime time.Time, articleIDs ...int) error {
-	ds := s.dialect.Update(ArticlesTable).
-		Where(goqu.Ex{ArticlesID: articleIDs}).
-		Set(goqu.Record{ArticlesLastScrapeTime: scrapedTime.Truncate(time.Second)})
-
-	query, _, err := ds.ToSQL()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.Exec(query)
-	return err
-}
-
-func (s *storage) Shutdown() error {
+func (s *sqlStorage) shutdown() error {
 	return s.db.Close()
 }
