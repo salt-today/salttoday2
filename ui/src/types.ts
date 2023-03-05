@@ -1,8 +1,13 @@
 // Defines a comment returned by the scraper.
 export type Comment = {
-	author: string;
-	content: string;
-	datePosted: Date;
+	id: number;
+	articleId: number;
+	userId: number;
+	name: string;
+	time: Date;
+	text: string;
+	likes: number;
+	dislikes: number;
 };
 
 // Filter comments based on the following traits.

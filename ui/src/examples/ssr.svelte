@@ -26,9 +26,14 @@
 		currentPage = page;
 		totalComments = response.data.totalComments;
 		comments = response.data.comments.map((c: any) => ({
-			author: c.author,
-			content: c.content,
-			datePosted: Date.parse(c.datePosted)
+			userId: c.userId,
+			content: c.text,
+			time: Date.parse(c.time),
+            name: c.name,
+            articleId: c.articleId,
+            likes: c.likes,
+            dislikes: c.dislikes,
+            id: c.id,
 		}));
 	}
 	onMount(() => fetchComments({ page: 1 }));
@@ -37,7 +42,7 @@
 <div>
 	<ul>
 		{#each comments as comment}
-			<li>{comment.author}</li>
+			<li>{comment.userId}</li>
 		{/each}
 	</ul>
 
