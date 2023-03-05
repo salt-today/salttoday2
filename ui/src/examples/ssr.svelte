@@ -1,25 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import axios from 'axios';
-	import qs from 'qs';
+    import parseQueryParams from '../utils';
+	import type { Filters, Comment } from '@src/types';
 
-	// Defines a comment returned by the scraper.
-	type Comment = {
-		author: string;
-		content: string;
-		datePosted: Date;
-	};
-
-	// Filter comments based on the following traits.
-	type Filters = {
-		since?: Date;
-		author?: string;
-		liked?: boolean;
-		disliked?: boolean;
-		deleted?: boolean;
-	};
-
-    let includeUserName = false;
+    let includeUsername = false;
     let authorNames = '';
 
 	const ITEMS_PER_PAGE = 10;
@@ -29,14 +14,13 @@
 	let currentFilters: Filters = {};
 
     // Fetch the comments from the scraper by the page & ITEMS_PER_PAGE. Also pass along any filtering provided by the user in the request.
-	async function fetchComments({ page = 1, filters = currentFilters }) {
-		const { since, ...rest } = filters;
-		const queryParams = qs.stringify({
+	async function fetchComments({ page = 1, filters = {}} = {}) {
+		const queryParams = parseQueryParams({
 			page,
 			ITEMS_PER_PAGE,
-			since: since?.getUTCMilliseconds,
-			...rest
+            ...filters
 		});
+        // const queryParams = '';
 		// FIXME: use corrected endpoint
 		const response = await axios.get(`/api/v1/comments?${queryParams}`);
 		currentPage = page;
@@ -57,22 +41,24 @@
 		{/each}
 	</ul>
 
-    <ul>
-        <button on:click={() => currentFilters.liked = true} >Liked</button>
-        <button on:click={() => currentFilters.disliked = true} >Disliked</button>
-        <form id={'name-input-form'} on:submit={() => {
+    <ul data-testid={'filters-menu-tid'}>
+        <button on:click={() => {currentFilters.liked = !currentFilters.liked ?? true; console.log({currentFilters})}} >Liked</button>
+        <button on:click={() => {currentFilters.disliked = !currentFilters.disliked ?? true; console.log({currentFilters})}} >Disliked</button>
+        <!-- <form id={'name-input-form'} on:submit={() => {
             if (includeUserName) {
                 currentFilters.author=authorNames;
             }
         }}>
             <checkbox checked={includeUserName} on:change={() => includeUserName = !includeUserName}>
                 <label for={'name-input'}>Username:</label>
-            <input required={includeUserName} on:change={(v: HTMLInputElement) => authorNames = v.target.value} type={'text'} id={'name-input'} name={'name-input-form'} maxlength={32} size={48}>
+            <input required={includeUserName} on:change={(v: HTMLInputElement) => authorNames = v.target.value} type={'text'} id={'name-input'} name={'name-input-form'} maxlength={32} size={48}/>
             </checkbox>
-        </form>
+        </form> -->
 
         <!-- FIXME: ADD Date picker-->
     </ul>
+
+    <p>{JSON.stringify(currentFilters, undefined, 2)}</p>
 
 	<nav>
 		{#if currentPage > 1}
