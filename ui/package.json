@@ -16,22 +16,22 @@
 		"@sveltejs/kit": "^1.5.0",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
-		"axios": "",
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte3": "^4.0.0",
 		"prettier": "^2.8.0",
 		"prettier-plugin-svelte": "^2.8.1",
-		"qs": "",
 		"svelte": "^3.54.0",
 		"svelte-check": "^3.0.1",
 		"tslib": "^2.4.1",
 		"typescript": "^4.9.3",
-		"vite": "^4.0.0"
+		"vite": "^4.0.0",
+		"@types/axios": "^0.14.0",
+		"@types/qs": "^6.9.7"
 	},
 	"type": "module",
 	"dependencies": {
-		"@types/axios": "^0.14.0",
-		"@types/qs": "^6.9.7"
+		"axios": "",
+		"qs": ""
 	}
 }
