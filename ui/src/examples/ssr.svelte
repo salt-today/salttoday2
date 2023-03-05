@@ -9,21 +9,30 @@ type Comment = {
     datePosted: Date;
 }
 
+type Filters = {
+    since?: Date;
+    author?: string;
+    liked?: boolean;
+    disliked?: boolean;
+    deleted?: boolean;
+}
+
  const ITEMS_PER_PAGE = 10;
  let currentPage = 1;
  let totalComments = 0;
  let comments: Comment[] = [];
+ let currentFilters:Filters = {};
 
- // FIXME: Handle since, likes, dislikes
- async function fetchComments(page = 1) {
-    const queryParams = qs.stringify({page, PAGE_SIZE: ITEMS_PER_PAGE})
+ async function fetchComments({page = 1, filters = currentFilters}) {
+    const {since, ...rest} = filters
+    const queryParams = qs.stringify({page, ITEMS_PER_PAGE, since: since?.getUTCMilliseconds, ...rest})
     // FIXME: use corrected endpoint
-    const response = await axios.get(`/api/comments?${queryParams}`)
+    const response = await axios.get(`/api/v1/comments?${queryParams}`)
     currentPage = page;
     totalComments = response.data.totalComments;
     comments = response.data.comments.map((c: any) => ({author:c.author, content: c.content, datePosted: Date.parse(c.datePosted)}));
  }
- onMount(fetchComments)
+ onMount(()=>fetchComments({page: 1}))
 </script>
 
 <div>
@@ -35,11 +44,11 @@ type Comment = {
 
     <nav>
         {#if currentPage > 1}
-            <button on:click={() => fetchComments(currentPage -1)}>Previous</button>
+            <button on:click={() => fetchComments({page: currentPage -1, filters: currentFilters})}>Previous</button>
         {/if}
 
         {#if currentPage < Math.ceil(totalComments / ITEMS_PER_PAGE)}
-            <button on:click={() => fetchComments(currentPage + 1)}>Next</button>
+            <button on:click={() => fetchComments({page: currentPage -1, filters: currentFilters})}>Next</button>
         {/if}
     </nav>
 </div>
