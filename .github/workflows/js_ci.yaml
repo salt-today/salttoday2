@@ -3,12 +3,16 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Provide the default working directory for all run commands
+defaults:
+  run:
+    working-directory: ui
+
 jobs:
   ts-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # TODO: Ensure that this caches yarn as expcted
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -18,5 +22,4 @@ jobs:
       - name: Install
         run: yarn
       - name: Test
-        working-directory: ui
         run: yarn test
