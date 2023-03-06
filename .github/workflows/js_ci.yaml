@@ -1,7 +1,8 @@
 name: UI CI
 on: 
-  pull_request:
-  workflow_dispatch:
+  push:
+    paths:
+      - "ui/**"
 
 # Provide the default working directory for all run commands
 defaults:
