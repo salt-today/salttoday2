@@ -13,7 +13,7 @@ export type Comment = {
 // Filter comments based on the following traits.
 export type Filters = {
 	// 1, 7, 30, 365 (decemeber / red carpet), undefined = all time
-	since?: number;
+	since?: 1 | 7 | 30 | 365;
 	author?: string;
 	liked?: boolean;
 	disliked?: boolean;

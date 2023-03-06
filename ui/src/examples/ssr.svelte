@@ -17,7 +17,7 @@
 	async function fetchComments({ page = 1, filters = {}} = {}) {
 		const queryParams = parseQueryParams({
 			page,
-			ITEMS_PER_PAGE,
+			itemsPerPage: ITEMS_PER_PAGE,
             ...filters
 		});
         // const queryParams = '';
