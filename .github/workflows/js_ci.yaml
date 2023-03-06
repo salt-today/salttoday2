@@ -1,0 +1,19 @@
+name: UI CI
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  ts-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # TODO: Ensure that this caches yarn as expcted
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      - name: Install
+        run: yarn
+      - name: Test
+        working-directory: ui
+        run: yarn test
