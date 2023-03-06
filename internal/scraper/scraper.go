@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -29,12 +30,13 @@ var potentialPrefixes = []string{
 	"/city-police-beat/",
 }
 
-func ScrapeComments(ctx context.Context, articles ...*store.Article) []*store.Comment {
+func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) ([]*store.Comment, []*store.User) {
 	logEntry := sdk.Logger(ctx)
 
 	comments := make([]*store.Comment, 0)
+	userIDToNameMap := make(map[int]string)
 	for _, article := range articles {
-		articleComments, err := getCommentsFromArticle(ctx, article.ID)
+		articleComments, err := getCommentsFromArticle(ctx, article, userIDToNameMap)
 		if err != nil {
 			logEntry.WithError(err).Error("failed to get comments")
 			continue
@@ -51,7 +53,15 @@ func ScrapeComments(ctx context.Context, articles ...*store.Article) []*store.Co
 		"comments": len(comments),
 	}).Info("Completed scraping site")
 
-	return comments
+	users := make([]*store.User, 0)
+	for userID, userName := range userIDToNameMap {
+		users = append(users, &store.User{
+			ID:       userID,
+			UserName: userName,
+		})
+	}
+
+	return comments, users
 }
 
 func hasArticlePrefix(href string) bool {
@@ -63,12 +73,24 @@ func hasArticlePrefix(href string) bool {
 	return false
 }
 
+func getHostFromUrl(urlString string) (string, error) {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return "", err
+	}
+
+	return u.Host, nil
+}
+
 // This logic is ported from the old scraper so blame Tyler if it's bad
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
-func getCommentsFromArticle(ctx context.Context, articleID int) ([]*store.Comment, error) {
-	logEntry := sdk.Logger(ctx).WithField("articleId", articleID)
-	// Base url hardcoded to sootoday because it literally doesn't matter what the base url is
-	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", articleID)
+func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, error) {
+	logEntry := sdk.Logger(ctx).WithField("articleId", article.ID)
+	host, err := getHostFromUrl(article.Url)
+	if err != nil {
+		logEntry.WithError(err).Error("failed to get host from url, cannot scrape this article!")
+	}
+	commentsUrl := fmt.Sprintf("https://%s/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", host, article.ID)
 
 	res, err := http.Get(commentsUrl)
 	if err != nil {
@@ -98,24 +120,24 @@ func getCommentsFromArticle(ctx context.Context, articleID int) ([]*store.Commen
 
 	numberOfCommentApiCalls := getNumberOfCommentApiCalls(ctx, initialCommentDoc)
 
-	comments := searchArticleForComments(ctx, numberOfCommentApiCalls, initialCommentDoc, articleID)
+	comments := searchArticleForComments(ctx, numberOfCommentApiCalls, initialCommentDoc, article, userIDToNameMap)
 	return comments, nil
 }
 
-func searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, initialCommentDoc *goquery.Document, articleID int) []*store.Comment {
+func searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, initialCommentDoc *goquery.Document, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
 	if numberOfCommentApiCalls <= 0 {
 		return []*store.Comment{}
 	}
 
 	// Grab all top level comments
 	commentDivs := selectTopLevelComments(initialCommentDoc)
-	comments := getComments(ctx, commentDivs, articleID)
+	comments := getComments(ctx, commentDivs, article, userIDToNameMap)
 
 	return comments
 }
 
-func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID int) []*store.Comment {
-	logEntry := sdk.Logger(ctx).WithField("article_id", articleID)
+func getComments(ctx context.Context, commentDivs *goquery.Selection, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
 	comments := make([]*store.Comment, 0)
 	commentDivs.Each(func(i int, commentDiv *goquery.Selection) {
 		numRepliesStr := commentDiv.AttrOr("data-replies", "0")
@@ -127,7 +149,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 		// fmt.Println(selection.First().Text())
 		if numReplies == 0 {
 			// If comment has no replies, just get the comment itself
-			comments = append(comments, newCommentFromDiv(ctx, commentDiv))
+			comments = append(comments, newCommentFromDiv(ctx, commentDiv, article.ID, userIDToNameMap))
 		} else { // If the comment has replies, check for a "Load More" button
 			loadMore := commentDiv.Find("button.comments-more")
 
@@ -138,10 +160,10 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 				// Something has changed or I'm bad at converting Clojure to Go
 
 				// get the parent comment
-				comments = append(comments, newCommentFromDiv(ctx, commentDiv))
+				comments = append(comments, newCommentFromDiv(ctx, commentDiv, article.ID, userIDToNameMap))
 
 				// get the replies
-				comments = append(comments, getReplies(ctx, articleID, strconv.Itoa(getCommentID(ctx, commentDiv)))...)
+				comments = append(comments, getReplies(ctx, article, strconv.Itoa(getCommentID(ctx, commentDiv)), userIDToNameMap)...)
 
 			} else { // If the button exists, get all replies
 				// TODO - the reply endpoint is different, I'm not sure what happens if there are more than 20 replies
@@ -149,7 +171,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 				if numReplies > 20 {
 					logEntry.Warn("HUGE REPLY CHAIN FOUND!")
 				} else {
-					comments = append(comments, getReplies(ctx, articleID, loadMore.AttrOr("data-parent", ""))...)
+					comments = append(comments, getReplies(ctx, article, loadMore.AttrOr("data-parent", ""), userIDToNameMap)...)
 				}
 			}
 		}
@@ -160,9 +182,10 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, articleID 
 
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
 // We can nly surmise on the usage currently
-func getReplies(ctx context.Context, articleID int, parentID string) []*store.Comment {
-	logEntry := sdk.Logger(ctx).WithField("article_id", articleID)
-	commentsUrl := fmt.Sprintf("https://www.sootoday.com/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", articleID, parentID)
+func getReplies(ctx context.Context, article *store.Article, parentID string, userIDToNameMap map[int]string) []*store.Comment {
+	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
+	host, _ := getHostFromUrl(article.Url) // not worried about error because we would have errored on this in the parent function
+	commentsUrl := fmt.Sprintf("https://www.%s/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", host, article.ID, parentID)
 	res, err := http.Get(commentsUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load comments")
@@ -191,7 +214,7 @@ func getReplies(ctx context.Context, articleID int, parentID string) []*store.Co
 	docComments := doc.Find("div.comment")
 	comments := make([]*store.Comment, 0)
 	docComments.Each(func(i int, reply *goquery.Selection) {
-		comments = append(comments, newCommentFromDiv(ctx, reply))
+		comments = append(comments, newCommentFromDiv(ctx, reply, article.ID, userIDToNameMap))
 	})
 	return comments
 }
@@ -264,15 +287,18 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 	return int32(dislikes)
 }
 
-func newCommentFromDiv(ctx context.Context, div *goquery.Selection) *store.Comment {
-	return &store.Comment{
-		ID:       getCommentID(ctx, div),
-		UserID:   getUserID(ctx, div),
-		Time:     getTimestamp(ctx, div),
-		Text:     getCommentText(ctx, div),
-		Likes:    getLikes(ctx, div),
-		Dislikes: getDislikes(ctx, div),
+func newCommentFromDiv(ctx context.Context, div *goquery.Selection, articleID int, userIDToNameMap map[int]string) *store.Comment {
+	comment := &store.Comment{
+		ID:        getCommentID(ctx, div),
+		ArticleID: articleID,
+		UserID:    getUserID(ctx, div),
+		Time:      getTimestamp(ctx, div),
+		Text:      getCommentText(ctx, div),
+		Likes:     getLikes(ctx, div),
+		Dislikes:  getDislikes(ctx, div),
 	}
+	userIDToNameMap[comment.UserID] = getUsername(ctx, div)
+	return comment
 }
 
 // SooToday has two types of return values from their API
