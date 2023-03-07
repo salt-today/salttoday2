@@ -1,12 +1,13 @@
 package store
 
-import "time"
+import (
+	"time"
+)
 
 type Comment struct {
 	ID        int
 	ArticleID int
 	UserID    int
-	Name      string
 	Time      time.Time
 	Text      string
 	Likes     int32

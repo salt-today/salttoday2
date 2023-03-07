@@ -159,7 +159,28 @@ func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) erro
 	return err
 }
 
+func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*Article, error) {
+	sd := s.dialect.
+		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		From(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: ids})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return hydrateArticles(rows)
+}
+
 func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
+	// TODO: this conflict expression isn't valid and errors
 	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
@@ -172,6 +193,80 @@ func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
 
 	_, err = s.db.ExecContext(ctx, query)
 	return err
+}
+
+func (s *sqlStorage) GetUsersByIDs(ctx context.Context, ids ...int) ([]*User, error) {
+	sd := s.dialect.Select(UsersID, UsersName).
+		From(UsersTable).
+		Where(goqu.Ex{UsersID: ids})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0)
+	var id int
+	var name string
+	for rows.Next() {
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, &User{
+			ID:       id,
+			UserName: name,
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, error) {
+	sd := s.dialect.Select(UsersID, UsersName).
+		From(UsersTable).
+		Where(goqu.Ex{UsersName: name})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var id int
+	var foundName string
+	if rows.Next() {
+		err := rows.Scan(&id, &foundName)
+		if err != nil {
+			return nil, err
+		}
+		return &User{
+			ID:       id,
+			UserName: foundName,
+		}, nil
+	}
+	// TODO return error if not found?
+	return nil, nil
 }
 
 func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
