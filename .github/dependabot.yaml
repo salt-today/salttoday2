@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/ui"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "Nexushunter"
+      - "Clairev3"
+    open-pull-request-limit: 1
