@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import axios from 'axios';
-    import parseQueryParams from '../utils';
-	import type { Filters, Comment } from '@src/types';
+	import parseQueryParams from '@src/utils/utils';
+	import type { Filters, Comment } from '@src/types/types';
 
-    let includeUsername = false;
-    let authorNames = '';
+	let includeUsername = false;
+	let authorNames = '';
 
 	const ITEMS_PER_PAGE = 10;
 	let currentPage = 1;
@@ -13,28 +13,33 @@
 	let comments: Comment[] = [];
 	let currentFilters: Filters = {};
 
-    // Fetch the comments from the scraper by the page & ITEMS_PER_PAGE. Also pass along any filtering provided by the user in the request.
-	async function fetchComments({ page = 1, filters = {}} = {}) {
+	// Fetch the comments from the scraper by the page & ITEMS_PER_PAGE. Also pass along any filtering provided by the user in the request.
+	async function fetchComments({ page = 1, filters = {} } = {}) {
 		const queryParams = parseQueryParams({
 			page,
 			itemsPerPage: ITEMS_PER_PAGE,
-            ...filters
+			...filters
 		});
-        // const queryParams = '';
+		// const queryParams = '';
 		// FIXME: use corrected endpoint
 		const response = await axios.get(`/api/v1/comments?${queryParams}`);
 		currentPage = page;
-		totalComments = response.data.totalComments;
-		comments = response.data.comments.map((c: any) => ({
-			userId: c.userId,
-			content: c.text,
-			time: Date.parse(c.time),
-            name: c.name,
-            articleId: c.articleId,
-            likes: c.likes,
-            dislikes: c.dislikes,
-            id: c.id,
-		}));
+		// totalComments = response.data.totalComments;
+		totalComments = 20;
+		// comments = response.data.comments.map((c: any) => ({
+		comments = Array.from(
+			{ length: totalComments },
+			(v, i): Comment => ({
+				userId: i,
+				text: `${i}`,
+				time: new Date(Date.now()),
+				name: `${i}`,
+				articleId: i,
+				likes: Math.random() * (i ^ 2) * 1000,
+				dislikes: Math.random() * (i ^ 2) * 20,
+				id: i
+			})
+		);
 	}
 	onMount(() => fetchComments({ page: 1 }));
 </script>
@@ -46,10 +51,20 @@
 		{/each}
 	</ul>
 
-    <ul data-testid={'filters-menu-tid'}>
-        <button on:click={() => {currentFilters.liked = !currentFilters.liked ?? true; console.log({currentFilters})}} >Liked</button>
-        <button on:click={() => {currentFilters.disliked = !currentFilters.disliked ?? true; console.log({currentFilters})}} >Disliked</button>
-        <!-- <form id={'name-input-form'} on:submit={() => {
+	<ul data-testid={'filters-menu-tid'}>
+		<button
+			on:click={() => {
+				currentFilters.liked = !currentFilters.liked ?? true;
+				console.log({ currentFilters });
+			}}>Liked</button
+		>
+		<button
+			on:click={() => {
+				currentFilters.disliked = !currentFilters.disliked ?? true;
+				console.log({ currentFilters });
+			}}>Disliked</button
+		>
+		<!-- <form id={'name-input-form'} on:submit={() => {
             if (includeUserName) {
                 currentFilters.author=authorNames;
             }
@@ -60,10 +75,10 @@
             </checkbox>
         </form> -->
 
-        <!-- FIXME: ADD Date picker-->
-    </ul>
+		<!-- FIXME: ADD Date picker-->
+	</ul>
 
-    <p>{JSON.stringify(currentFilters, undefined, 2)}</p>
+	<p>{JSON.stringify(currentFilters, undefined, 2)}</p>
 
 	<nav>
 		{#if currentPage > 1}

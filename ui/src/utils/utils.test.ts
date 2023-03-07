@@ -1,5 +1,5 @@
-import type { Filters } from '@src/types';
-import parseQueryParams from './utils';
+import type { Filters } from '@src/types/types';
+import parseQueryParams from '@src/utils/utils';
 
 describe('parsesQueryParams correctly', () => {
 	it('defaultParams', async () => {
