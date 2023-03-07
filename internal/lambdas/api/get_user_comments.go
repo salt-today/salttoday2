@@ -37,13 +37,15 @@ func GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	params := lo.MapValues(r.URL.Query(), func(value []string, key string) string {
 		return value[0]
 	})
-	opts, err := processQueryParameters(params)
+	opts, err := processGetCommentQueryParameters(params)
+	opts.UserID = aws.Int(userId)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 	}
+	opts.UserID = aws.Int(userId)
 
-	userComments, err := storage.GetUserComments(ctx, userId, *opts)
+	userComments, err := storage.GetComments(ctx, *opts)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -55,34 +57,4 @@ func GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseBytes)
-}
-
-func processQueryParameters(parameters map[string]string) (*store.QueryOptions, error) {
-	var opts store.QueryOptions
-	for param, value := range parameters {
-		switch strings.ToLower(param) {
-		case "limit":
-			limitValue, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("limit was not a valid number: %w", err)
-			}
-			// TODO How to strconv uint?
-			opts.Limit = aws.Uint(uint(limitValue))
-		case "show_deleted":
-			showDeletedValue, err := strconv.ParseBool(value)
-			if err != nil {
-				return nil, fmt.Errorf("show_deleted was not a valid boolean: %w", err)
-			}
-			opts.ShowDeleted = aws.Bool(showDeletedValue)
-		case "order":
-			if value == "liked" {
-				opts.Order = aws.Int(store.OrderByLiked)
-			} else if value == "disliked" {
-				opts.Order = aws.Int(store.OrderByDisliked)
-			} else {
-				return nil, fmt.Errorf("order was not a valid option, must be liked,disliked")
-			}
-		}
-	}
-	return &opts, nil
 }
