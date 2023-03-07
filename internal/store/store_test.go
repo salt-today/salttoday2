@@ -2,10 +2,12 @@ package store
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/stretchr/testify/require"
 )
 
 // These tests will fuck up your local Comments table if it fails and junk. Just here to smoke test.
@@ -49,7 +51,8 @@ func TestStorage_Comments(t *testing.T) {
 
 	require.NoError(t, store.AddComments(context.Background(), allComments...))
 	for _, user := range users {
-		comments, err := store.GetUserComments(context.Background(), user)
+		opts := CommentQueryOptions{UserID: aws.Int(user)}
+		comments, err := store.GetComments(context.Background(), opts)
 		require.NoError(t, err)
 		require.ElementsMatch(t, commentsByUser[user], comments)
 	}
