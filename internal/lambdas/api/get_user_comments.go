@@ -1,14 +1,11 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/lo"
@@ -16,44 +13,11 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func GetUserCommentsLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	storage, err := store.NewSQLStorage(ctx)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
-	}
-
-	userIdString, ok := request.PathParameters["user_id"]
-	if !ok {
-		return events.APIGatewayProxyResponse{}, fmt.Errorf("no UserId found in path")
-	}
-	userId, err := strconv.Atoi(userIdString)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, fmt.Errorf("userId was not a valid number: %w", err)
-	}
-
-	opts, err := processQueryParameters(request.QueryStringParameters)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
-	}
-
-	userComments, err := storage.GetUserComments(ctx, userId, *opts)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
-	}
-
-	responseBytes, err := json.Marshal(userComments)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       string(responseBytes),
-	}, nil
-}
-
+// TODO keep?...
 func GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	// TODO should we be making storage every time?
 	storage, err := store.NewSQLStorage(ctx)
 	if err != nil {
 		w.WriteHeader(500)
