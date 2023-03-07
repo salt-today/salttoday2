@@ -49,7 +49,7 @@ func (s *dynamodbStorage) AddComments(ctx context.Context, comments ...*Comment)
 	return err
 }
 
-func (s *dynamodbStorage) GetUserComments(ctx context.Context, userID int, opts *QueryOptions) ([]*Comment, error) {
+func (s *dynamodbStorage) GetUserComments(ctx context.Context, userID int, opts *CommentQueryOptions) ([]*Comment, error) {
 	var responseComments []*Comment
 
 	keyEx := expression.KeyAnd(

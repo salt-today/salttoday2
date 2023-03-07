@@ -21,6 +21,8 @@ type sqlStorage struct {
 	dialect goqu.DialectWrapper
 }
 
+const maxPageSize uint = 20
+
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	// TODO: conn string should be configurable
 	db, err := sql.Open("mysql", "salt:salt@tcp(localhost:3306)/salt?parseTime=true")
@@ -56,24 +58,44 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 	return err
 }
 
-func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts QueryOptions) ([]*Comment, error) {
+func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
-		Select(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
-		From(CommentsTable).
-		Where(goqu.Ex{CommentsUserID: userID})
+		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID).
+		From(CommentsTable)
 
-	// TODO Process City and ShowDeleted Parameters
-	if opts.Limit != nil {
-		sd = sd.Limit(*opts.Limit)
+	limit := maxPageSize
+	if opts.Limit != nil && *opts.Limit < limit {
+		limit = *opts.Limit
 	}
+	sd = sd.Limit(limit)
+
 	if opts.Order != nil {
 		if *opts.Order == OrderByLiked {
 			sd = sd.Order(goqu.I(CommentsLikes).Desc())
 		} else if *opts.Order == OrderByDisliked {
 			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
+		} else if *opts.Order == OrderByBoth {
+			sd = sd.Order(goqu.I(CommentsScore).Desc())
 		} else {
 			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
 		}
+	}
+
+	if opts.ID != nil {
+		sd = sd.Where(goqu.Ex{CommentsID: opts.ID})
+	}
+
+	if opts.UserID != nil {
+		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
+	}
+
+	if opts.Site != nil {
+		// TODO
+		// sd = sd.Where()
+	}
+
+	if opts.OnlyDeleted == true {
+		sd = sd.Where(goqu.Ex{CommentsDeleted: true})
 	}
 
 	query, _, err := sd.ToSQL()
@@ -92,8 +114,10 @@ func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts Query
 	var tm time.Time
 	var text string
 	var likes, dislikes int32
+	var score int64
+	var deleted bool
 	for rows.Next() {
-		err := rows.Scan(&id, &articleID, &foundUserID, &tm, &text, &likes, &dislikes)
+		err := rows.Scan(&id, &tm, &text, &likes, &dislikes, &score, &deleted, &articleID, &foundUserID)
 		if err != nil {
 			return nil, err
 		}

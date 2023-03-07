@@ -9,20 +9,22 @@ const (
 
 // Columns
 const (
-	CommentsID        = "ID"
-	CommentsArticleID = "ArticleID"
-	CommentsUserID    = "UserID"
-	CommentsTime      = "Time"
-	CommentsText      = "Text"
-	CommentsLikes     = "Likes"
-	CommentsDislikes  = "Dislikes"
+	CommentsID        = CommentsTable + "." + "ID"
+	CommentsArticleID = CommentsTable + "." + "ArticleID"
+	CommentsUserID    = CommentsTable + "." + "UserID"
+	CommentsTime      = CommentsTable + "." + "Time"
+	CommentsText      = CommentsTable + "." + "Text"
+	CommentsLikes     = CommentsTable + "." + "Likes"
+	CommentsDislikes  = CommentsTable + "." + "Dislikes"
+	CommentsScore     = "Score"
+	CommentsDeleted   = CommentsTable + "." + "Deleted"
 
-	ArticlesID             = "ID"
-	ArticlesUrl            = "Url"
-	ArticlesTitle          = "Title"
-	ArticlesDiscoveryTime  = "DiscoveryTime"
-	ArticlesLastScrapeTime = "LastScrapeTime"
+	ArticlesID             = ArticlesTable + "." + "ID"
+	ArticlesUrl            = ArticlesTable + "." + "Url"
+	ArticlesTitle          = ArticlesTable + "." + "Title"
+	ArticlesDiscoveryTime  = ArticlesTable + "." + "DiscoveryTime"
+	ArticlesLastScrapeTime = ArticlesTable + "." + "LastScrapeTime"
 
-	UsersID   = "ID"
-	UsersName = "User"
+	UsersID   = UsersTable + "." + "ID"
+	UsersName = UsersTable + "." + "Name"
 )

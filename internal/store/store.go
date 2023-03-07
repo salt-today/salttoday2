@@ -7,7 +7,7 @@ import (
 
 type Storage interface {
 	AddComments(ctx context.Context, comments ...*Comment) error
-	GetUserComments(ctx context.Context, userID int, opts QueryOptions) ([]*Comment, error)
+	GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error)
 	AddArticles(ctx context.Context, articles ...*Article) error
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
@@ -18,13 +18,17 @@ type Storage interface {
 const (
 	OrderByLiked    = iota
 	OrderByDisliked = iota
+	OrderByBoth     = iota
 )
 
-type QueryOptions struct {
+type CommentQueryOptions struct {
+	ID          *int
 	Limit       *uint
 	Order       *int
-	ShowDeleted *bool
-	City        *bool
+	OnlyDeleted bool
+	Site        *string
+	UserID      *int
+	UserName    *string
 }
 
 type StorageContent interface {
