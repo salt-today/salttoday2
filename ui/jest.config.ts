@@ -8,7 +8,7 @@ export const config = {
 	moduleFileExtensions: ['js', 'ts', 'svelte'],
 	setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
 	moduleNameMapper: {
-		'^@/(.*)$': '<rootDir>/src/$1',
+		'^@src/(.*)$': '<rootDir>/src/$1',
 		'^axios$': '<rootDir>/__mocks__/axios.ts'
 	}
 };
