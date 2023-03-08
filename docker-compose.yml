@@ -12,5 +12,5 @@ services:
     expose:
       - '3306'
     volumes:
-      - ./localdev/init.sql:/data/application/init.sql
+      - ./localdev/db/init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
