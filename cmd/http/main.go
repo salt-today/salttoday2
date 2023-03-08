@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/salt-today/salttoday2/internal/lambdas/api"
+	"github.com/salt-today/salttoday2/internal/api"
 )
 
 func main() {
