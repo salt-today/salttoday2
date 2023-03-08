@@ -166,6 +166,12 @@ func processGetCommentQueryParameters(parameters map[string]string) (*store.Comm
 			} else {
 				opts.Order = aws.Int(store.OrderByBoth)
 			}
+		case "days_ago":
+			daysAgo, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
+			}
+			opts.DaysAgo = aws.Uint(uint(daysAgo))
 		}
 	}
 	return &opts, nil

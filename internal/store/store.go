@@ -32,6 +32,7 @@ type CommentQueryOptions struct {
 	Site        *string
 	UserID      *int
 	UserName    *string
+	DaysAgo     *uint
 }
 
 type StorageContent interface {
