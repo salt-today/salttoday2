@@ -7,9 +7,12 @@ import (
 
 type Storage interface {
 	AddComments(ctx context.Context, comments ...*Comment) error
-	GetUserComments(ctx context.Context, userID int, opts QueryOptions) ([]*Comment, error)
+	GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error)
 	AddArticles(ctx context.Context, articles ...*Article) error
+	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
+	GetUsersByIDs(ctx context.Context, userIDs ...int) ([]*User, error)
+	GetUserByName(ctx context.Context, userName string) (*User, error)
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
 	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
@@ -18,13 +21,18 @@ type Storage interface {
 const (
 	OrderByLiked    = iota
 	OrderByDisliked = iota
+	OrderByBoth     = iota
 )
 
-type QueryOptions struct {
+type CommentQueryOptions struct {
+	ID          *int
 	Limit       *uint
 	Order       *int
-	ShowDeleted *bool
-	City        *bool
+	OnlyDeleted bool
+	Site        *string
+	UserID      *int
+	UserName    *string
+	DaysAgo     *uint
 }
 
 type StorageContent interface {
