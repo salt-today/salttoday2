@@ -43,6 +43,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	if opts.UserName != nil {
 		user, err := storage.GetUserByName(ctx, *opts.UserName)
 		if err != nil {
+			
 			logEntry.WithError(err).Error("Failed to get user by name")
 			w.WriteHeader(500)
 			w.Write(somethingWentWrong)
