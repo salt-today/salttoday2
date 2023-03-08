@@ -8,7 +8,7 @@ import (
 
 const (
 	somethingWentWrong = "Something went wrong"
-	notFound = "Not found"
+	notFound           = "Not found"
 )
 
 func errorHandler(err error, w http.ResponseWriter, r *http.Request) {

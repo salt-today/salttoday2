@@ -13,7 +13,7 @@ type Comment struct {
 	Text      string
 	Likes     int32
 	Dislikes  int32
-	Deleted	  bool
+	Deleted   bool
 }
 
 type Article struct {
@@ -29,7 +29,7 @@ type User struct {
 	UserName string
 }
 
-type NoQueryResultsError struct {}
+type NoQueryResultsError struct{}
 
 func (e NoQueryResultsError) Error() string {
 	return fmt.Sprintf("No results found")
