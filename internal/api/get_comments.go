@@ -14,8 +14,6 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-var somethingWentWrong []byte = []byte("Something went wrong")
-
 func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logEntry := sdk.Logger(ctx).WithField("path", r.URL.Path)
@@ -23,9 +21,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	storage, err := store.NewSQLStorage(ctx)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to create storage")
-		w.Write(somethingWentWrong)
-		w.WriteHeader(500)
-		return
+		errorHandler(err, w, r)
 	}
 
 	// Query values can in theory be repeated, but we won't support that, so squash em'
@@ -43,15 +39,8 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	if opts.UserName != nil {
 		user, err := storage.GetUserByName(ctx, *opts.UserName)
 		if err != nil {
-			
 			logEntry.WithError(err).Error("Failed to get user by name")
-			w.WriteHeader(500)
-			w.Write(somethingWentWrong)
-			return
-		}
-		if user == nil {
-			w.WriteHeader(404)
-			w.Write([]byte("User not found"))
+			errorHandler(err, w, r)
 			return
 		}
 		opts.UserID = aws.Int(user.ID)
@@ -60,15 +49,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	comments, err := storage.GetComments(ctx, *opts)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get comments")
-		w.WriteHeader(500)
-		w.Write(somethingWentWrong)
-		return
-	}
-
-	// TODO: Should we return 404 if no comments are found?
-	if len(comments) == 0 {
-		w.WriteHeader(404)
-		w.Write([]byte("No comments found"))
+		errorHandler(err, w, r)
 		return
 	}
 
@@ -79,8 +60,8 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	users, err := storage.GetUsersByIDs(ctx, userIDs...)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get users by ids")
-		w.WriteHeader(500)
-		w.Write(somethingWentWrong)
+		errorHandler(err, w, r)
+		return
 	}
 
 	articleIDs := make([]int, len(comments))
@@ -91,16 +72,14 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	articles, err := storage.GetArticles(ctx, articleIDs...)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get articles by ids")
-		w.WriteHeader(500)
-		w.Write(somethingWentWrong)
+		errorHandler(err, w, r)
 		return
 	}
 
 	responseBytes, err := createResponse(comments, users, articles)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to create response")
-		w.WriteHeader(500)
-		w.Write(somethingWentWrong)
+		errorHandler(err, w, r)
 		return
 	}
 

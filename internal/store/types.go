@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -26,4 +27,10 @@ type Article struct {
 type User struct {
 	ID       int
 	UserName string
+}
+
+type NoQueryResultsError struct {}
+
+func (e NoQueryResultsError) Error() string {
+	return fmt.Sprintf("No results found")
 }

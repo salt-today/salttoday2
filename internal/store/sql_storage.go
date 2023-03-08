@@ -10,7 +10,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
-	"github.com/doug-martin/goqu/v9/exp"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -142,8 +141,8 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		return nil, err
 	}
 
-	if err = rows.Close(); err != nil {
-		return nil, err
+	if len(comments) == 0 {
+		return nil, NoQueryResultsError{}
 	}
 
 	return comments, nil
@@ -186,7 +185,7 @@ func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*Article, e
 
 func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
 	// TODO: this conflict expression isn't valid and errors
-	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
+	ds := s.dialect.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(goqu.DoNothing()) // TODO Something other than nothing
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
@@ -235,8 +234,8 @@ func (s *sqlStorage) GetUsersByIDs(ctx context.Context, ids ...int) ([]*User, er
 		return nil, err
 	}
 
-	if err := rows.Close(); err != nil {
-		return nil, err
+	if len(users) == 0 {
+		return nil, NoQueryResultsError{}
 	}
 
 	return users, nil
@@ -271,7 +270,7 @@ func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, err
 		}, nil
 	}
 	// TODO return error if not found?
-	return nil, nil
+	return nil, NoQueryResultsError{}
 }
 
 func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
@@ -299,13 +298,12 @@ func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
 
 		articles = append(articles, article)
 	}
-
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	if err := rows.Close(); err != nil {
-		return nil, err
+	if len(articles) == 0 {
+		return nil, NoQueryResultsError{}
 	}
 
 	return articles, nil
