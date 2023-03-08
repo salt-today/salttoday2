@@ -134,6 +134,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 			Text:      text,
 			Likes:     likes,
 			Dislikes:  dislikes,
+			Deleted:   deleted,
 		})
 	}
 

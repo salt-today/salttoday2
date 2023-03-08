@@ -12,6 +12,7 @@ type Comment struct {
 	Text      string
 	Likes     int32
 	Dislikes  int32
+	Deleted	  bool
 }
 
 type Article struct {
