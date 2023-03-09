@@ -62,24 +62,6 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID).
 		From(CommentsTable)
 
-	limit := maxPageSize
-	if opts.Limit != nil && *opts.Limit < limit {
-		limit = *opts.Limit
-	}
-	sd = sd.Limit(limit)
-
-	if opts.Order != nil {
-		if *opts.Order == OrderByLiked {
-			sd = sd.Order(goqu.I(CommentsLikes).Desc())
-		} else if *opts.Order == OrderByDisliked {
-			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
-		} else if *opts.Order == OrderByBoth {
-			sd = sd.Order(goqu.I(CommentsScore).Desc())
-		} else {
-			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
-		}
-	}
-
 	if opts.ID != nil {
 		sd = sd.Where(goqu.Ex{CommentsID: opts.ID})
 	}
@@ -99,6 +81,30 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 
 	if opts.DaysAgo != nil {
 		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
+	}
+
+	limit := maxPageSize
+	if opts.Limit != nil && *opts.Limit < limit {
+		limit = *opts.Limit
+	}
+	sd = sd.Limit(limit)
+	
+	page := uint(0)
+	if opts.Page != nil {
+		page = *opts.Page
+	}
+	sd = sd.Offset(page * limit)
+
+	if opts.Order != nil {
+		if *opts.Order == OrderByLiked {
+			sd = sd.Order(goqu.I(CommentsLikes).Desc())
+		} else if *opts.Order == OrderByDisliked {
+			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
+		} else if *opts.Order == OrderByBoth {
+			sd = sd.Order(goqu.I(CommentsScore).Desc())
+		} else {
+			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
+		}
 	}
 
 	query, _, err := sd.ToSQL()
