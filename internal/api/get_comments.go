@@ -132,6 +132,12 @@ func processGetCommentQueryParameters(parameters map[string]string) (*store.Comm
 			}
 			// TODO How to strconv uint?
 			opts.Limit = aws.Uint(uint(limitValue))
+		case "page":
+			pageValue, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("page was not a valid number: %w", err)
+			}
+			opts.Page = aws.Uint(uint(pageValue))
 		case "only_deleted":
 			onlyDeletedValue, err := strconv.ParseBool(value)
 			if err != nil {
