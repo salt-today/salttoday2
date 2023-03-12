@@ -9,13 +9,16 @@ const (
 
 // Columns
 const (
+	LikesSuffix   = "Likes"
+	DislikesSuffix = "Dislikes"
+
 	CommentsID        = CommentsTable + "." + "ID"
 	CommentsArticleID = CommentsTable + "." + "ArticleID"
 	CommentsUserID    = CommentsTable + "." + "UserID"
 	CommentsTime      = CommentsTable + "." + "Time"
 	CommentsText      = CommentsTable + "." + "Text"
-	CommentsLikes     = CommentsTable + "." + "Likes"
-	CommentsDislikes  = CommentsTable + "." + "Dislikes"
+	CommentsLikes     = CommentsTable + "." + LikesSuffix
+	CommentsDislikes  = CommentsTable + "." + DislikesSuffix
 	CommentsScore     = "Score"
 	CommentsDeleted   = CommentsTable + "." + "Deleted"
 
@@ -27,4 +30,8 @@ const (
 
 	UsersID   = UsersTable + "." + "ID"
 	UsersName = UsersTable + "." + "Name"
+
+	NewAlias = "NewAlias"
+	NewAliasLikes = NewAlias + "." + LikesSuffix
+	NewAliasDislikes = NewAlias + "." + DislikesSuffix
 )

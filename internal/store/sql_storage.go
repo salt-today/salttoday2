@@ -44,7 +44,12 @@ func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 }
 
 func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) error {
-	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
+	ds := s.dialect.Insert(CommentsTable).
+		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
+		As(NewAlias).
+		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
+		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
+		
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.ArticleID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
@@ -155,9 +160,13 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 }
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) error {
-	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime)
+	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		OnConflict(goqu.DoNothing())
+
+	// We want to set the lastScrapedTime to a time in the past so that the article will be scraped immediately
+	lastScrapedTime := time.Now().Add(-time.Hour*24*365*10)
 	for _, article := range articles {
-		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime})
+		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, lastScrapedTime})
 	}
 
 	query, _, err := ds.ToSQL()
@@ -358,7 +367,6 @@ func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshol
 				ArticlesLastScrapeTime: goqu.Op{"gte": threshold.Truncate(time.Second)},
 			},
 		)
-
 	query, _, err := sd.ToSQL()
 	if err != nil {
 		return nil, err
