@@ -45,7 +45,10 @@ func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) 
 		comments = append(comments, articleComments...)
 
 		for _, comment := range comments {
-			logEntry.WithField("comment", comment).Info("retrieved comment")
+			logEntry.WithFields(logrus.Fields{
+				"comments found": comment,
+				"article": article,
+			}).Info("Found comments from article")
 		}
 	}
 	logEntry.WithFields(logrus.Fields{
@@ -73,24 +76,24 @@ func hasArticlePrefix(href string) bool {
 	return false
 }
 
-func getHostFromUrl(urlString string) (string, error) {
+func getBaseUrl(urlString string) (string, error) {
 	u, err := url.Parse(urlString)
 	if err != nil {
 		return "", err
 	}
 
-	return u.Host, nil
+	return fmt.Sprintf("%s://%s", u.Scheme, u.Host), nil
 }
 
 // This logic is ported from the old scraper so blame Tyler if it's bad
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
 func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, error) {
 	logEntry := sdk.Logger(ctx).WithField("articleId", article.ID)
-	host, err := getHostFromUrl(article.Url)
+	baseUrl, err := getBaseUrl(article.Url)
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get host from url, cannot scrape this article!")
 	}
-	commentsUrl := fmt.Sprintf("https://%s/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", host, article.ID)
+	commentsUrl := fmt.Sprintf("%s/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 
 	res, err := http.Get(commentsUrl)
 	if err != nil {
@@ -184,8 +187,8 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, article *s
 // We can nly surmise on the usage currently
 func getReplies(ctx context.Context, article *store.Article, parentID string, userIDToNameMap map[int]string) []*store.Comment {
 	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
-	host, _ := getHostFromUrl(article.Url) // not worried about error because we would have errored on this in the parent function
-	commentsUrl := fmt.Sprintf("https://www.%s/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", host, article.ID, parentID)
+	baseUrl, _ := getBaseUrl(article.Url) // not worried about error because we would have errored on this in the parent function
+	commentsUrl := fmt.Sprintf("%s/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", baseUrl, article.ID, parentID)
 	res, err := http.Get(commentsUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load comments")
@@ -381,6 +384,11 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 			}
 		}
 	})
-	logEntry.WithField("articles", articles).Info("Articles found")
+
+	articleIDs := make([]int, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	logEntry.WithField("articles", articleIDs).Info("Articles found")
 	return articles
 }
