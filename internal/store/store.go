@@ -27,7 +27,7 @@ const (
 type CommentQueryOptions struct {
 	ID          *int
 	Limit       *uint
-	Page	    *uint
+	Page        *uint
 	Order       *int
 	OnlyDeleted bool
 	Site        *string
