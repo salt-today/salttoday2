@@ -49,7 +49,7 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 		As(NewAlias).
 		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
 		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
-		
+
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.ArticleID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
@@ -93,7 +93,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		limit = *opts.Limit
 	}
 	sd = sd.Limit(limit)
-	
+
 	page := uint(0)
 	if opts.Page != nil {
 		page = *opts.Page
@@ -164,7 +164,7 @@ func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) erro
 		OnConflict(goqu.DoNothing())
 
 	// We want to set the lastScrapedTime to a time in the past so that the article will be scraped immediately
-	lastScrapedTime := time.Now().Add(-time.Hour*24*365*10)
+	lastScrapedTime := time.Now().Add(-time.Hour * 24 * 365 * 10)
 	for _, article := range articles {
 		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, lastScrapedTime})
 	}

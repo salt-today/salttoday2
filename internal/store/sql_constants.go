@@ -9,7 +9,7 @@ const (
 
 // Columns
 const (
-	LikesSuffix   = "Likes"
+	LikesSuffix    = "Likes"
 	DislikesSuffix = "Dislikes"
 
 	CommentsID        = CommentsTable + "." + "ID"
@@ -31,7 +31,7 @@ const (
 	UsersID   = UsersTable + "." + "ID"
 	UsersName = UsersTable + "." + "Name"
 
-	NewAlias = "NewAlias"
-	NewAliasLikes = NewAlias + "." + LikesSuffix
+	NewAlias         = "NewAlias"
+	NewAliasLikes    = NewAlias + "." + LikesSuffix
 	NewAliasDislikes = NewAlias + "." + DislikesSuffix
 )

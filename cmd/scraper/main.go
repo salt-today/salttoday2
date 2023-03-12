@@ -13,7 +13,6 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-
 func getSleepDuration(scrapeType string) time.Duration {
 	sleepDuration := 15 * time.Minute
 	sleepString := os.Getenv(strings.ToUpper(scrapeType) + "_SCRAPE_SLEEP_MINS")
@@ -39,7 +38,6 @@ func main() {
 		time.Sleep(getSleepDuration("comments"))
 	}
 }
-
 
 func ScrapeAndStoreArticles(ctx context.Context) {
 	logEntry := sdk.Logger(ctx).WithField("job", "scraper/articles")

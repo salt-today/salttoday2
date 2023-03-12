@@ -19,6 +19,7 @@ import (
 
 // verify these are still correct and if there's any missing
 var potentialPrefixes = []string{
+	"/good-morning", // doesn't have a trailing slash because -thunder-bay, -sudbury, etc
 	"/local-news/",
 	"/spotlight/",
 	"/great-stories/",
@@ -47,7 +48,7 @@ func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) 
 		for _, comment := range comments {
 			logEntry.WithFields(logrus.Fields{
 				"comments found": comment,
-				"article": article,
+				"article":        article,
 			}).Info("Found comments from article")
 		}
 	}
