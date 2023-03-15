@@ -8,7 +8,7 @@ export default defineConfig({
 		proxy: {
 			'/api': {
 				// FIXME: Add Production endpoint for server
-				target: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '',
+				target: process.env.NODE_ENV === 'development' ? 'http://0.0.0.0:3000/api' : '',
 				changeOrigin: true,
 				// FIXME: Verify that the endpoints don't need the api prefix.
 				rewrite: (path: string) => path.replace(/^\/api/, '')

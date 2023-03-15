@@ -22,22 +22,21 @@
 		});
 		// const queryParams = '';
 		// FIXME: use corrected endpoint
-		const response = await axios.get(`/api/v1/comments?${queryParams}`);
+		const response = await axios.get(`/api/v1/comments${!filters ? `` : `?${queryParams}`}`);
 		currentPage = page;
-		// totalComments = response.data.totalComments;
-		totalComments = 20;
-		// comments = response.data.comments.map((c: any) => ({
-		comments = Array.from(
-			{ length: totalComments },
-			(v, i): Comment => ({
-				userId: i,
-				text: `${i}`,
-				time: new Date(Date.now()),
-				name: `${i}`,
-				articleId: i,
-				likes: Math.random() * (i ^ 2) * 1000,
-				dislikes: Math.random() * (i ^ 2) * 20,
-				id: i
+		console.log({ data: response.data.comments });
+		totalComments = response.data.totalComments;
+		// totalComments = 20;
+		comments = response.data.comments.map(
+			(c: any): Comment => ({
+				userId: c.UserId,
+				text: `${c.Text}`,
+				time: new Date(c.Time),
+				name: `${c.Name}`,
+				articleId: c.ArticleId,
+				likes: c.Likes,
+				dislikes: c.Dislikes,
+				id: c.ID
 			})
 		);
 	}
@@ -47,7 +46,7 @@
 <div>
 	<ul>
 		{#each comments as comment}
-			<li>{comment.userId}</li>
+			<li>{JSON.stringify(comment, undefined, 2)}</li>
 		{/each}
 	</ul>
 
