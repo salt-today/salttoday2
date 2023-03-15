@@ -1,16 +1,19 @@
 package store
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Comment struct {
 	ID        int
 	ArticleID int
 	UserID    int
-	Name      string
 	Time      time.Time
 	Text      string
 	Likes     int32
 	Dislikes  int32
+	Deleted   bool
 }
 
 type Article struct {
@@ -24,4 +27,10 @@ type Article struct {
 type User struct {
 	ID       int
 	UserName string
+}
+
+type NoQueryResultsError struct{}
+
+func (e NoQueryResultsError) Error() string {
+	return fmt.Sprintf("No results found")
 }

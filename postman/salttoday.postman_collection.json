@@ -1,0 +1,18 @@
+{
+	"info": {
+		"_postman_id": "957a0db7-851d-4ba4-99a8-947ad3227cc4",
+		"name": "salttoday",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21707971"
+	},
+	"item": [
+		{
+			"name": "Get Comments",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}

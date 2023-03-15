@@ -10,7 +10,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
-	"github.com/doug-martin/goqu/v9/exp"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -20,6 +19,8 @@ type sqlStorage struct {
 	db      *sql.DB
 	dialect goqu.DialectWrapper
 }
+
+const maxPageSize uint = 20
 
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	// TODO: conn string should be configurable
@@ -43,7 +44,12 @@ func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 }
 
 func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) error {
-	ds := s.dialect.Insert(CommentsTable).Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes)
+	ds := s.dialect.Insert(CommentsTable).
+		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
+		As(NewAlias).
+		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
+		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
+
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.ArticleID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
@@ -56,21 +62,51 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 	return err
 }
 
-func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts QueryOptions) ([]*Comment, error) {
+func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
-		Select(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
-		From(CommentsTable).
-		Where(goqu.Ex{CommentsUserID: userID})
+		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID).
+		From(CommentsTable)
 
-	// TODO Process City and ShowDeleted Parameters
-	if opts.Limit != nil {
-		sd = sd.Limit(*opts.Limit)
+	if opts.ID != nil {
+		sd = sd.Where(goqu.Ex{CommentsID: opts.ID})
 	}
+
+	if opts.UserID != nil {
+		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
+	}
+
+	if opts.Site != nil {
+		// TODO
+		// sd = sd.Where()
+	}
+
+	if opts.OnlyDeleted == true {
+		sd = sd.Where(goqu.Ex{CommentsDeleted: true})
+	}
+
+	if opts.DaysAgo != nil {
+		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
+	}
+
+	limit := maxPageSize
+	if opts.Limit != nil && *opts.Limit < limit {
+		limit = *opts.Limit
+	}
+	sd = sd.Limit(limit)
+
+	page := uint(0)
+	if opts.Page != nil {
+		page = *opts.Page
+	}
+	sd = sd.Offset(page * limit)
+
 	if opts.Order != nil {
 		if *opts.Order == OrderByLiked {
 			sd = sd.Order(goqu.I(CommentsLikes).Desc())
 		} else if *opts.Order == OrderByDisliked {
 			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
+		} else if *opts.Order == OrderByBoth {
+			sd = sd.Order(goqu.I(CommentsScore).Desc())
 		} else {
 			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
 		}
@@ -92,8 +128,10 @@ func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts Query
 	var tm time.Time
 	var text string
 	var likes, dislikes int32
+	var score int64
+	var deleted bool
 	for rows.Next() {
-		err := rows.Scan(&id, &articleID, &foundUserID, &tm, &text, &likes, &dislikes)
+		err := rows.Scan(&id, &tm, &text, &likes, &dislikes, &score, &deleted, &articleID, &foundUserID)
 		if err != nil {
 			return nil, err
 		}
@@ -106,6 +144,7 @@ func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts Query
 			Text:      text,
 			Likes:     likes,
 			Dislikes:  dislikes,
+			Deleted:   deleted,
 		})
 	}
 
@@ -113,17 +152,21 @@ func (s *sqlStorage) GetUserComments(ctx context.Context, userID int, opts Query
 		return nil, err
 	}
 
-	if err = rows.Close(); err != nil {
-		return nil, err
+	if len(comments) == 0 {
+		return nil, NoQueryResultsError{}
 	}
 
 	return comments, nil
 }
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) error {
-	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime)
+	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		OnConflict(goqu.DoNothing())
+
+	// We want to set the lastScrapedTime to a time in the past so that the article will be scraped immediately
+	lastScrapedTime := time.Now().Add(-time.Hour * 24 * 365 * 10)
 	for _, article := range articles {
-		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime})
+		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, lastScrapedTime})
 	}
 
 	query, _, err := ds.ToSQL()
@@ -135,8 +178,29 @@ func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) erro
 	return err
 }
 
+func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*Article, error) {
+	sd := s.dialect.
+		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		From(ArticlesTable).
+		Where(goqu.Ex{ArticlesID: ids})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return hydrateArticles(rows)
+}
+
 func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
-	ds := goqu.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(exp.NewDoUpdateConflictExpression(UsersID, "REPLACE"))
+	// TODO: this conflict expression isn't valid and errors
+	ds := s.dialect.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(goqu.DoNothing()) // TODO Something other than nothing
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
@@ -148,6 +212,80 @@ func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
 
 	_, err = s.db.ExecContext(ctx, query)
 	return err
+}
+
+func (s *sqlStorage) GetUsersByIDs(ctx context.Context, ids ...int) ([]*User, error) {
+	sd := s.dialect.Select(UsersID, UsersName).
+		From(UsersTable).
+		Where(goqu.Ex{UsersID: ids})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0)
+	var id int
+	var name string
+	for rows.Next() {
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, &User{
+			ID:       id,
+			UserName: name,
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, NoQueryResultsError{}
+	}
+
+	return users, nil
+}
+
+func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, error) {
+	sd := s.dialect.Select(UsersID, UsersName).
+		From(UsersTable).
+		Where(goqu.Ex{UsersName: name})
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var id int
+	var foundName string
+	if rows.Next() {
+		err := rows.Scan(&id, &foundName)
+		if err != nil {
+			return nil, err
+		}
+		return &User{
+			ID:       id,
+			UserName: foundName,
+		}, nil
+	}
+	// TODO return error if not found?
+	return nil, NoQueryResultsError{}
 }
 
 func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
@@ -175,13 +313,12 @@ func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
 
 		articles = append(articles, article)
 	}
-
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	if err := rows.Close(); err != nil {
-		return nil, err
+	if len(articles) == 0 {
+		return nil, NoQueryResultsError{}
 	}
 
 	return articles, nil
@@ -230,7 +367,6 @@ func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshol
 				ArticlesLastScrapeTime: goqu.Op{"gte": threshold.Truncate(time.Second)},
 			},
 		)
-
 	query, _, err := sd.ToSQL()
 	if err != nil {
 		return nil, err

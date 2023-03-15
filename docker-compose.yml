@@ -4,7 +4,7 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_DATABASE: 'salt'
-      MYSQL_USER: 'root'
+      MYSQL_ROOT_USER: 'root'
       MYSQL_PASSWORD: 'salt'
       MYSQL_ROOT_PASSWORD: 'salt'
     ports:
@@ -12,5 +12,5 @@ services:
     expose:
       - '3306'
     volumes:
-      - ./localdev/init.sql:/data/application/init.sql
+      - ./localdev/db/init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
