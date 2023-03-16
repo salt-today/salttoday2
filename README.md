@@ -1,5 +1,8 @@
 # salttoday2
+
 Electric Boogaloo
+
+[![UI CI](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml/badge.svg)](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml)
 
 ## Local Dev Backend
 
@@ -10,4 +13,3 @@ Electric Boogaloo
 3. (Optional) Populate the database with some initial testing data via the two following options:
    1. `go run localdev/db/populate.go`
    2. Run the "Populate DB" run config in VS Code
-
