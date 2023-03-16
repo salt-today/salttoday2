@@ -14,3 +14,18 @@ services:
     volumes:
       - ./localdev/db/init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-psalt" ]
+      interval: 2s
+      retries: 20
+  webserver:
+    build: .
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    links:
+      - mysql
