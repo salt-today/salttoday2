@@ -2,8 +2,7 @@
 
 Electric Boogaloo
 
-[![UI CI](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml/badge.svg)](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml)
-
+[![UI CI](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml/badge.svg)](https://github.com/salt-today/salttoday2/actions/workflows/js_ci.yaml) [![Go CI Build](https://github.com/salt-today/salttoday2/actions/workflows/go.yml/badge.svg)](https://github.com/salt-today/salttoday2/actions/workflows/go.yml)
 ## Local Dev Backend
 
 1. `docker-compose up`
