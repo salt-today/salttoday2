@@ -14,3 +14,11 @@ services:
     volumes:
       - ./localdev/db/init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
+  webserver:
+    build: .
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    depends_on:
+      - mysql
