@@ -3,14 +3,12 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-chi/chi/v5"
+	"github.com/samber/lo"
 	"net/http"
 	"strconv"
 	"strings"
-	"text/template"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/samber/lo"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/store"
@@ -73,15 +71,7 @@ func (s *httpService) GetCommentHTTPHandler(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusOK)
 		w.Write(responseBytes)
 	} else if *opts.Format == "html" {
-		// TODO Render an opengraph html snippet
-		tmpl, err := template.ParseFiles("")
-		if err != nil {
-			logEntry.WithError(err).Error("Failed to get comments")
-			errorHandler(err, w, r)
-			return
-		}
-
-		err = tmpl.Execute(w, comments[0])
+		err = s.commentPreviewTmpl.Execute(w, comments[0])
 		if err != nil {
 			logEntry.WithError(err).Error("Failed to get comments")
 			errorHandler(err, w, r)

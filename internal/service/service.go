@@ -1,13 +1,19 @@
 package service
 
-import "github.com/salt-today/salttoday2/internal/store"
+import (
+	"text/template"
+
+	"github.com/salt-today/salttoday2/internal/store"
+)
 
 type httpService struct {
-	storage store.Storage
+	storage            store.Storage
+	commentPreviewTmpl *template.Template
 }
 
 func NewService(storage store.Storage) *httpService {
 	return &httpService{
-		storage: storage,
+		storage:            storage,
+		commentPreviewTmpl: template.Must(template.ParseFiles("templates/comment.html")),
 	}
 }

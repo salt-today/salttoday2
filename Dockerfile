@@ -14,5 +14,6 @@ EXPOSE 3000
 
 WORKDIR /app
 COPY --from=build /service-bin .
+COPY /templates ./templates
 
 CMD ["/app/service-bin"]
