@@ -2,8 +2,6 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/ui"
-    pull-request-branch-name:
-      separator: "/"
     open-pull-requests-limit: 1
     schedule:
       interval: "monthly"
@@ -13,3 +11,18 @@ updates:
     reviewers:
       - "Nexushunter"
       - "Clairev3"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    open-pull-requests-limit: 5
+    schedule:
+      interval: "monthly"
+    labels:
+      - "go"
+      - "dependencies"
+    reviewers:
+      - "DanHarasymiw"
+      - "grevian"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
