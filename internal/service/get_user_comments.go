@@ -1,4 +1,4 @@
-package api
+package service
 
 import (
 	"encoding/json"
@@ -9,21 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/lo"
-
-	"github.com/salt-today/salttoday2/internal/store"
 )
 
 // TODO keep?...
-func GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
+func (s *httpService) GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-	// TODO should we be making storage every time?
-	storage, err := store.NewSQLStorage(ctx)
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
 
 	var userIdString = chi.URLParam(r, "user_id")
 	userId, err := strconv.Atoi(userIdString)
@@ -45,7 +35,7 @@ func GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	opts.UserID = aws.Int(userId)
 
-	userComments, err := storage.GetComments(ctx, *opts)
+	userComments, err := s.storage.GetComments(ctx, *opts)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}

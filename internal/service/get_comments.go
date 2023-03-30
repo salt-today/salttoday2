@@ -1,4 +1,4 @@
-package api
+package service
 
 import (
 	"encoding/json"
@@ -14,15 +14,9 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
+func (s *httpService) GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logEntry := sdk.Logger(ctx).WithField("path", r.URL.Path)
-
-	storage, err := store.NewSQLStorage(ctx)
-	if err != nil {
-		logEntry.WithError(err).Error("Failed to create storage")
-		errorHandler(err, w, r)
-	}
 
 	// Query values can in theory be repeated, but we won't support that, so squash em'
 	params := lo.MapValues(r.URL.Query(), func(value []string, key string) string {
@@ -37,7 +31,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 
 	// if username is set we need to get user id first
 	if opts.UserName != nil {
-		user, err := storage.GetUserByName(ctx, *opts.UserName)
+		user, err := s.storage.GetUserByName(ctx, *opts.UserName)
 		if err != nil {
 			logEntry.WithError(err).Error("Failed to get user by name")
 			errorHandler(err, w, r)
@@ -46,7 +40,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 		opts.UserID = aws.Int(user.ID)
 	}
 
-	comments, err := storage.GetComments(ctx, *opts)
+	comments, err := s.storage.GetComments(ctx, *opts)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get comments")
 		errorHandler(err, w, r)
@@ -57,7 +51,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	for i, comment := range comments {
 		userIDs[i] = comment.UserID
 	}
-	users, err := storage.GetUsersByIDs(ctx, userIDs...)
+	users, err := s.storage.GetUsersByIDs(ctx, userIDs...)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get users by ids")
 		errorHandler(err, w, r)
@@ -69,7 +63,7 @@ func GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 		articleIDs[i] = comment.ArticleID
 	}
 	// TODO - for some reason this fails if we pass in 0 ids, but GetUserByIDs doesn't...
-	articles, err := storage.GetArticles(ctx, articleIDs...)
+	articles, err := s.storage.GetArticles(ctx, articleIDs...)
 	if err != nil {
 		logEntry.WithError(err).Error("Failed to get articles by ids")
 		errorHandler(err, w, r)
