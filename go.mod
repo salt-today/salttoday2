@@ -5,8 +5,8 @@ go 1.20
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/aws/aws-sdk-go-v2 v1.17.7
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.16
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.43
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.19
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.46
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.19.2
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-chi/chi/v5 v5.0.8
@@ -20,7 +20,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.31 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.25 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.14.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.14.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.25 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
