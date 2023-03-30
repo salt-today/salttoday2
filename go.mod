@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/aws/aws-lambda-go v1.38.0
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.16
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.43
