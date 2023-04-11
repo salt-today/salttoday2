@@ -13,6 +13,7 @@ type Storage interface {
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUsersByIDs(ctx context.Context, userIDs ...int) ([]*User, error)
 	GetUserByName(ctx context.Context, userName string) (*User, error)
+	QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*User, error)
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
 	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
@@ -34,6 +35,13 @@ type CommentQueryOptions struct {
 	UserID      *int
 	UserName    *string
 	DaysAgo     *uint
+}
+
+type UserQueryOptions struct {
+	Limit *uint
+	Page  *uint
+	Order *int
+	Site  *string
 }
 
 type StorageContent interface {

@@ -62,6 +62,44 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 	return err
 }
 
+func (s *sqlStorage) QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*User, error) {
+	// TODO Join and Aggregate comments table with users
+	sd := s.dialect.
+		Select(UsersID, UsersName).
+		From(UsersTable)
+
+	if opts.Limit != nil {
+		sd = sd.Limit(*opts.Limit)
+	}
+
+	// TODO Implement other options
+	// site, order, paging
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0)
+
+	for rows.Next() {
+		u := &User{}
+		err := rows.Scan(&u.ID, &u.UserName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user record: %w", err)
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
 		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID).
