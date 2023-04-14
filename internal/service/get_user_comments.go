@@ -15,12 +15,12 @@ import (
 func (s *httpService) GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var userIdString = chi.URLParam(r, "user_id")
+	var userIdString = chi.URLParam(r, "userID")
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(fmt.Errorf("userId was not a valid number: %w", err).Error()))
-
+		return
 	}
 
 	// Query values can in theory be repeated, but we won't support that, so squash em'

@@ -25,6 +25,7 @@ func main() {
 	r.Get("/api/v1/users", svc.GetUsersHTTPHandler)
 	r.Get("/api/v1/users/{userID}/comments", svc.GetUserCommentsHTTPHandler)
 	r.Get("/api/v1/comments", svc.GetCommentsHTTPHandler)
+	r.Get("/api/v1/comments/{commentID}", svc.GetCommentHTTPHandler)
 
 	http.ListenAndServe(":3000", r)
 }

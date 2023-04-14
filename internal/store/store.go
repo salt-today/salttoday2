@@ -35,6 +35,7 @@ type CommentQueryOptions struct {
 	UserID      *int
 	UserName    *string
 	DaysAgo     *uint
+	Format      *string
 }
 
 type UserQueryOptions struct {

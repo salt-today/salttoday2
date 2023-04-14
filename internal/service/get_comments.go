@@ -8,11 +8,78 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/go-chi/chi/v5"
 	"github.com/samber/lo"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/store"
 )
+
+func (s *httpService) GetCommentHTTPHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logEntry := sdk.Logger(ctx).WithField("path", r.URL.Path)
+
+	// Query values can in theory be repeated, but we won't support that, so squash em'
+	params := lo.MapValues(r.URL.Query(), func(value []string, key string) string {
+		return value[0]
+	})
+	opts, err := processGetCommentQueryParameters(params)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	// In this particular endpoint, we only ever want a single comment
+	opts.Limit = aws.Uint(1)
+
+	// Overwrite any ID present in the query parameters, with what's in the path parameter
+	var commentIdString = chi.URLParam(r, "commentID")
+	commentId, err := strconv.Atoi(commentIdString)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Errorf("commentID was not a valid number: %w", err).Error()))
+		return
+	} else {
+		opts.ID = aws.Int(commentId)
+	}
+
+	if opts.ID == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Errorf("no Id provided").Error()))
+		return
+	}
+
+	comments, err := s.storage.GetComments(ctx, *opts)
+	if err != nil {
+		logEntry.WithError(err).Error("Failed to get comments")
+		errorHandler(err, w, r)
+		return
+	}
+	if len(comments) != 1 {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Errorf("unexpected number of comments present: %d", len(comments)).Error()))
+		return
+	}
+
+	if *opts.Format == "json" {
+		responseBytes, err := json.Marshal(comments[0])
+		if err != nil {
+			logEntry.WithError(err).Error("Failed to create response")
+			errorHandler(err, w, r)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(responseBytes)
+	} else if *opts.Format == "html" {
+		err = s.commentPreviewTmpl.Execute(w, comments[0])
+		if err != nil {
+			logEntry.WithError(err).Error("Failed to get comments")
+			errorHandler(err, w, r)
+			return
+		}
+	}
+}
 
 func (s *httpService) GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -145,6 +212,16 @@ func processGetCommentQueryParameters(parameters map[string]string) (*store.Comm
 				opts.Order = aws.Int(store.OrderByDisliked)
 			} else {
 				opts.Order = aws.Int(store.OrderByBoth)
+			}
+		case "format":
+			if value == "html" {
+				opts.Format = aws.String("html")
+			} else if value == "json" {
+				opts.Format = aws.String("json")
+			} else if value == "" {
+				opts.Format = aws.String("html")
+			} else {
+				return nil, fmt.Errorf("invalid format requested: %s", value)
 			}
 		case "days_ago":
 			daysAgo, err := strconv.Atoi(value)
