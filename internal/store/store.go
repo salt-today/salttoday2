@@ -25,24 +25,28 @@ const (
 	OrderByBoth     = iota
 )
 
-type CommentQueryOptions struct {
-	ID          *int
-	Limit       *uint
-	Page        *uint
-	Order       *int
-	OnlyDeleted bool
-	Site        *string
-	UserID      *int
-	UserName    *string
-	DaysAgo     *uint
-	Format      *string
-}
-
-type UserQueryOptions struct {
+type PageQueryOptions struct {
 	Limit *uint
 	Page  *uint
 	Order *int
-	Site  *string
+}
+
+type CommentQueryOptions struct {
+	ID          *int
+	UserID      *int
+	OnlyDeleted bool
+	Site        *string
+	DaysAgo     *uint
+	Format      *string
+
+	PageOpts PageQueryOptions
+}
+
+type UserQueryOptions struct {
+	ID   *int
+	Site *string
+
+	PageOpts PageQueryOptions
 }
 
 type StorageContent interface {

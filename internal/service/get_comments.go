@@ -31,24 +31,16 @@ func (s *httpService) GetCommentHTTPHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// In this particular endpoint, we only ever want a single comment
-	opts.Limit = aws.Uint(1)
+	opts.PageOpts.Limit = aws.Uint(1)
 
-	// Overwrite any ID present in the query parameters, with what's in the path parameter
 	var commentIdString = chi.URLParam(r, "commentID")
 	commentId, err := strconv.Atoi(commentIdString)
 	if err != nil {
 		w.WriteHeader(500)
-		w.Write([]byte(fmt.Errorf("commentID was not a valid number: %w", err).Error()))
-		return
-	} else {
-		opts.ID = aws.Int(commentId)
-	}
-
-	if opts.ID == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(fmt.Errorf("no Id provided").Error()))
+		w.Write([]byte(fmt.Errorf("commentID was not a valid number").Error()))
 		return
 	}
+	opts.ID = aws.Int(commentId)
 
 	comments, err := s.storage.GetComments(ctx, *opts)
 	if err != nil {
@@ -94,17 +86,6 @@ func (s *httpService) GetCommentsHTTPHandler(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
-	}
-
-	// if username is set we need to get user id first
-	if opts.UserName != nil {
-		user, err := s.storage.GetUserByName(ctx, *opts.UserName)
-		if err != nil {
-			logEntry.WithError(err).Error("Failed to get user by name")
-			errorHandler(err, w, r)
-			return
-		}
-		opts.UserID = aws.Int(user.ID)
 	}
 
 	comments, err := s.storage.GetComments(ctx, *opts)
@@ -168,51 +149,32 @@ func createResponse(comments []*store.Comment, users []*store.User, articles []*
 }
 
 func processGetCommentQueryParameters(parameters map[string]string) (*store.CommentQueryOptions, error) {
-	var opts store.CommentQueryOptions
+	pageOpts, err := processPageQueryParams(parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &store.CommentQueryOptions{
+		PageOpts: *pageOpts,
+	}
+
+	// TODO - should format be configured via Accept header instead?
+	opts.Format = aws.String("html")
+
 	for param, value := range parameters {
 		switch strings.ToLower(param) {
-		case "id":
-			commentId, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("id was not a valid number: %w", err)
-			}
-			opts.ID = aws.Int(commentId)
-			break // it doesn't get much more specific than this, so we can stop here
-		case "user_id":
-			userId, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("user_id was not a valid number: %w", err)
-			}
-			opts.UserID = aws.Int(userId)
-		case "user_name":
-			opts.UserName = aws.String(value)
-		case "limit":
-			limitValue, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("limit was not a valid number: %w", err)
-			}
-			// TODO How to strconv uint?
-			opts.Limit = aws.Uint(uint(limitValue))
-		case "page":
-			pageValue, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("page was not a valid number: %w", err)
-			}
-			opts.Page = aws.Uint(uint(pageValue))
 		case "only_deleted":
 			onlyDeletedValue, err := strconv.ParseBool(value)
 			if err != nil {
 				return nil, fmt.Errorf("only_deleted was not a valid boolean: %w", err)
 			}
 			opts.OnlyDeleted = onlyDeletedValue
-		case "order":
-			if value == "liked" {
-				opts.Order = aws.Int(store.OrderByLiked)
-			} else if value == "disliked" {
-				opts.Order = aws.Int(store.OrderByDisliked)
-			} else {
-				opts.Order = aws.Int(store.OrderByBoth)
+		case "days_ago":
+			daysAgo, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
+			opts.DaysAgo = aws.Uint(uint(daysAgo))
 		case "format":
 			if value == "html" {
 				opts.Format = aws.String("html")
@@ -223,13 +185,7 @@ func processGetCommentQueryParameters(parameters map[string]string) (*store.Comm
 			} else {
 				return nil, fmt.Errorf("invalid format requested: %s", value)
 			}
-		case "days_ago":
-			daysAgo, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
-			}
-			opts.DaysAgo = aws.Uint(uint(daysAgo))
 		}
 	}
-	return &opts, nil
+	return opts, nil
 }

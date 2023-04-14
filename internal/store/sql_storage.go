@@ -68,12 +68,10 @@ func (s *sqlStorage) QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*
 		Select(UsersID, UsersName).
 		From(UsersTable)
 
-	if opts.Limit != nil {
-		sd = sd.Limit(*opts.Limit)
-	}
+	sd = addPaging(sd, &opts.PageOpts)
 
 	// TODO Implement other options
-	// site, order, paging
+	// site, order
 
 	query, _, err := sd.ToSQL()
 	if err != nil {
@@ -126,27 +124,17 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
 	}
 
-	limit := maxPageSize
-	if opts.Limit != nil && *opts.Limit < limit {
-		limit = *opts.Limit
-	}
-	sd = sd.Limit(limit)
+	sd = addPaging(sd, &opts.PageOpts)
 
-	page := uint(0)
-	if opts.Page != nil {
-		page = *opts.Page
-	}
-	sd = sd.Offset(page * limit)
-
-	if opts.Order != nil {
-		if *opts.Order == OrderByLiked {
+	if opts.PageOpts.Order != nil {
+		if *opts.PageOpts.Order == OrderByLiked {
 			sd = sd.Order(goqu.I(CommentsLikes).Desc())
-		} else if *opts.Order == OrderByDisliked {
+		} else if *opts.PageOpts.Order == OrderByDisliked {
 			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
-		} else if *opts.Order == OrderByBoth {
+		} else if *opts.PageOpts.Order == OrderByBoth {
 			sd = sd.Order(goqu.I(CommentsScore).Desc())
 		} else {
-			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.Order)
+			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.PageOpts.Order)
 		}
 	}
 
@@ -324,6 +312,21 @@ func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, err
 	}
 	// TODO return error if not found?
 	return nil, NoQueryResultsError{}
+}
+
+func addPaging(sd *goqu.SelectDataset, pageOpts *PageQueryOptions) *goqu.SelectDataset {
+	limit := maxPageSize
+	if pageOpts.Limit != nil && *pageOpts.Limit < limit {
+		limit = *pageOpts.Limit
+	}
+	sd = sd.Limit(limit)
+
+	page := uint(0)
+	if pageOpts.Page != nil {
+		page = *pageOpts.Page
+	}
+	sd = sd.Offset(page * limit)
+	return sd
 }
 
 func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
