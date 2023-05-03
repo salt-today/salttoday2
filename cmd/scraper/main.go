@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/salt-today/salttoday2/internal"
@@ -13,21 +10,11 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func getSleepDuration(scrapeType string) time.Duration {
-	sleepDuration := 15 * time.Minute
-	sleepString := os.Getenv(strings.ToUpper(scrapeType) + "_SCRAPE_SLEEP_MINS")
-	sleepSeconds, err := strconv.Atoi(sleepString)
-	if err == nil {
-		sleepDuration = time.Duration(sleepSeconds) * time.Minute
-	}
-	return sleepDuration * time.Minute
-}
-
 func main() {
 	ScrapeAndStoreArticles(context.Background())
-	time.Sleep(getSleepDuration("articles"))
+	
 	ScrapeAndStoreComments(context.Background())
-	time.Sleep(getSleepDuration("comments"))
+	
 }
 
 func ScrapeAndStoreArticles(ctx context.Context) {

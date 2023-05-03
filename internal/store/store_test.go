@@ -15,7 +15,7 @@ import (
 // Should probably also mock the DB, but meh.
 // Will remove, probably.
 func TestStorage_Comments(t *testing.T) {
-	store, err := NewSQLStorage(context.TODO())
+	store, err := NewSQLStorage(context.Background())
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Comments;")
@@ -62,7 +62,7 @@ func TestStorage_Comments(t *testing.T) {
 }
 
 func TestStorage_Articles(t *testing.T) {
-	store, err := NewSQLStorage(context.TODO())
+	store, err := NewSQLStorage(context.Background())
 	require.NoError(t, err)
 
 	_, err = store.db.Exec("TRUNCATE TABLE Articles;")
@@ -116,7 +116,7 @@ func TestStorage_Articles(t *testing.T) {
 	require.ElementsMatch(t, allArticles, arts)
 
 	for i := 0; i < numArts; i++ {
-		require.NoError(t, store.SetArticleScrapedAt(context.TODO(), toScrapeTimes[i], allArticles[i].ID))
+		require.NoError(t, store.SetArticleScrapedAt(context.Background(), toScrapeTimes[i], allArticles[i].ID))
 		allArticles[i].LastScrapeTime = &toScrapeTimes[i]
 	}
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start)
@@ -126,7 +126,7 @@ func TestStorage_Articles(t *testing.T) {
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), toScrapeTimes[numArts/2])
 	require.ElementsMatch(t, allArticles[numArts/2:], arts)
 
-	require.NoError(t, store.SetArticleScrapedNow(context.TODO(), artIDs...))
+	require.NoError(t, store.SetArticleScrapedNow(context.Background(), artIDs...))
 
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), time.Now().Add(-time.Second))
 	require.NoError(t, err)

@@ -11,7 +11,6 @@ import (
 	"github.com/samber/lo"
 )
 
-// TODO keep?...
 func (s *httpService) GetUserCommentsHTTPHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

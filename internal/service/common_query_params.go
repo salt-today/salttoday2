@@ -18,7 +18,7 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			if err != nil {
 				return nil, fmt.Errorf("limit was not a valid number: %w", err)
 			}
-			// TODO How to strconv uint?
+
 			opts.Limit = aws.Uint(uint(limitValue))
 		case "page":
 			pageValue, err := strconv.Atoi(value)

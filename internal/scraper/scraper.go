@@ -262,7 +262,7 @@ func getTimestamp(ctx context.Context, s *goquery.Selection) time.Time {
 		sdk.Logger(ctx).WithError(err).Error("Couldn't parse time, using current time")
 		return now
 	}
-	return commentTime // TODO
+	return commentTime
 }
 
 func getCommentText(_ context.Context, s *goquery.Selection) string {

@@ -225,7 +225,6 @@ func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*Article, e
 }
 
 func (s *sqlStorage) AddUsers(ctx context.Context, users ...*User) error {
-	// TODO: this conflict expression isn't valid and errors
 	ds := s.dialect.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(goqu.DoNothing()) // TODO Something other than nothing
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
@@ -310,7 +309,7 @@ func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, err
 			UserName: foundName,
 		}, nil
 	}
-	// TODO return error if not found?
+
 	return nil, NoQueryResultsError{}
 }
 

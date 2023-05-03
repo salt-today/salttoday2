@@ -13,12 +13,12 @@ import (
 )
 
 func main() {
-	store, err := stor.NewSQLStorage(context.TODO())
+	store, err := stor.NewSQLStorage(context.Background())
 	if err != nil {
 		panic(err)
 	}
 
-	file, err := os.Open("data/users.txt")
+	file, err := os.Open("localdev/db/data/users.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -35,12 +35,13 @@ func main() {
 		userIDCounter++
 	}
 
-	err = store.AddUsers(context.TODO(), users...)
+	err = store.AddUsers(context.Background(), users...)
+	fmt.Println(err)
 	if err != nil {
 		panic(err)
 	}
 
-	file, err = os.Open("data/articles.txt")
+	file, err = os.Open("localdev/db/data/articles.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -59,12 +60,12 @@ func main() {
 		articleIDCounter++
 	}
 
-	err = store.AddArticles(context.TODO(), articles...)
+	err = store.AddArticles(context.Background(), articles...)
 	if err != nil {
 		panic(err)
 	}
 
-	file, err = os.Open("data/comments.txt")
+	file, err = os.Open("localdev/db/data/comments.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +95,7 @@ func main() {
 			Deleted:   deleted,
 		}
 	}
-	err = store.AddComments(context.TODO(), comments...)
+	err = store.AddComments(context.Background(), comments...)
 	if err != nil {
 		panic(err)
 	}
