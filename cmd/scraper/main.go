@@ -12,9 +12,9 @@ import (
 
 func main() {
 	ScrapeAndStoreArticles(context.Background())
-	
+
 	ScrapeAndStoreComments(context.Background())
-	
+
 }
 
 func ScrapeAndStoreArticles(ctx context.Context) {
