@@ -24,19 +24,10 @@ func getSleepDuration(scrapeType string) time.Duration {
 }
 
 func main() {
-	go func() {
-		for true {
-			ScrapeAndStoreArticles(context.Background())
-			time.Sleep(getSleepDuration("articles"))
-		}
-	}()
-
-	// Give the article scraper a hot sec to first find articles
-	time.Sleep(time.Minute)
-	for true {
-		ScrapeAndStoreComments(context.Background())
-		time.Sleep(getSleepDuration("comments"))
-	}
+	ScrapeAndStoreArticles(context.Background())
+	time.Sleep(getSleepDuration("articles"))
+	ScrapeAndStoreComments(context.Background())
+	time.Sleep(getSleepDuration("comments"))
 }
 
 func ScrapeAndStoreArticles(ctx context.Context) {
