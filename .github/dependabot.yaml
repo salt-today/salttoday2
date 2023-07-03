@@ -16,6 +16,10 @@ updates:
     open-pull-requests-limit: 5
     schedule:
       interval: "monthly"
+    groups:
+      aws:
+        patterns:
+          - "aws*"
     ignore:
       - dependency-name: "github.com/aws/aws-sdk-go-v2"
         update-types: ["version-update:semver-patch"]
