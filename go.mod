@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.30
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.46
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.4.57
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.20.0
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-chi/chi/v5 v5.0.8
