@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
@@ -22,9 +23,23 @@ type sqlStorage struct {
 
 const maxPageSize uint = 20
 
+func getSqlConnString(ctx context.Context) string {
+	user := os.Getenv("MYSQL_USER")
+	pass := os.Getenv("MYSQL_PASS")
+
+	url := os.Getenv("MYSQL_URL")
+	port := os.Getenv("MYSQL_PORT")
+	dbName := os.Getenv("MYSQL_DB_NAME")
+
+	if user == `` || pass == `` || url == `` || port == `` || dbName == `` {
+		sdk.Logger(ctx).Info("Incomplete database configuration, defaulting to local dev")
+		return "salt:salt@tcp(localhost:3306)/salt?parseTime=true"
+	}
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, url, port, dbName)
+}
+
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
-	// TODO: conn string should be configurable
-	db, err := sql.Open("mysql", "salt:salt@tcp(localhost:3306)/salt?parseTime=true")
+	db, err := sql.Open("mysql", getSqlConnString(ctx))
 	if err != nil {
 		return nil, err
 	}
