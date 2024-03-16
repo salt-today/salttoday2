@@ -24,18 +24,13 @@ type sqlStorage struct {
 const maxPageSize uint = 20
 
 func getSqlConnString(ctx context.Context) string {
-	user := os.Getenv("MYSQL_USER")
-	pass := os.Getenv("MYSQL_PASS")
-
 	url := os.Getenv("MYSQL_URL")
-	port := os.Getenv("MYSQL_PORT")
-	dbName := os.Getenv("MYSQL_DB_NAME")
 
-	if user == `` || pass == `` || url == `` || port == `` || dbName == `` {
-		sdk.Logger(ctx).Info("Incomplete database configuration, defaulting to local dev")
+	if url == `` {
+		sdk.Logger(ctx).Info("Missing database configuration, defaulting to local dev")
 		return "salt:salt@tcp(localhost:3306)/salt?parseTime=true"
 	}
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, url, port, dbName)
+	return url
 }
 
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
