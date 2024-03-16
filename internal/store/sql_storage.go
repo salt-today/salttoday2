@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/store/migrations"
+	"github.com/sirupsen/logrus"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -28,20 +31,30 @@ func getSqlConnString(ctx context.Context) string {
 
 	if url == `` {
 		sdk.Logger(ctx).Info("Missing database configuration, defaulting to local dev")
-		return "salt:salt@tcp(localhost:3306)/salt?parseTime=true"
+		return "root:salt@tcp(localhost:3306)/salt"
 	}
 	return url
 }
 
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
+	entry := logrus.WithField(`component`, `sql-storage`)
+
 	db, err := sql.Open("mysql", getSqlConnString(ctx)+"?parseTime=true")
 	if err != nil {
 		return nil, err
 	}
+	entry.Info("succesfully connected to database")
+
 	s := &sqlStorage{
 		db:      db,
 		dialect: goqu.Dialect("mysql"),
 	}
+
+	err = migrations.MigrateDb(db)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
 		<-ctx.Done()
 		err := s.shutdown()

@@ -3,27 +3,27 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: 'salt'
-      MYSQL_ROOT_USER: 'root'
-      MYSQL_PASSWORD: 'salt'
-      MYSQL_ROOT_PASSWORD: 'salt'
+      MYSQL_DATABASE: "salt"
+      MYSQL_ROOT_USER: "root"
+      MYSQL_PASSWORD: "salt"
+      MYSQL_ROOT_PASSWORD: "salt"
     ports:
-      - '3306:3306'
+      - "3306:3306"
     expose:
-      - '3306'
+      - "3306"
     volumes:
-      - ./localdev/db/init.sql:/data/application/init.sql
+      - ./internal/store/migrations/0000-init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-psalt" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-psalt"]
       interval: 2s
       retries: 20
   webserver:
     build: .
     ports:
-      - '3000:3000'
+      - "3000:3000"
     expose:
-      - '3000'
+      - "3000"
     depends_on:
       mysql:
         condition: service_healthy

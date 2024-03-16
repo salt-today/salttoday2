@@ -1,3 +1,5 @@
+-- +migrate Up
+
 FLUSH PRIVILEGES;
 CREATE USER IF NOT EXISTS 'salt'@'%' IDENTIFIED BY 'salt';
 GRANT ALL PRIVILEGES ON *.* TO 'salt'@'%';
@@ -34,3 +36,9 @@ Create TABLE IF NOT EXISTS Users (
     Name VARCHAR(255) NOT NULL,
     PRIMARY KEY (ID)
 );
+
+-- +migrate Down
+
+DROP TABLE Comments;
+DROP TABLE Articles;
+DROP TABLE Users;
