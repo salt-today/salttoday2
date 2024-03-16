@@ -39,7 +39,7 @@ func getSqlConnString(ctx context.Context) string {
 }
 
 func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
-	db, err := sql.Open("mysql", getSqlConnString(ctx))
+	db, err := sql.Open("mysql", getSqlConnString(ctx)+"?parseTime=true")
 	if err != nil {
 		return nil, err
 	}
