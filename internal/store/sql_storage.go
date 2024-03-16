@@ -45,14 +45,14 @@ func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	}
 	entry.Info("succesfully connected to database")
 
-	s := &sqlStorage{
-		db:      db,
-		dialect: goqu.Dialect("mysql"),
-	}
-
 	err = migrations.MigrateDb(db)
 	if err != nil {
 		return nil, err
+	}
+
+	s := &sqlStorage{
+		db:      db,
+		dialect: goqu.Dialect("mysql"),
 	}
 
 	go func() {
