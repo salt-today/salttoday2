@@ -7,6 +7,7 @@ WORKDIR /app
 RUN go mod download
 
 RUN go build -o /service-bin cmd/http/main.go
+RUN go build -o /scraper-bin cmd/scraper/main.go
 
 FROM alpine
 
