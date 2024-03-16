@@ -19,7 +19,7 @@ func MigrateDb(db *sql.DB) error {
 	if err != nil {
 		panic(err)
 	}
-	entry.WithField(`files`, files).Info(`Migration files found`)
+	entry.WithField(`files`, files).Info(`migration files found`)
 	migrations := migrate.HttpFileSystemMigrationSource{
 		FileSystem: http.FS(sources),
 	}
