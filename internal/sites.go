@@ -22,7 +22,7 @@ func GetSites() []string {
 		// "https://www.northernontariobusiness.com",
 		// "https://www.orilliamatters.com",
 		// "https://www.pelhamtoday.ca",
-		// "https://www.sootoday.com",
+		"https://www.sootoday.com",
 		// "https://www.stratfordtoday.ca",
 		// "https://sudbury.com",
 		// "https://www.thoroldtoday.ca",
