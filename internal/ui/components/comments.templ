@@ -1,12 +1,18 @@
 package components
 
+import "fmt"
 import "github.com/salt-today/salttoday2/internal/store"
 
 templ CommentComponent(comment *store.Comment) {
-	this is a comment!!!!!!!
 	<div>
-		Title: { comment.Article.Title }
-		Text: { comment.Text }
-		User: { comment.User.UserName }
+		<div>
+			<a href={ templ.SafeURL(comment.Article.Url) }>{ comment.Article.Title }</a>
+		</div>
+		<div>{ comment.Text }</div>
+		<div>
+			<b>Likes: </b> { fmt.Sprintf("%d", comment.Likes) } <b>Dislikes: </b>{ fmt.Sprintf("%d", comment.Dislikes) }
+			<b>User: </b>{ comment.User.UserName }
+		</div>
 	</div>
+	<hr/>
 }
