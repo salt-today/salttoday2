@@ -13,11 +13,8 @@ import (
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "Home")
 
-	comments, err := h.storage.GetComments(r.Context(), store.CommentQueryOptions{
-		PageOpts: store.PageQueryOptions{
-			Order: aws.Int(store.OrderByBoth),
-		},
-	})
+	queryOpts := getCommentQueryOptions(r)
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
 	if err != nil {
 		entry.Error("error getting comments", err)
 		w.WriteHeader(500)
@@ -27,12 +24,22 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "HandleGetComments")
-	comments, err := h.storage.GetComments(r.Context(), store.CommentQueryOptions{})
+	entry := sdk.Logger(r.Context()).WithField("handler", "GetComments")
+
+	queryOpts := getCommentQueryOptions(r)
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
 	if err != nil {
 		entry.Info("error getting comments")
 		w.WriteHeader(500)
 	}
 	entry.Info("Showing comments list!")
 	components.CommentsListComponent(comments).Render(r.Context(), w)
+}
+
+func getCommentQueryOptions(r *http.Request) store.CommentQueryOptions {
+	return store.CommentQueryOptions{
+		PageOpts: store.PageQueryOptions{
+			Order: aws.Int(store.OrderByBoth),
+		},
+	}
 }

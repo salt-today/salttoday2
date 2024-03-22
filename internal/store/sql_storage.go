@@ -123,7 +123,7 @@ func (s *sqlStorage) QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*
 
 func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
-		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, UsersID, UsersName).
+		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + 2 * "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, UsersID, UsersName).
 		From(CommentsTable).
 		InnerJoin(goqu.T(UsersTable).As(UsersTable), goqu.On(goqu.I(CommentsUserID).Eq(goqu.I(UsersID)))).
 		InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
