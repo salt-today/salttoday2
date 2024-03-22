@@ -43,7 +43,7 @@ func NewSQLStorage(ctx context.Context) (*sqlStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	entry.Info("succesfully connected to database")
+	entry.Info("successfully connected to database")
 
 	err = migrations.MigrateDb(db)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*Comment) erro
 		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
 
 	for _, comment := range comments {
-		ds = ds.Vals(goqu.Vals{comment.ID, comment.ArticleID, comment.UserID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
+		ds = ds.Vals(goqu.Vals{comment.ID, comment.Article.ID, comment.User.ID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
 	}
 	query, _, err := ds.ToSQL()
 	if err != nil {
@@ -123,8 +123,10 @@ func (s *sqlStorage) QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*
 
 func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) ([]*Comment, error) {
 	sd := s.dialect.
-		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID).
-		From(CommentsTable)
+		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, UsersID, UsersName).
+		From(CommentsTable).
+		InnerJoin(goqu.T(UsersTable).As(UsersTable), goqu.On(goqu.I(CommentsUserID).Eq(goqu.I(UsersID)))).
+		InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
 
 	if opts.ID != nil {
 		sd = sd.Where(goqu.Ex{CommentsID: opts.ID})
@@ -173,27 +175,29 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 	defer rows.Close()
 
 	comments := make([]*Comment, 0)
-	var id, articleID, foundUserID int
+	var id, articleID, commentsArticleID, userID, commentsUserID int
 	var tm time.Time
 	var text string
 	var likes, dislikes int32
 	var score int64
 	var deleted bool
+	var articleTitle string
+	var userName string
 	for rows.Next() {
-		err := rows.Scan(&id, &tm, &text, &likes, &dislikes, &score, &deleted, &articleID, &foundUserID)
+		err := rows.Scan(&id, &tm, &text, &likes, &dislikes, &score, &deleted, &commentsArticleID, &commentsUserID, &articleID, &articleTitle, &userID, &userName)
 		if err != nil {
 			return nil, err
 		}
 
 		comments = append(comments, &Comment{
-			ID:        id,
-			ArticleID: articleID,
-			UserID:    foundUserID,
-			Time:      tm.Local(),
-			Text:      text,
-			Likes:     likes,
-			Dislikes:  dislikes,
-			Deleted:   deleted,
+			ID:       id,
+			Article:  Article{ID: articleID, Title: articleTitle},
+			User:     User{ID: userID, UserName: userName},
+			Time:     tm.Local(),
+			Text:     text,
+			Likes:    likes,
+			Dislikes: dislikes,
+			Deleted:  deleted,
 		})
 	}
 

@@ -293,15 +293,15 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 
 func newCommentFromDiv(ctx context.Context, div *goquery.Selection, articleID int, userIDToNameMap map[int]string) *store.Comment {
 	comment := &store.Comment{
-		ID:        getCommentID(ctx, div),
-		ArticleID: articleID,
-		UserID:    getUserID(ctx, div),
-		Time:      getTimestamp(ctx, div),
-		Text:      getCommentText(ctx, div),
-		Likes:     getLikes(ctx, div),
-		Dislikes:  getDislikes(ctx, div),
+		ID:       getCommentID(ctx, div),
+		Article:  store.Article{ID: articleID},
+		User:     store.User{ID: getUserID(ctx, div)},
+		Time:     getTimestamp(ctx, div),
+		Text:     getCommentText(ctx, div),
+		Likes:    getLikes(ctx, div),
+		Dislikes: getDislikes(ctx, div),
 	}
-	userIDToNameMap[comment.UserID] = getUsername(ctx, div)
+	userIDToNameMap[comment.User.ID] = getUsername(ctx, div)
 	return comment
 }
 

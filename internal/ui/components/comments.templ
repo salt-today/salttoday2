@@ -1,0 +1,12 @@
+package components
+
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ CommentComponent(comment *store.Comment) {
+	this is a comment!!!!!!!
+	<div>
+		Title: { comment.Article.Title }
+		Text: { comment.Text }
+		User: { comment.User.UserName }
+	</div>
+}

@@ -1,0 +1,10 @@
+package components
+
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ CommentsListComponent(comments []*store.Comment) {
+Comments List!
+for _, comment := range comments {
+@CommentComponent(comment)
+}
+}
