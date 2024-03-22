@@ -11,6 +11,10 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "/public/favicon.ico")
+}
+
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -24,6 +28,8 @@ func main() {
 
 	// htmx
 	r.Get("/", handler.HandleHome)
+
+	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
 	// old
 	// r.Get("/api/v1/users", svc.GetUsersHTTPHandler)
