@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -28,11 +30,23 @@ func main() {
 
 	// htmx
 	r.Get("/", handler.HandleHome)
+	r.Get("/comments", handler.HandleGetComments)
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
-	println("Listening on :42069")
-	err = http.ListenAndServe(":42069", r)
+	port := os.Getenv("PORT")
+	if port == `` {
+		port = "8080"
+	}
+
+	isDeployed := os.Getenv("RAILWAY_PUBLIC_DOMAIN") != ``
+	domain := "localhost"
+	if isDeployed {
+		domain = ""
+	}
+
+	println("Listening on :", port)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%s", domain, port), r)
 	if err != nil {
 		panic(err)
 	}
