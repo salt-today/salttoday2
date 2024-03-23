@@ -4,16 +4,17 @@ import "fmt"
 import "github.com/salt-today/salttoday2/internal/store"
 
 templ CommentComponent(comment *store.Comment) {
-<div>
-  <div><a href="{templ.URL(comment.Article.Url)}">{comment.Article.Title}</a></div>
-  // TODO add a copy button
+<div class="">
   <div>
-    <div>
-      <span>{comment.Text}</span>
-      <span>👍 {fmt.Sprintf("%d", comment.Likes)} 👎 {fmt.Sprintf("%d", comment.Dislikes)}</span>
+    <a href={ templ.URL(comment.Article.Url) }>{ comment.Article.Title }</a>
+  </div>
+  <div class="">
+    <div class="flex flex-col p-3 bg-gray-200 text-black rounded border-red-500 border-4">
+      <span>{ comment.Text }</span>
+      <span>👍 { fmt.Sprintf("%d", comment.Likes) } 👎 { fmt.Sprintf("%d", comment.Dislikes) }</span>
     </div>
     <div>
-      <div><a href={ templ.URL(fmt.Sprintf("/user/%d", comment.User.ID)) }>{comment.User.UserName}</a></div>
+      <div><a href={ templ.URL(fmt.Sprintf("/user/%d", comment.User.ID)) }>- { comment.User.UserName }</a></div>
       if comment.Deleted {
       <div>"DELETED"</div>
       }

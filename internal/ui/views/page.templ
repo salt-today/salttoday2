@@ -1,22 +1,52 @@
 package views
 
 templ Page(nav bool) {
-	<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<title>SaltToday 2</title>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link rel="stylesheet" href="/public/styles.css"/>
-			<script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-		</head>
-		<body>
-			if nav {
-				<nav>
-					<a href="/">What a great nav bar</a>
-				</nav>
-			}
-			{ children... }
-		</body>
-	</html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>SaltToday 2</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./public/output.css" />
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+</head>
+
+<body class="font-sans leading-tight bg-gray-900 text-white">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"></script>
+  if nav {
+  <nav class="border-black bg-grey-900">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <a href="https://salttoday.ca/" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="public/images/SaltTodayLogoNoSalt.svg" class="h-8" alt="SaltToday Logo" />
+        <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">SaltToday</span>
+      </a>
+      <div class="hidden w-full md:block md:w-auto" id="navbar-default">
+        <ul
+          class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-900 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-black">
+          <li>
+            <a href="#" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0" aria-current="page">Home</a>
+          </li>
+          <li>
+            <a href="/users" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0">
+              Users
+            </a>
+          </li>
+          <li>
+            <a href="/about" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0">
+              About
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  }
+  <div class="container max-w-screen-xl p-9 g-gray-800">
+    { children... }
+  </div>
+</body>
+
+</html>
 }
