@@ -13,10 +13,6 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func faviconHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "/public/favicon.ico")
-}
-
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
