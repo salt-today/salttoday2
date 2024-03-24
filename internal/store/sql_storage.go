@@ -136,7 +136,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
 	}
 
-	if opts.Site != nil {
+	if opts.PageOpts.Site != nil {
 		// TODO
 		// sd = sd.Where()
 	}

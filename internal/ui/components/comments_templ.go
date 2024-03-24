@@ -85,7 +85,7 @@ func CommentComponent(comment *store.Comment) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 = []any{fmt.Sprintf(`flex flex-col p-2 %s`, getGradient(comment))}
+		var templ_7745c5c3_Var4 = []any{fmt.Sprintf(`flex flex-col p-2 rounded %s`, getGradient(comment))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var4...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

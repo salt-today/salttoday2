@@ -29,15 +29,14 @@ type PageQueryOptions struct {
 	Limit *uint
 	Page  *uint
 	Order *int
+	Site  *string
 }
 
 type CommentQueryOptions struct {
 	ID          *int
 	UserID      *int
 	OnlyDeleted bool
-	Site        *string
 	DaysAgo     *uint
-	Format      *string
 
 	PageOpts PageQueryOptions
 }

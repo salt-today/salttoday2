@@ -26,6 +26,8 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 				return nil, fmt.Errorf("page was not a valid number: %w", err)
 			}
 			opts.Page = aws.Uint(uint(pageValue))
+		case "site":
+			opts.Site = aws.String(value)
 		case "order":
 			if value == "liked" {
 				opts.Order = aws.Int(store.OrderByLiked)
@@ -36,5 +38,30 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			}
 		}
 	}
+	if opts.Order == nil {
+		opts.Order = aws.Int(store.OrderByBoth)
+	}
+
 	return &opts, nil
+}
+
+func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
+	str := ``
+
+	pageNum := 1
+	if queryOpts.Page != nil {
+		pageNum = int(*queryOpts.Page) + 1
+	}
+	str += fmt.Sprintf(`page=%d`, pageNum)
+
+	if queryOpts.Limit != nil {
+		str += fmt.Sprintf(`limit=%d`, *queryOpts.Limit)
+	}
+	if queryOpts.Order != nil {
+		str += fmt.Sprintf(`order=%d`, *queryOpts.Order)
+	}
+	if queryOpts.Site != nil {
+		str += fmt.Sprintf(`site=%s`, *queryOpts.Site)
+	}
+	return str
 }

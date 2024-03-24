@@ -13,7 +13,7 @@ import "bytes"
 import "github.com/salt-today/salttoday2/internal/ui/components"
 import "github.com/salt-today/salttoday2/internal/store"
 
-func Home(comments []*store.Comment) templ.Component {
+func Home(comments []*store.Comment, nextUrl string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -36,7 +36,7 @@ func Home(comments []*store.Comment) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.CommentsListComponent(comments).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.CommentsListComponent(comments, nextUrl).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
