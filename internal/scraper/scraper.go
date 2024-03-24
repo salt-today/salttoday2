@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
@@ -376,7 +377,11 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 		if href, exists := sel.Attr("href"); exists {
 			if hasArticlePrefix(href) {
 				title := sel.Find("div.section-title").First().Text()
+				// sometimes theres numbers at the end of titles - clean em up
 				title = strings.TrimSpace(title)
+				title = strings.TrimRightFunc(title, func(r rune) bool {
+					return unicode.IsNumber(r) || unicode.IsSpace(r)
+				})
 				articles = append(articles, &store.Article{
 					ID:    getArticleId(ctx, href),
 					Title: title,
