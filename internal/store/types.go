@@ -21,7 +21,7 @@ type Article struct {
 	Title          string
 	Url            string
 	DiscoveryTime  time.Time
-	LastScrapeTime *time.Time
+	LastScrapeTime time.Time
 }
 
 type User struct {

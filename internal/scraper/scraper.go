@@ -383,9 +383,11 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 					return unicode.IsNumber(r) || unicode.IsSpace(r)
 				})
 				articles = append(articles, &store.Article{
-					ID:    getArticleId(ctx, href),
-					Title: title,
-					Url:   siteUrl + href,
+					ID:             getArticleId(ctx, href),
+					Title:          title,
+					Url:            siteUrl + href,
+					DiscoveryTime:  time.Now(),
+					LastScrapeTime: time.Now(),
 				})
 			}
 		}

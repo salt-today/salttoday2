@@ -55,13 +55,13 @@ func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
 	str += fmt.Sprintf(`page=%d`, pageNum)
 
 	if queryOpts.Limit != nil {
-		str += fmt.Sprintf(`limit=%d`, *queryOpts.Limit)
+		str += fmt.Sprintf(`&limit=%d`, *queryOpts.Limit)
 	}
 	if queryOpts.Order != nil {
-		str += fmt.Sprintf(`order=%d`, *queryOpts.Order)
+		str += fmt.Sprintf(`&order=%d`, *queryOpts.Order)
 	}
 	if queryOpts.Site != nil {
-		str += fmt.Sprintf(`site=%s`, *queryOpts.Site)
+		str += fmt.Sprintf(`&site=%s`, *queryOpts.Site)
 	}
 	return str
 }

@@ -375,7 +375,7 @@ func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
 
 		if last.Valid {
 			localTime := last.Time.Local()
-			article.LastScrapeTime = &localTime
+			article.LastScrapeTime = localTime
 		}
 
 		articles = append(articles, article)

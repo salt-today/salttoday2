@@ -96,7 +96,7 @@ func TestStorage_Articles(t *testing.T) {
 			Title:          titles[i%len(titles)],
 			Url:            urls[i%len(urls)],
 			DiscoveryTime:  time.Now().Truncate(time.Second),
-			LastScrapeTime: nil,
+			LastScrapeTime: time.Now().Truncate(time.Second),
 		}
 		allArticles = append(allArticles, article)
 
@@ -117,7 +117,7 @@ func TestStorage_Articles(t *testing.T) {
 
 	for i := 0; i < numArts; i++ {
 		require.NoError(t, store.SetArticleScrapedAt(context.Background(), toScrapeTimes[i], allArticles[i].ID))
-		allArticles[i].LastScrapeTime = &toScrapeTimes[i]
+		allArticles[i].LastScrapeTime = toScrapeTimes[i]
 	}
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start)
 	// should still have everything

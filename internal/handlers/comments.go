@@ -19,14 +19,19 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 
 	queryOpts, err := processGetCommentQueryParameters(r)
 	if err != nil {
+		entry.Error("error parsing query parameters", err)
 		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	entry.Info(queryOpts.PageOpts.Order)
 
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
 	if err != nil {
-		entry.Error("error getting comments", err)
+		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	views.Home(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
 }
@@ -36,13 +41,18 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 
 	queryOpts, err := processGetCommentQueryParameters(r)
 	if err != nil {
-		w.WriteHeader(500)
+		entry.Error("error parsing query parameters", err)
+		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
 	if err != nil {
-		entry.Error("error getting comments", err)
+		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	components.CommentsListComponent(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
 }
@@ -81,17 +91,19 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 }
 
 func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
-	str := `/comments?`
+	paramsString := ``
 	if queryOpts.UserID != nil {
-		str += fmt.Sprintf(`userID=%d`, *queryOpts.UserID)
+		paramsString += fmt.Sprintf(`&user_id=%d`, *queryOpts.UserID)
 	}
 	if queryOpts.OnlyDeleted {
-		str += `only_deleted=true`
+		paramsString += `&only_deleted=true`
 	}
 	if queryOpts.DaysAgo != nil {
-		str += fmt.Sprintf(`days_ago=%d`, *queryOpts.DaysAgo)
+		paramsString += fmt.Sprintf(`&days_ago=%d`, *queryOpts.DaysAgo)
 	}
 
-	str += `&` + getNextPageQueryString(&queryOpts.PageOpts)
-	return str
+	if len(paramsString) > 0 {
+		paramsString = paramsString[1:]
+	}
+	return `/comments?` + paramsString + `&` + getNextPageQueryString(&queryOpts.PageOpts)
 }
