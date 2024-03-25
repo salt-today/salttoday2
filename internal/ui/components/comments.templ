@@ -1,0 +1,57 @@
+package components
+
+import "fmt"
+import "github.com/salt-today/salttoday2/internal/store"
+
+func getGradient(comment *store.Comment) string {
+	if comment.Likes+comment.Dislikes == 0 {
+		return "bg-gray-500"
+	}
+	if comment.Likes == 0 {
+		return "bg-red-600"
+	}
+	if comment.Dislikes == 0 {
+		return "bg-blue-600"
+	}
+	return fmt.Sprintf("bg-gradient-to-br from-blue-600 to-red-600 from-%d%% to-%d%%",
+		max(0,
+			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100)/5*5),
+		min(100,
+			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100-5)/5*5),
+	)
+
+}
+
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+func min(x, y int) int {
+	if x > y {
+		return y
+	}
+	return x
+}
+
+templ CommentComponent(comment *store.Comment) {
+	<div class="">
+		<div>
+			<a href={ templ.URL(comment.Article.Url) }>{ comment.Article.Title }</a>
+		</div>
+		<div class={ fmt.Sprintf(`flex flex-col p-2 rounded %s`, getGradient(comment)) }>
+			<div class=" flex flex-col p-3 bg-gray-200 text-black rounded">
+				<span>{ comment.Text }</span>
+				<span>👍 { fmt.Sprintf("%d", comment.Likes) } 👎 { fmt.Sprintf("%d", comment.Dislikes) }</span>
+			</div>
+		</div>
+		<div class="w-half flex flex-row max-width">
+			<div><a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>- { comment.User.UserName }</a></div>
+			if comment.Deleted {
+				<div class="px-3 text-right font-bold text-red-600">DELETED</div>
+			}
+		</div>
+	</div>
+}

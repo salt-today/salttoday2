@@ -85,21 +85,20 @@ func main() {
 		}
 
 		comments[i] = &stor.Comment{
-			ID:        i,
-			ArticleID: i % len(articles),
-			UserID:    i % len(users),
-			Text:      commentsText[i%len(commentsText)],
-			Time:      randomDate(),
-			Likes:     rand.Int31() % 100,
-			Dislikes:  rand.Int31() % 100,
-			Deleted:   deleted,
+			ID:       i,
+			Article:  stor.Article{ID: i % len(articles)},
+			User:     stor.User{ID: i % len(users)},
+			Text:     commentsText[i%len(commentsText)],
+			Time:     randomDate(),
+			Likes:    rand.Int31() % 100,
+			Dislikes: rand.Int31() % 100,
+			Deleted:  deleted,
 		}
 	}
 	err = store.AddComments(context.Background(), comments...)
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func randomDate() time.Time {

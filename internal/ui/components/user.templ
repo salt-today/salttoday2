@@ -1,0 +1,15 @@
+package components
+
+import "github.com/salt-today/salttoday2/internal/store"
+import "fmt"
+
+templ UserComponent(user *store.User) {
+	<div>
+		<div>
+			<span><a href={ templ.URL(fmt.Sprintf("/user/%s", user.ID)) }>{ user.UserName }</a></span>
+		</div>
+		<div>
+			<span>👍 { fmt.Sprintf("%d", 123) } 👎 { fmt.Sprintf("%d", 456) }</span>
+		</div>
+	</div>
+}

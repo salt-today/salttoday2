@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
@@ -293,15 +294,15 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 
 func newCommentFromDiv(ctx context.Context, div *goquery.Selection, articleID int, userIDToNameMap map[int]string) *store.Comment {
 	comment := &store.Comment{
-		ID:        getCommentID(ctx, div),
-		ArticleID: articleID,
-		UserID:    getUserID(ctx, div),
-		Time:      getTimestamp(ctx, div),
-		Text:      getCommentText(ctx, div),
-		Likes:     getLikes(ctx, div),
-		Dislikes:  getDislikes(ctx, div),
+		ID:       getCommentID(ctx, div),
+		Article:  store.Article{ID: articleID},
+		User:     store.User{ID: getUserID(ctx, div)},
+		Time:     getTimestamp(ctx, div),
+		Text:     getCommentText(ctx, div),
+		Likes:    getLikes(ctx, div),
+		Dislikes: getDislikes(ctx, div),
 	}
-	userIDToNameMap[comment.UserID] = getUsername(ctx, div)
+	userIDToNameMap[comment.User.ID] = getUsername(ctx, div)
 	return comment
 }
 
@@ -376,11 +377,17 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 		if href, exists := sel.Attr("href"); exists {
 			if hasArticlePrefix(href) {
 				title := sel.Find("div.section-title").First().Text()
+				// sometimes theres numbers at the end of titles - clean em up
 				title = strings.TrimSpace(title)
+				title = strings.TrimRightFunc(title, func(r rune) bool {
+					return unicode.IsNumber(r) || unicode.IsSpace(r)
+				})
 				articles = append(articles, &store.Article{
-					ID:    getArticleId(ctx, href),
-					Title: title,
-					Url:   siteUrl + href,
+					ID:             getArticleId(ctx, href),
+					Title:          title,
+					Url:            siteUrl + href,
+					DiscoveryTime:  time.Now(),
+					LastScrapeTime: time.Now(),
 				})
 			}
 		}

@@ -1,0 +1,12 @@
+package views
+
+import "github.com/salt-today/salttoday2/internal/ui/components"
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ Home(comments []*store.Comment, nextUrl string) {
+@Page(true) {
+<div id="comments" hx-post="/comments">
+  @components.CommentsListComponent(comments, nextUrl)
+</div>
+}
+}

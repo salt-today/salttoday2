@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/salt-today/salttoday2/internal/service"
+	"github.com/salt-today/salttoday2/internal/handlers"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
@@ -20,17 +22,27 @@ func main() {
 		panic(err)
 	}
 
-	svc := service.NewService(storage)
+	handler := handlers.NewHandler(storage)
 
-	r.Get("/api/v1/users", svc.GetUsersHTTPHandler)
-	r.Get("/api/v1/users/{userID}", svc.GetUserHTTPHandler)
-	r.Get("/api/v1/users/{userID}/comments", svc.GetUserCommentsHTTPHandler)
+	// htmx
+	r.Get("/", handler.HandleHome)
+	r.Get("/comments", handler.HandleGetComments)
 
-	r.Get("/api/v1/comments", svc.GetCommentsHTTPHandler)
-	r.Get("/api/v1/comments/{commentID}", svc.GetCommentHTTPHandler)
+	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
-	println("Listening on :3000")
-	err = http.ListenAndServe(":3000", r)
+	port := os.Getenv("PORT")
+	if port == `` {
+		port = "8080"
+	}
+
+	isDeployed := os.Getenv("RAILWAY_PUBLIC_DOMAIN") != ``
+	domain := "localhost"
+	if isDeployed {
+		domain = ""
+	}
+
+	println("Listening on :", port)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%s", domain, port), r)
 	if err != nil {
 		panic(err)
 	}

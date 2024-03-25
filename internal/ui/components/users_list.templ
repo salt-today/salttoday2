@@ -1,0 +1,9 @@
+package components
+
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ UsersListComponent(users []*store.User) {
+	for _, user := range users {
+		@UserComponent(user)
+	}
+}

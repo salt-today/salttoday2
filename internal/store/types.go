@@ -6,14 +6,14 @@ import (
 )
 
 type Comment struct {
-	ID        int
-	ArticleID int
-	UserID    int
-	Time      time.Time
-	Text      string
-	Likes     int32
-	Dislikes  int32
-	Deleted   bool
+	ID       int
+	Article  Article
+	User     User
+	Time     time.Time
+	Text     string
+	Likes    int32
+	Dislikes int32
+	Deleted  bool
 }
 
 type Article struct {
@@ -21,7 +21,7 @@ type Article struct {
 	Title          string
 	Url            string
 	DiscoveryTime  time.Time
-	LastScrapeTime *time.Time
+	LastScrapeTime time.Time
 }
 
 type User struct {
