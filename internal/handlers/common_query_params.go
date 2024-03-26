@@ -29,14 +29,17 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 		case "site":
 			opts.Site = aws.String(value)
 		case "order":
-			if value == "liked" {
-				opts.Order = aws.Int(store.OrderByLiked)
-			} else if value == "disliked" {
-				opts.Order = aws.Int(store.OrderByDisliked)
+			if value == "likes" {
+				opts.Order = aws.Int(store.OrderByLikes)
+			} else if value == "dislikes" {
+				opts.Order = aws.Int(store.OrderByDislikes)
 			} else {
 				opts.Order = aws.Int(store.OrderByBoth)
 			}
 		}
+	}
+	if opts.Page == nil {
+		opts.Page = aws.Uint(0)
 	}
 	if opts.Order == nil {
 		opts.Order = aws.Int(store.OrderByBoth)
@@ -58,7 +61,13 @@ func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
 		str += fmt.Sprintf(`&limit=%d`, *queryOpts.Limit)
 	}
 	if queryOpts.Order != nil {
-		str += fmt.Sprintf(`&order=%d`, *queryOpts.Order)
+		order := "score"
+		if *queryOpts.Order == store.OrderByLikes {
+			order = "likes"
+		} else if *queryOpts.Order == store.OrderByDislikes {
+			order = "dislikes"
+		}
+		str += fmt.Sprintf(`&order=%s`, order)
 	}
 	if queryOpts.Site != nil {
 		str += fmt.Sprintf(`&site=%s`, *queryOpts.Site)

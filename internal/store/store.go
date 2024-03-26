@@ -20,8 +20,8 @@ type Storage interface {
 }
 
 const (
-	OrderByLiked    = iota
-	OrderByDisliked = iota
+	OrderByLikes    = iota
+	OrderByDislikes = iota
 	OrderByBoth     = iota
 )
 
