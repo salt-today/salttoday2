@@ -31,6 +31,6 @@ type User struct {
 
 type NoQueryResultsError struct{}
 
-func (e NoQueryResultsError) Error() string {
+func (e *NoQueryResultsError) Error() string {
 	return fmt.Sprintf("No results found")
 }

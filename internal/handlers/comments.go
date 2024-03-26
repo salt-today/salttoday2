@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,7 +28,10 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	entry.Info(queryOpts.PageOpts.Order)
 
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
-	if err != nil {
+	if errors.Is(err, &store.NoQueryResultsError{}) {
+		components.NoResultsFound().Render(r.Context(), w)
+		return
+	} else if err != nil {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
@@ -48,7 +52,15 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
-	if err != nil {
+	if errors.Is(err, &store.NoQueryResultsError{}) {
+		// error on first page? no comments
+		if queryOpts.PageOpts.Page == nil || *queryOpts.PageOpts.Page == 0 {
+			components.NoResultsFound().Render(r.Context(), w)
+			return
+		}
+		// end of comments - nothing to do here
+		return
+	} else if err != nil {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
@@ -78,13 +90,21 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 			if err != nil {
 				return nil, fmt.Errorf("only_deleted was not a valid boolean: %w", err)
 			}
-			opts.OnlyDeleted = onlyDeletedValue
+			if onlyDeletedValue {
+				opts.OnlyDeleted = onlyDeletedValue
+			}
+
 		case "days_ago":
 			daysAgo, err := strconv.Atoi(value)
 			if err != nil {
 				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
-			opts.DaysAgo = aws.Uint(uint(daysAgo))
+
+			if daysAgo > 0 {
+				opts.DaysAgo = aws.Uint(uint(daysAgo))
+			} else {
+				// Not setting is All Time
+			}
 		}
 	}
 	return opts, nil

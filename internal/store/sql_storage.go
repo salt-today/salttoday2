@@ -152,9 +152,9 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 	sd = addPaging(sd, &opts.PageOpts)
 
 	if opts.PageOpts.Order != nil {
-		if *opts.PageOpts.Order == OrderByLiked {
+		if *opts.PageOpts.Order == OrderByLikes {
 			sd = sd.Order(goqu.I(CommentsLikes).Desc())
-		} else if *opts.PageOpts.Order == OrderByDisliked {
+		} else if *opts.PageOpts.Order == OrderByDislikes {
 			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
 		} else if *opts.PageOpts.Order == OrderByBoth {
 			sd = sd.Order(goqu.I(CommentsScore).Desc())
@@ -206,7 +206,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 	}
 
 	if len(comments) == 0 {
-		return nil, NoQueryResultsError{}
+		return nil, &NoQueryResultsError{}
 	}
 
 	return comments, nil
@@ -302,7 +302,7 @@ func (s *sqlStorage) GetUsersByIDs(ctx context.Context, ids ...int) ([]*User, er
 	}
 
 	if len(users) == 0 {
-		return nil, NoQueryResultsError{}
+		return nil, &NoQueryResultsError{}
 	}
 
 	return users, nil
@@ -337,7 +337,7 @@ func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*User, err
 		}, nil
 	}
 
-	return nil, NoQueryResultsError{}
+	return nil, &NoQueryResultsError{}
 }
 
 func addPaging(sd *goqu.SelectDataset, pageOpts *PageQueryOptions) *goqu.SelectDataset {
@@ -385,7 +385,7 @@ func hydrateArticles(rows *sql.Rows) ([]*Article, error) {
 	}
 
 	if len(articles) == 0 {
-		return nil, NoQueryResultsError{}
+		return nil, &NoQueryResultsError{}
 	}
 
 	return articles, nil
