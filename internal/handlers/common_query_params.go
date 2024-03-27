@@ -10,7 +10,12 @@ import (
 )
 
 func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptions, error) {
-	var opts store.PageQueryOptions
+	// defaults
+	opts := &store.PageQueryOptions{
+		Page:  aws.Uint(0),
+		Order: aws.Int(store.OrderByBoth),
+	}
+
 	for param, value := range parameters {
 		switch strings.ToLower(param) {
 		case "limit":
@@ -38,14 +43,8 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			}
 		}
 	}
-	if opts.Page == nil {
-		opts.Page = aws.Uint(0)
-	}
-	if opts.Order == nil {
-		opts.Order = aws.Int(store.OrderByBoth)
-	}
 
-	return &opts, nil
+	return opts, nil
 }
 
 func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {

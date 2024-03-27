@@ -2,8 +2,6 @@ module github.com/salt-today/salttoday2
 
 go 1.21
 
-toolchain go1.21.3
-
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/a-h/templ v0.2.636

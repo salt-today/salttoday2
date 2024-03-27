@@ -25,19 +25,15 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	entry.Info(queryOpts.PageOpts.Order)
 
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
-	if errors.Is(err, &store.NoQueryResultsError{}) {
-		components.NoResultsFound().Render(r.Context(), w)
-		return
-	} else if err != nil {
+	if err != nil && errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	views.Home(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
+	views.Home(queryOpts, comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +50,7 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
 		// error on first page? no comments
-		if queryOpts.PageOpts.Page == nil || *queryOpts.PageOpts.Page == 0 {
+		if *queryOpts.PageOpts.Page == 0 {
 			components.NoResultsFound().Render(r.Context(), w)
 			return
 		}
@@ -81,6 +77,7 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 	opts := &store.CommentQueryOptions{
 		PageOpts: *pageOpts,
+		DaysAgo:  aws.Uint(7),
 	}
 
 	for param, value := range parameters {
@@ -99,14 +96,11 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 			if err != nil {
 				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
-
-			if daysAgo > 0 {
-				opts.DaysAgo = aws.Uint(uint(daysAgo))
-			} else {
-				// Not setting is All Time
-			}
+			opts.DaysAgo = aws.Uint(uint(daysAgo))
 		}
+
 	}
+
 	return opts, nil
 }
 

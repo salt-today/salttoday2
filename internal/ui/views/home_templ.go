@@ -13,7 +13,7 @@ import "bytes"
 import "github.com/salt-today/salttoday2/internal/ui/components"
 import "github.com/salt-today/salttoday2/internal/store"
 
-func Home(comments []*store.Comment, nextUrl string) templ.Component {
+func Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -32,13 +32,24 @@ func Home(comments []*store.Comment, nextUrl string) templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-get=\"/comments\" hx-target=\"#comments\" class=\"mx-auto\"><div class=\"grid gap-4 mb-6 md:grid-cols-4 items-end\"><div><label for=\"order\" class=\"block mb-2 text-white\">Sort By</label> <select id=\"order\" name=\"order\" class=\"text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500\"><option value=\"both\">Score</option> <option value=\"dislikes\">Dislikes</option> <option value=\"likes\">Likes</option></select></div><div><label for=\"days_ago\" class=\"block mb-2 text-white\">Time</label> <select id=\"days_ago\" name=\"days_ago\" class=\"text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500\"><option value=\"1\">24 Hours</option> <option value=\"7\">Last Week</option> <option value=\"30\">Last Month</option> <option value=\"365\">Last Year</option> <option value=\"0\">All Time</option></select></div><div><label for=\"only_deleted\" class=\"block mb-2 text-white\">Show</label> <select id=\"only_deleted\" name=\"only_deleted\" class=\"text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500\"><option value=\"false\">All</option> <option value=\"true\">Only Deleted</option></select></div><div><input type=\"submit\" class=\"order-last focus:outline-none  rounded px-5 py-2.5 me-2 mb-0 bg-slate-700 hover:bg-slate-600 focus:ring-slate-700 border-slate-700\" value=\"Mine salt\"></div></div></form><div id=\"comments\" hx-post=\"/comments\">")
+			templ_7745c5c3_Err = components.CommentsFormComponent(queryOpts).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.CommentsListComponent(comments, nextUrl).Render(ctx, templ_7745c5c3_Buffer)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <div id=\"comments\" hx-post=\"/comments\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
+			}
+			if len(comments) > 0 {
+				templ_7745c5c3_Err = components.CommentsListComponent(comments, nextUrl).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = components.NoResultsFound().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
 			if templ_7745c5c3_Err != nil {

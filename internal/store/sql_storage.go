@@ -145,7 +145,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts CommentQueryOptions) 
 		sd = sd.Where(goqu.Ex{CommentsDeleted: true})
 	}
 
-	if opts.DaysAgo != nil {
+	if opts.DaysAgo != nil && *opts.DaysAgo != 0 {
 		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
 	}
 
