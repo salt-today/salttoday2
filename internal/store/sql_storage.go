@@ -216,10 +216,9 @@ func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*Article) erro
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		OnConflict(goqu.DoNothing())
 
-	// We want to set the lastScrapedTime to a time in the past so that the article will be scraped immediately
-	lastScrapedTime := time.Now().Add(-time.Hour * 24 * 365 * 10)
+	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {
-		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, lastScrapedTime})
+		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, nil})
 	}
 
 	query, _, err := ds.ToSQL()
@@ -401,7 +400,7 @@ func (s *sqlStorage) GetUnscrapedArticlesSince(ctx context.Context, scrapeThresh
 					ArticlesLastScrapeTime: nil,
 				},
 				goqu.Ex{
-					ArticlesLastScrapeTime: goqu.Op{"lte": scrapeThreshold.Truncate(time.Second)},
+					ArticlesDiscoveryTime: goqu.Op{"lte": scrapeThreshold.Truncate(time.Second)},
 				},
 			),
 		)

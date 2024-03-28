@@ -25,8 +25,12 @@ func main() {
 	handler := handlers.NewHandler(storage)
 
 	// htmx
+	// home/comments page
 	r.Get("/", handler.HandleHome)
 	r.Get("/comments", handler.HandleGetComments)
+
+	// about page
+	r.Get("/about", handler.HandleAbout)
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
