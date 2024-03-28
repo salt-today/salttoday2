@@ -1,0 +1,15 @@
+package views
+
+import "github.com/salt-today/salttoday2/pkg/server/internal/ui/components"
+import "github.com/salt-today/salttoday2/pkg/store"
+
+templ Users(users []*store.User) {
+@Page(true) {
+<h1>Users page</h1>
+<div>Probably some sort of form here to filter users</div>
+<div id="users">
+  This div is supposed to contain users
+  @components.UsersListComponent(users)
+</div>
+}
+}

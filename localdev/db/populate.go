@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	stor "github.com/salt-today/salttoday2/internal/store"
+	stor "github.com/salt-today/salttoday2/pkg/store"
 )
 
 func main() {

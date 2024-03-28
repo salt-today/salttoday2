@@ -2,8 +2,9 @@ root = "."
 tmp_dir = "bin"
 
 [build]
-  bin = "./bin/main"
-  cmd = "go build -o ./bin/main ./cmd/http/main.go"
+  bin = "./bin/main server"
+  args_bin = ["server"]
+  cmd = "go build -o ./bin/main main.go"
 	
   delay = 1000
   exclude_dir = ["bin", "cmd", "public"]
