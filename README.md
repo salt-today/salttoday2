@@ -15,7 +15,9 @@ Electric Boogaloo
 2. Run the server via air - This will live reload the app on save.
   1. `air`
 3. Run the templ generator and proxy - This will automatically generate your templ files and provide hot reloads
-  1. `templ generate --watch --proxy http://localhost:8080`
+  1. `make templ`
+3. Run the tailwindcss generator
+  1. `make tailwind`
 4. (Optional) Populate the database with some initial testing data via the two following options:
    1. `go run localdev/db/populate.go`
    2. Run the "Populate DB" run config in VS Code

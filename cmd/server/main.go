@@ -38,19 +38,14 @@ func main() {
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("web/public"))))
 
-	port := os.Getenv("PORT")
-	if port == `` {
-		port = "8080"
-	}
-
 	isDeployed := os.Getenv("RAILWAY_PUBLIC_DOMAIN") != ``
 	domain := "localhost"
 	if isDeployed {
 		domain = ""
 	}
 
-	println("Listening on :", port)
-	err = http.ListenAndServe(fmt.Sprintf("%s:%s", domain, port), r)
+	println("Listening on: 8080")
+	err = http.ListenAndServe(fmt.Sprintf("%s:8080", domain), r)
 	if err != nil {
 		panic(err)
 	}
