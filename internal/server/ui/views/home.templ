@@ -1,0 +1,17 @@
+package views
+
+import "github.com/salt-today/salttoday2/internal/server/ui/components"
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
+@Page(true) {
+@components.CommentsFormComponent("/comments", queryOpts)
+<div id="comments" hx-get="/comments">
+  if len(comments) > 0 {
+  @components.CommentsListComponent(comments, nextUrl)
+  } else {
+  @components.NoResultsFound("Comments")
+  }
+</div>
+}
+}

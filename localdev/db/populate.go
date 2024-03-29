@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	stor "github.com/salt-today/salttoday2/pkg/store"
+	stor "github.com/salt-today/salttoday2/internal/store"
+	"github.com/salt-today/salttoday2/internal/store/rdb"
 )
 
 func main() {
-	store, err := stor.NewSQLStorage(context.Background())
+	store, err := rdb.New(context.Background())
 	if err != nil {
 		panic(err)
 	}
