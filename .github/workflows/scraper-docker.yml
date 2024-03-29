@@ -1,7 +1,9 @@
-name: Create and publish a Docker image
+name: Build and publish a Scraper
 
 on:
   push:
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
   release:
     types: [published]
@@ -9,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-scraper
 
 jobs:
   build-and-push-image:
@@ -42,6 +44,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: .github/docker/scraper.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

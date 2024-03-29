@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./internal/ui/**/*.templ}", "./**/*.templ",
+  content: ["../**/*.templ",
     "./node_modules/flowbite/**/*.js"],
   theme: {
     extend: {},
