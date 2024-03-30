@@ -13,11 +13,11 @@ func getGradient(comment *store.Comment) string {
 	if comment.Dislikes == 0 {
 		return "bg-blue-600"
 	}
-	return fmt.Sprintf("bg-gradient-to-br from-blue-600 to-red-600 from-%d%% to-%d%%",
+	return fmt.Sprintf("bg-gradient-to-r from-blue-600 to-red-600 from-%d%% to-%d%%",
 		max(0,
 			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100)/5*5),
 		min(100,
-			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100-5)/5*5),
+			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100+5)/5*5),
 	)
 
 }
@@ -38,7 +38,7 @@ func min(x, y int) int {
 
 templ CommentComponent(comment *store.Comment) {
 	<div class="">
-		<div>
+		<div class="hover:underline decoration-2">
 			<a href={ templ.URL(comment.Article.Url) }>{ comment.Article.Title }</a>
 		</div>
 		<div class={ fmt.Sprintf(`flex flex-col p-2 rounded %s`, getGradient(comment)) }>
@@ -48,7 +48,11 @@ templ CommentComponent(comment *store.Comment) {
 			</div>
 		</div>
 		<div class="w-half flex flex-row max-width">
-			<div><a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>- { comment.User.UserName }</a></div>
+			<div class="hover:underline decoration-2">
+				<a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>
+					- { comment.User.UserName }
+				</a>
+			</div>
 			if comment.Deleted {
 				<div class="px-3 text-right font-bold text-red-600">DELETED</div>
 			}

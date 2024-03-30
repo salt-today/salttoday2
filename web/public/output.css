@@ -1515,6 +1515,10 @@ input:checked + .toggle-bg {
   background-image: url('/public/images/salt-falling.png');
 }
 
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -1525,8 +1529,194 @@ input:checked + .toggle-bg {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-\[blue\] {
+  --tw-gradient-from: blue var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(0 0 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-blue-700 {
+  --tw-gradient-from: #1A56DB var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(26 86 219 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-blue-800 {
+  --tw-gradient-from: #1E429F var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(30 66 159 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-blue-400 {
+  --tw-gradient-from: #76A9FA var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(118 169 250 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-blue-500 {
+  --tw-gradient-from: #3F83F8 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(63 131 248 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-10\% {
+  --tw-gradient-from-position: 10%;
+}
+
+.from-15\% {
+  --tw-gradient-from-position: 15%;
+}
+
+.from-20\% {
+  --tw-gradient-from-position: 20%;
+}
+
+.from-25\% {
+  --tw-gradient-from-position: 25%;
+}
+
+.from-30\% {
+  --tw-gradient-from-position: 30%;
+}
+
+.from-35\% {
+  --tw-gradient-from-position: 35%;
+}
+
+.from-40\% {
+  --tw-gradient-from-position: 40%;
+}
+
+.from-45\% {
+  --tw-gradient-from-position: 45%;
+}
+
+.from-5\% {
+  --tw-gradient-from-position: 5%;
+}
+
+.from-50\% {
+  --tw-gradient-from-position: 50%;
+}
+
+.from-55\% {
+  --tw-gradient-from-position: 55%;
+}
+
+.from-60\% {
+  --tw-gradient-from-position: 60%;
+}
+
+.from-65\% {
+  --tw-gradient-from-position: 65%;
+}
+
+.from-70\% {
+  --tw-gradient-from-position: 70%;
+}
+
+.from-75\% {
+  --tw-gradient-from-position: 75%;
+}
+
+.from-80\% {
+  --tw-gradient-from-position: 80%;
+}
+
+.from-85\% {
+  --tw-gradient-from-position: 85%;
+}
+
+.from-90\% {
+  --tw-gradient-from-position: 90%;
+}
+
+.from-95\% {
+  --tw-gradient-from-position: 95%;
+}
+
 .to-red-600 {
   --tw-gradient-to: #E02424 var(--tw-gradient-to-position);
+}
+
+.to-\[red\] {
+  --tw-gradient-to: red var(--tw-gradient-to-position);
+}
+
+.to-10\% {
+  --tw-gradient-to-position: 10%;
+}
+
+.to-15\% {
+  --tw-gradient-to-position: 15%;
+}
+
+.to-20\% {
+  --tw-gradient-to-position: 20%;
+}
+
+.to-25\% {
+  --tw-gradient-to-position: 25%;
+}
+
+.to-30\% {
+  --tw-gradient-to-position: 30%;
+}
+
+.to-35\% {
+  --tw-gradient-to-position: 35%;
+}
+
+.to-40\% {
+  --tw-gradient-to-position: 40%;
+}
+
+.to-45\% {
+  --tw-gradient-to-position: 45%;
+}
+
+.to-5\% {
+  --tw-gradient-to-position: 5%;
+}
+
+.to-50\% {
+  --tw-gradient-to-position: 50%;
+}
+
+.to-55\% {
+  --tw-gradient-to-position: 55%;
+}
+
+.to-60\% {
+  --tw-gradient-to-position: 60%;
+}
+
+.to-65\% {
+  --tw-gradient-to-position: 65%;
+}
+
+.to-70\% {
+  --tw-gradient-to-position: 70%;
+}
+
+.to-75\% {
+  --tw-gradient-to-position: 75%;
+}
+
+.to-80\% {
+  --tw-gradient-to-position: 80%;
+}
+
+.to-85\% {
+  --tw-gradient-to-position: 85%;
+}
+
+.to-90\% {
+  --tw-gradient-to-position: 90%;
+}
+
+.to-95\% {
+  --tw-gradient-to-position: 95%;
 }
 
 .bg-center {
@@ -1686,6 +1876,18 @@ input:checked + .toggle-bg {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+.decoration-1 {
+  text-decoration-thickness: 1px;
+}
+
+.decoration-4 {
+  text-decoration-thickness: 4px;
+}
+
+.decoration-2 {
+  text-decoration-thickness: 2px;
+}
+
 .placeholder-slate-400::-moz-placeholder {
   --tw-placeholder-opacity: 1;
   color: rgb(148 163 184 / var(--tw-placeholder-opacity));
@@ -1791,6 +1993,10 @@ input:checked + .toggle-bg {
 .hover\:text-gray-900:hover {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .focus\:border-blue-500:focus {
