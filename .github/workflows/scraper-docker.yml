@@ -14,7 +14,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}-scraper
 
 jobs:
-  build-and-push-image:
+  build-and-push-scraper:
     runs-on: ubuntu-latest
     permissions:
       contents: read
