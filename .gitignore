@@ -4,3 +4,4 @@ __debug_bin
 node_modules/
 bin/
 *.txt
+*templ.go
