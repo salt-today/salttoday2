@@ -1,0 +1,18 @@
+providers = ['go', 'node']
+
+[phases.build]
+cmds = [
+  # 'cd web && npm install',
+  # 'cd web && npx tailwindcss -c ./tailwind.config.js -i ./public/styles.css -o ./public/output.css',
+
+  'go install github.com/a-h/templ/cmd/templ@latest',
+  '/root/go/bin/templ generate',
+
+  'go mod download',
+  'go build -o service-bin cmd/server/main.go',
+  'go build -o scraper-bin cmd/scraper/main.go'
+]
+
+
+[start]
+cmd = './service-bin'
