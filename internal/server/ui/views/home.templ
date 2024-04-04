@@ -1,12 +1,14 @@
 package views
 
-import "github.com/salt-today/salttoday2/internal/server/ui/components"
-import "github.com/salt-today/salttoday2/internal/store"
+import (
+	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/store"
+)
 
 templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
-	@Page(true) {
+	@Page(true, nil) {
 		@components.CommentsFormComponent("/comments", queryOpts)
-		<div id="comments" hx-get="/comments">
+		<div id="comments" hx-get="/comments" hx-trigger="load">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
 			} else {

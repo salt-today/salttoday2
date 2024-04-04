@@ -7,7 +7,7 @@ import (
 )
 
 templ User(user *store.User, queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
-	@Page(true) {
+	@Page(true, nil) {
 		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.ID), queryOpts)
 		<div id="comments" hx-get={ fmt.Sprintf("/user/%d/comments", user.ID) }>
 			if len(comments) > 0 {

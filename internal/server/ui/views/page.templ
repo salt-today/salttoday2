@@ -1,6 +1,10 @@
 package views
 
-templ Page(nav bool) {
+import (
+	"github.com/salt-today/salttoday2/internal/server/ui/components"
+)
+
+templ Page(nav bool, openGraphTags map[string]string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -10,17 +14,28 @@ templ Page(nav bool) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="stylesheet" href="/public/output.css"/>
-			<script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+			<link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet"/>
+			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+			<!-- fonts -->
+			<link
+				rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..400,0..1,-50..200"
+			/>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			@components.OpenGraphTagsComponent(openGraphTags)
 		</head>
 		<body
-			class="font-sans leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen"
+			class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen"
 		>
 			if nav {
 				<nav class="border-black">
 					<div class="bg-slate-950 max-w flex flex-wrap items-center justify-between mx-auto p-4">
 						<a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
 							<img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-8" alt="SaltToday Logo"/>
-							<span class="self-center text-2xl font-semibold whitespace-norap text-white">SaltToday</span>
+							<span class="self-center font-semibold whitespace-norap text-white">SaltToday</span>
 						</a>
 						<div class="hidden w-full md:block md:w-auto" id="navbar-default">
 							<ul
@@ -50,6 +65,12 @@ templ Page(nav bool) {
 			<div class="flex flex-col justify-end">
 				<img class="" src="/public/images/footer-pile.png" alt="Pile of salt"/>
 			</div>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+			<script>
+    htmx.onLoad(function (content) {
+      initFlowbite();
+    })
+  </script>
 		</body>
 	</html>
 }

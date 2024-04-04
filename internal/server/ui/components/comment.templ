@@ -1,7 +1,10 @@
 package components
 
-import "fmt"
-import "github.com/salt-today/salttoday2/internal/store"
+import (
+	"fmt"
+
+	"github.com/salt-today/salttoday2/internal/store"
+)
 
 func getGradient(comment *store.Comment) string {
 	if comment.Likes+comment.Dislikes == 0 {
@@ -37,18 +40,32 @@ func min(x, y int) int {
 }
 
 templ CommentComponent(comment *store.Comment) {
-	<div class="">
-		<div class="hover:underline decoration-2">
-			<a href={ templ.URL(comment.Article.Url) }>{ comment.Article.Title }</a>
+	<div class="px-10">
+		<div class="flex px-8">
+			<a class="hover:underline decoration-2" href={ templ.URL(comment.Article.Url) }>{ comment.Article.Title }</a>
+			<a class="px-2">
+				<img src="/public/images/link.svg" onclick={ CopyLinkClicked(comment.ID) }/>
+			</a>
 		</div>
-		<div class={ fmt.Sprintf(`flex flex-col p-2 rounded %s`, getGradient(comment)) }>
-			<div class=" flex flex-col p-3 bg-gray-200 text-black rounded">
+		<div class={ fmt.Sprintf(`relative flex flex-col p-2 rounded %s`, getGradient(comment)) }>
+			if comment.Likes > 0 {
+				<div class="absolute -top-10 -left-10">
+					<img class="" src="/public/images/thumbs-up.svg"/>
+					<span class="absolute top-7 left-8">{ fmt.Sprintf("%d", comment.Likes) }</span>
+				</div>
+			}
+			<div class="text-2xl flex p-4 bg-gray-200 text-black rounded">
 				<span>{ comment.Text }</span>
-				<span>👍 { fmt.Sprintf("%d", comment.Likes) } 👎 { fmt.Sprintf("%d", comment.Dislikes) }</span>
 			</div>
+			if comment.Dislikes > 0 {
+				<div class="absolute -bottom-10 -right-10">
+					<img src="/public/images/thumbs-down.svg"/>
+					<span class="absolute bottom-7 right-9">{ fmt.Sprintf("%d", comment.Dislikes) }</span>
+				</div>
+			}
 		</div>
 		<div class="w-half flex flex-row max-width">
-			<div class="hover:underline decoration-2">
+			<div class="px-2 hover:underline decoration-2">
 				<a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>
 					- { comment.User.UserName }
 				</a>

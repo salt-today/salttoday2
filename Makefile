@@ -6,4 +6,4 @@ serve:
 	air
 
 tailwind:
-	cd web && npx tailwindcss -c ./tailwind.config.js -i ./public/styles.css -o ./public/output.css --watch
+	npx tailwindcss -c ./tailwind.config.js -i ./public/styles.css -o ./public/output.css --watch

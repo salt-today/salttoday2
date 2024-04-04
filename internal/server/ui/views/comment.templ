@@ -1,0 +1,25 @@
+package views
+
+import (
+	"fmt"
+
+	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/store"
+)
+
+func commentOpenGraphTags(comment *store.Comment) map[string]string {
+	tags := map[string]string{
+		// TODO different image for likes/dislikes
+		"type":        "website",
+		"title":       fmt.Sprintf("%s's comment on %s", comment.User.UserName, comment.Article.Title),
+		"url":         fmt.Sprintf("https://www.salttoday.ca/comment/%d", comment.ID),
+		"description": comment.Text,
+	}
+	return tags
+}
+
+templ Comment(comment *store.Comment) {
+	@Page(true, commentOpenGraphTags(comment)) {
+		@components.CommentComponent(comment)
+	}
+}

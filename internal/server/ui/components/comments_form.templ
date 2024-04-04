@@ -11,25 +11,23 @@ func selectedUintPtr(ptr *uint, lookingFor uint) bool {
 
 templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions) {
 	<form hx-get={ targetUrl } hx-target="#comments" class="mx-auto">
-		<div class="grid gap-4 mb-6 md:grid-cols-4 items-end">
+		<div class="grid gap-4 my-4 md:grid-cols-4 items-end">
 			<div>
-				<label for="order" class="block mb-2 text-white">Sort By</label>
 				<select
 					id="order"
 					name="order"
-					class="text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
-					<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Score</option>
+					<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
 					<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
 					<option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
 				</select>
 			</div>
 			<div>
-				<label for="days_ago" class="block mb-2 text-white">Time</label>
 				<select
 					id="days_ago"
 					name="days_ago"
-					class="text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="1" selected?={ selectedUintPtr(queryOpts.DaysAgo, 1) }>24 Hours</option>
 					<option value="7" selected?={ selectedUintPtr(queryOpts.DaysAgo, 7) }>Last Week</option>
@@ -39,22 +37,23 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				</select>
 			</div>
 			<div>
-				<label for="only_deleted" class="block mb-2 text-white">Show</label>
 				<select
 					id="only_deleted"
 					name="only_deleted"
-					class="text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="false" selected?={ !queryOpts.OnlyDeleted }>All</option>
 					<option value="true" selected?={ queryOpts.OnlyDeleted }>Only Deleted</option>
 				</select>
 			</div>
 			<div>
-				<input
+				<!-- Cannot make button background slate for some reason??? -->
+				<button
 					type="submit"
-					class="order-last focus:outline-none  rounded px-5 py-2.5 me-2 mb-0 bg-slate-700 hover:bg-slate-600 focus:ring-slate-700 border-slate-700"
-					value="Mine salt"
-				/>
+					class="text-white bg-blue-600 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 rounded px-5 py-2.5 text-center"
+				>
+					Mine Salt
+				</button>
 			</div>
 		</div>
 	</form>

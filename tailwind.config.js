@@ -45,6 +45,9 @@ module.exports = {
     'from-95%',
   ],
   theme: {
+    fontFamily: {
+      bebas: ['Bebas Neue', 'sans-serif'],
+    },
     extend: {},
   },
   plugins: [

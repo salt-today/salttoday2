@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/go-chi/chi/v5"
+	"github.com/samber/lo"
+
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/salt-today/salttoday2/internal/store"
-	"github.com/samber/lo"
 )
 
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +65,25 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	components.CommentsListComponent(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
+}
+
+func (h *Handler) HandleGetComment(w http.ResponseWriter, r *http.Request) {
+	entry := sdk.Logger(r.Context()).WithField("handler", "GetComment")
+
+	commentIDStr := chi.URLParam(r, "commentID")
+	commentID, err := strconv.Atoi(commentIDStr)
+	if err != nil {
+		entry.WithError(err).Warn("invalid comment id")
+	}
+	entry = entry.WithField("commentID", commentID)
+
+	queryOpts := store.CommentQueryOptions{
+		ID: aws.Int(commentID),
+	}
+
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
+
+	views.Comment(comments[0]).Render(r.Context(), w)
 }
 
 func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptions, error) {

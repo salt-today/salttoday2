@@ -29,6 +29,9 @@ func main() {
 	r.Get("/", handler.HandleHome)
 	r.Get("/comments", handler.HandleGetComments)
 
+	// individual comment page
+	r.Get("/comment/{commentID}", handler.HandleGetComment)
+
 	// about page
 	r.Get("/about", handler.HandleAbout)
 
@@ -36,7 +39,7 @@ func main() {
 	r.Get("/user/{userID}", handler.HandleUser)
 	r.Get("/user/{userID}/comments", handler.HandleGetUserComments)
 
-	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("web/public"))))
+	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
 	isDeployed := os.Getenv("RAILWAY_PUBLIC_DOMAIN") != ``
 	domain := "localhost"
