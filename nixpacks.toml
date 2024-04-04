@@ -1,4 +1,4 @@
-providers = ['go', 'node']
+providers = ['go']
 
 [phases.build]
 cmds = [
