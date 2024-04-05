@@ -23,30 +23,35 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 		entry.WithError(err).Warn("invalid user id")
 	}
 	entry = entry.WithField("userID", userID)
-
-	user, err := h.storage.GetUserByID(r.Context(), userID)
+	userOpts := store.UserQueryOptions{ID: &userID}
+	users, err := h.storage.GetUsersStats(r.Context(), userOpts)
 	if err != nil {
 		entry.WithError(err).Warning("invalid user")
 		w.WriteHeader(404)
+		return
+	}
+	if len(users) < 1 {
+		entry.Warning("invalid user")
+		w.WriteHeader(404)
 	}
 
-	queryOpts, err := processGetCommentQueryParameters(r)
+	commentOpts, err := processGetCommentQueryParameters(r)
 	if err != nil {
 		entry.Error("error parsing query parameters", err)
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	queryOpts.UserID = aws.Int(userID)
+	commentOpts.UserID = &userID
 
-	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
+	comments, err := h.storage.GetComments(r.Context(), *commentOpts)
 	if err != nil && errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	views.User(user, queryOpts, comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
+	views.User(users[0], commentOpts, comments, getNextCommentsUrl(commentOpts)).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleGetUserComments(w http.ResponseWriter, r *http.Request) {

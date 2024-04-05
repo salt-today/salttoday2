@@ -2,14 +2,50 @@ package views
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-templ User(user *store.User, queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
+func getGridPercentage(num1, num2 int32) int {
+	total := num1 + num2
+	percentage := float64(num1) / float64(total)
+	nearest := Round(percentage, 0.1)
+
+	return int(nearest * 100)
+}
+
+func Round(num, unit float64) float64 {
+	return math.Round(num/unit) * unit
+}
+
+templ User(user *store.UserStats, queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.ID), queryOpts)
-		<div id="comments" hx-get={ fmt.Sprintf("/user/%d/comments", user.ID) }>
+		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.User.ID), queryOpts)
+		<h1 class="flex justify-center text-4xl">{ user.User.UserName }</h1>
+		<div class="w-full flex my-1 h-12">
+			<span class="text-end py-2"></span>
+			<div class="w-full flex">
+				<div class="w-1/2 flex justify-end">
+					<div
+						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-end h-full px-2 bg-blue-600 rounded m-1",
+        getGridPercentage(user.TotalLikes, user.TotalDislikes)) }
+					>
+						{ fmt.Sprintf("%d", user.TotalLikes ) }
+					</div>
+				</div>
+				<div class="w-1/2">
+					<div
+						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-start h-full px-2 bg-red-600 rounded m-1",
+        getGridPercentage(user.TotalDislikes, user.TotalLikes)) }
+					>
+						{ fmt.Sprintf("%d", user.TotalDislikes ) }
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="comments" class="py-4">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
 			} else {

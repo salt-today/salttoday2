@@ -3,7 +3,6 @@ package rdb
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -86,11 +85,16 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*store.Comment
 	return err
 }
 
-func (s *sqlStorage) QueryUsers(ctx context.Context, opts store.UserQueryOptions) ([]*store.User, error) {
-	// TODO Join and Aggregate comments table with users
+func (s *sqlStorage) GetUsersStats(ctx context.Context, opts store.UserQueryOptions) ([]*store.UserStats, error) {
 	sd := s.dialect.
-		Select(UsersID, UsersName).
-		From(UsersTable)
+		Select(UsersID, UsersName, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes)).
+		From(UsersTable).
+		InnerJoin(goqu.T(CommentsTable).As(CommentsTable), goqu.On(goqu.I(UsersID).Eq(goqu.I(CommentsUserID)))).
+		GroupBy(UsersID)
+
+	if opts.ID != nil {
+		sd = sd.Where(goqu.Ex{UsersID: opts.ID})
+	}
 
 	sd = addPaging(sd, &opts.PageOpts)
 
@@ -108,11 +112,14 @@ func (s *sqlStorage) QueryUsers(ctx context.Context, opts store.UserQueryOptions
 	}
 	defer rows.Close()
 
-	users := make([]*store.User, 0)
+	users := make([]*store.UserStats, 0)
 
 	for rows.Next() {
-		u := &store.User{}
-		err := rows.Scan(&u.ID, &u.UserName)
+		sdk.Logger(ctx).Info("scanning user")
+		u := &store.UserStats{
+			User: &store.User{},
+		}
+		err := rows.Scan(&u.User.ID, &u.User.UserName, &u.TotalLikes, &u.TotalDislikes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan user record: %w", err)
 		}
@@ -135,7 +142,6 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts store.CommentQueryOpt
 	}
 
 	if opts.UserID != nil {
-		fmt.Println("Used the user id!!!!")
 		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
 	}
 
@@ -266,67 +272,6 @@ func (s *sqlStorage) AddUsers(ctx context.Context, users ...*store.User) error {
 
 	_, err = s.db.ExecContext(ctx, query)
 	return err
-}
-
-func (s *sqlStorage) GetUserByID(ctx context.Context, id int) (*store.User, error) {
-	sd := s.dialect.Select(UsersID, UsersName).
-		From(UsersTable).
-		Where(goqu.Ex{UsersID: id})
-
-	query, _, err := sd.ToSQL()
-	if err != nil {
-		return nil, err
-	}
-
-	var userID int
-	var userName string
-	row := s.db.QueryRow(query)
-	if err := row.Err(); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, &store.NoQueryResultsError{}
-		}
-		return nil, err
-	}
-
-	row.Scan(&userID, &userName)
-	user := &store.User{
-		ID:       userID,
-		UserName: userName,
-	}
-
-	return user, nil
-}
-
-func (s *sqlStorage) GetUserByName(ctx context.Context, name string) (*store.User, error) {
-	sd := s.dialect.Select(UsersID, UsersName).
-		From(UsersTable).
-		Where(goqu.Ex{UsersName: name})
-
-	query, _, err := sd.ToSQL()
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var id int
-	var foundName string
-	if rows.Next() {
-		err := rows.Scan(&id, &foundName)
-		if err != nil {
-			return nil, err
-		}
-		return &store.User{
-			ID:       id,
-			UserName: foundName,
-		}, nil
-	}
-
-	return nil, &store.NoQueryResultsError{}
 }
 
 func addPaging(sd *goqu.SelectDataset, pageOpts *store.PageQueryOptions) *goqu.SelectDataset {

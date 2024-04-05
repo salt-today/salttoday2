@@ -11,9 +11,7 @@ type Storage interface {
 	AddArticles(ctx context.Context, articles ...*Article) error
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
-	GetUserByID(ctx context.Context, userID int) (*User, error)
-	GetUserByName(ctx context.Context, userName string) (*User, error)
-	QueryUsers(ctx context.Context, opts UserQueryOptions) ([]*User, error)
+	GetUsersStats(ctx context.Context, opts UserQueryOptions) ([]*UserStats, error)
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
 	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
@@ -42,18 +40,11 @@ type CommentQueryOptions struct {
 }
 
 type UserQueryOptions struct {
-	ID   *int
-	Site *string
+	ID *int
 
 	PageOpts PageQueryOptions
 }
 
 type StorageContent interface {
 	[]*Comment | []*Article
-}
-
-type StoragePage[ContentType StorageContent] struct {
-	Content  ContentType
-	IsLast   bool
-	pageData []byte
 }

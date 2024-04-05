@@ -28,8 +28,11 @@ const (
 	ArticlesDiscoveryTime  = ArticlesTable + "." + "DiscoveryTime"
 	ArticlesLastScrapeTime = ArticlesTable + "." + "LastScrapeTime"
 
-	UsersID   = UsersTable + "." + "ID"
-	UsersName = UsersTable + "." + "Name"
+	UsersID      = UsersTable + "." + "ID"
+	UsersName    = UsersTable + "." + "Name"
+	UserLikes    = "UserLikes"
+	UserDislikes = "UserDislikes"
+	UserScore    = "UserScore"
 
 	NewAlias         = "NewAlias"
 	NewAliasLikes    = NewAlias + "." + LikesSuffix

@@ -47,14 +47,14 @@ templ CommentComponent(comment *store.Comment) {
 				<img src="/public/images/link.svg" onclick={ CopyLinkClicked(comment.ID) }/>
 			</a>
 		</div>
-		<div class={ fmt.Sprintf(`relative flex flex-col p-2 rounded %s`, getGradient(comment)) }>
+		<div class={ fmt.Sprintf(`relative flex flex-col p-1 rounded %s`, getGradient(comment)) }>
 			if comment.Likes > 0 {
 				<div class="absolute -top-10 -left-10">
 					<img class="" src="/public/images/thumbs-up.svg"/>
 					<span class="absolute top-7 left-8">{ fmt.Sprintf("%d", comment.Likes) }</span>
 				</div>
 			}
-			<div class="text-2xl flex p-4 bg-gray-200 text-black rounded">
+			<div class="text-2xl flex p-3 bg-gray-200 text-black rounded">
 				<span>{ comment.Text }</span>
 			</div>
 			if comment.Dislikes > 0 {
