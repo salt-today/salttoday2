@@ -24,20 +24,18 @@ templ User(user *store.UserStats, queryOpts *store.CommentQueryOptions, comments
 	@Page(true, nil) {
 		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.User.ID), queryOpts)
 		<h1 class="flex justify-center text-4xl">{ user.User.UserName }</h1>
-		<div class="w-full flex my-1 h-12">
-			<span class="text-end py-2"></span>
-			<div class="w-full flex">
-				<div class="w-1/2 flex justify-end">
+		<div class="w-full flex px-10">
+			<div class="w-full flex my-1 h-12">
+				<span class="text-end py-2"></span>
+				<div class="w-full flex">
 					<div
-						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-end h-full px-2 bg-blue-600 rounded m-1",
+						class={ fmt.Sprintf("w-[%d%%] flex items-center h-full px-2 bg-blue-600 rounded m-1",
         getGridPercentage(user.TotalLikes, user.TotalDislikes)) }
 					>
 						{ fmt.Sprintf("%d", user.TotalLikes ) }
 					</div>
-				</div>
-				<div class="w-1/2">
 					<div
-						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-start h-full px-2 bg-red-600 rounded m-1",
+						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-end h-full px-2 bg-red-600 rounded m-1",
         getGridPercentage(user.TotalDislikes, user.TotalLikes)) }
 					>
 						{ fmt.Sprintf("%d", user.TotalDislikes ) }
