@@ -44,7 +44,6 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 	}
 	commentOpts.UserID = &userID
 
-	comments, err := h.storage.GetComments(r.Context(), *commentOpts)
 	comments, err := h.storage.GetComments(r.Context(), commentOpts)
 	if err != nil && errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warn("error getting comments")
