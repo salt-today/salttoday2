@@ -67,7 +67,7 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 	components.CommentsListComponent(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
 }
 
-func (h *Handler) HandleGetComment(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "GetComment")
 
 	commentIDStr := chi.URLParam(r, "commentID")
@@ -126,9 +126,9 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	paramsString := ``
-	path := `/comments`
+	path := `/api/comments`
 	if queryOpts.UserID != nil {
-		path = fmt.Sprintf(`/user/%d/comments`, *queryOpts.UserID)
+		path = fmt.Sprintf(`/api/user/%d/comments`, *queryOpts.UserID)
 	}
 	if queryOpts.OnlyDeleted {
 		paramsString += `&only_deleted=true`

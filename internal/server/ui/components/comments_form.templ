@@ -17,7 +17,7 @@ func daysOptionSelected(ptr *uint, current uint, defaultDays uint) bool {
 
 templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, defaultDays uint) {
 	<form hx-get={ targetUrl } hx-target="#comments" class="mx-auto">
-		<div class="grid gap-4 my-4 md:grid-cols-4 items-end">
+		<div class="flex justify-center gap-4 my-4">
 			<div>
 				<select
 					id="order"
@@ -44,7 +44,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 					<option value="0" selected?={ daysOptionSelected(queryOpts.DaysAgo, 0, defaultDays ) }>All Time</option>
 				</select>
 			</div>
-			<div>
+			<!-- <div>
 				<select
 					id="only_deleted"
 					name="only_deleted"
@@ -53,7 +53,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 					<option value="false" selected?={ !queryOpts.OnlyDeleted }>All</option>
 					<option value="true" selected?={ queryOpts.OnlyDeleted }>Only Deleted</option>
 				</select>
-			</div>
+			</div>-->
 			<div>
 				<!-- Cannot make button background slate for some reason??? -->
 				<button
