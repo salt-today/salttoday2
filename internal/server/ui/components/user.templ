@@ -6,10 +6,10 @@ import "fmt"
 templ UserComponent(user *store.User) {
 	<div>
 		<div>
-			<span><a href={ templ.URL(fmt.Sprintf("/user/%s", user.ID)) }>{ user.UserName }</a></span>
+			<span><a href={ templ.URL(fmt.Sprintf("/user/%d", user.ID)) }>{ user.UserName }</a></span>
 		</div>
 		<div>
-			<span>👍 { fmt.Sprintf("%d", 123) } 👎 { fmt.Sprintf("%d", 456) }</span>
+			<span>👍 { fmt.Sprintf("%d", user.TotalLikes) } 👎 { fmt.Sprintf("%d", user.TotalDislikes) }</span>
 		</div>
 	</div>
 }

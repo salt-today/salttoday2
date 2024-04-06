@@ -1,6 +1,12 @@
 package views
 
-templ About() {
+import (
+	"fmt"
+
+	"github.com/salt-today/salttoday2/internal/store"
+)
+
+templ About(user *store.User) {
 	@Page(true, nil) {
 		<div class="space-y-8">
 			<div>
@@ -22,7 +28,12 @@ templ About() {
 						</a>
 					</div>
 					<div>
-						<span>Soojavu was so salty after reading a SooToday article.</span>
+						<span>
+							<a class="hover:underline decoration-2" href={ templ.URL(fmt.Sprintf("/user/%d", user.ID)) }>
+								{ user.UserName }
+							</a> was so salty after reading a
+							SooToday article.
+						</span>
 					</div>
 				</div>
 			</div>

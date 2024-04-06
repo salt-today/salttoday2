@@ -3,13 +3,14 @@ package views
 import "github.com/salt-today/salttoday2/internal/server/ui/components"
 import "github.com/salt-today/salttoday2/internal/store"
 
-templ Users(users []*store.User) {
+templ Users(users []*store.User, nextUrl string) {
 	@Page(true, nil) {
-		<h1>Users page</h1>
-		<div>Probably some sort of form here to filter users</div>
 		<div id="users">
-			This div is supposed to contain users
-			@components.UsersListComponent(users)
+			if len(users) > 0 {
+				@components.UsersListComponent(users, nextUrl)
+			} else {
+				@components.NoResultsFound("users")
+			}
 		</div>
 	}
 }

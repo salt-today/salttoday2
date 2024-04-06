@@ -85,7 +85,7 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments ...*store.Comment
 	return err
 }
 
-func (s *sqlStorage) GetUsersStats(ctx context.Context, opts store.UserQueryOptions) ([]*store.UserStats, error) {
+func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions) ([]*store.User, error) {
 	sd := s.dialect.
 		Select(UsersID, UsersName, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes)).
 		From(UsersTable).
@@ -99,7 +99,21 @@ func (s *sqlStorage) GetUsersStats(ctx context.Context, opts store.UserQueryOpti
 	sd = addPaging(sd, &opts.PageOpts)
 
 	// TODO Implement other options
-	// site, order
+	// site
+
+	sd = addPaging(sd, &opts.PageOpts)
+
+	if opts.PageOpts.Order != nil {
+		if *opts.PageOpts.Order == store.OrderByLikes {
+			sd = sd.Order(goqu.I(UserLikes).Desc())
+		} else if *opts.PageOpts.Order == store.OrderByDislikes {
+			sd = sd.Order(goqu.I(UserDislikes).Desc())
+		} else if *opts.PageOpts.Order == store.OrderByBoth {
+			sd = sd.Order(goqu.L(UserLikes + "+ 2 * " + UserDislikes).Desc())
+		} else {
+			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.PageOpts.Order)
+		}
+	}
 
 	query, _, err := sd.ToSQL()
 	if err != nil {
@@ -112,14 +126,11 @@ func (s *sqlStorage) GetUsersStats(ctx context.Context, opts store.UserQueryOpti
 	}
 	defer rows.Close()
 
-	users := make([]*store.UserStats, 0)
+	users := make([]*store.User, 0)
 
 	for rows.Next() {
-		sdk.Logger(ctx).Info("scanning user")
-		u := &store.UserStats{
-			User: &store.User{},
-		}
-		err := rows.Scan(&u.User.ID, &u.User.UserName, &u.TotalLikes, &u.TotalDislikes)
+		u := &store.User{}
+		err := rows.Scan(&u.ID, &u.UserName, &u.TotalLikes, &u.TotalDislikes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan user record: %w", err)
 		}
@@ -129,7 +140,7 @@ func (s *sqlStorage) GetUsersStats(ctx context.Context, opts store.UserQueryOpti
 	return users, nil
 }
 
-func (s *sqlStorage) GetComments(ctx context.Context, opts store.CommentQueryOptions) ([]*store.Comment, error) {
+func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOptions) ([]*store.Comment, error) {
 	sd := s.dialect.
 		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + 2 * "+CommentsDislikes).
 			As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, ArticlesUrl, UsersID, UsersName).

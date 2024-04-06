@@ -7,12 +7,12 @@ import (
 
 templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent("/comments", queryOpts)
-		<div id="comments" hx-get="/comments" hx-trigger="load">
+		@components.CommentsFormComponent("/comments", queryOpts, 7)
+		<div id="comments">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
 			} else {
-				@components.NoResultsFound("Comments")
+				@components.NoResultsFound("comments")
 			}
 		</div>
 	}

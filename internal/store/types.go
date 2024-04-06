@@ -25,12 +25,8 @@ type Article struct {
 }
 
 type User struct {
-	ID       int
-	UserName string
-}
-
-type UserStats struct {
-	User          *User
+	ID            int
+	UserName      string
 	TotalLikes    int32
 	TotalDislikes int32
 	TotalScore    int32

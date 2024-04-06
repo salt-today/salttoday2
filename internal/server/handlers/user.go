@@ -23,8 +23,8 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 		entry.WithError(err).Warn("invalid user id")
 	}
 	entry = entry.WithField("userID", userID)
-	userOpts := store.UserQueryOptions{ID: &userID}
-	users, err := h.storage.GetUsersStats(r.Context(), userOpts)
+	userOpts := &store.UserQueryOptions{ID: &userID}
+	users, err := h.storage.GetUsers(r.Context(), userOpts)
 	if err != nil {
 		entry.WithError(err).Warning("invalid user")
 		w.WriteHeader(404)
@@ -45,6 +45,7 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 	commentOpts.UserID = &userID
 
 	comments, err := h.storage.GetComments(r.Context(), *commentOpts)
+	comments, err := h.storage.GetComments(r.Context(), commentOpts)
 	if err != nil && errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
@@ -72,7 +73,7 @@ func (h *Handler) HandleGetUserComments(w http.ResponseWriter, r *http.Request) 
 	}
 	queryOpts.UserID = aws.Int(userID)
 
-	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
 		// error on first page? no comments
 		if *queryOpts.PageOpts.Page == 0 {

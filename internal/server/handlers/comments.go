@@ -28,8 +28,8 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
-	if err != nil && errors.Is(err, &store.NoQueryResultsError{}) {
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
+	if err != nil && !errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warn("error getting comments")
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
@@ -49,7 +49,7 @@ func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comments, err := h.storage.GetComments(r.Context(), *queryOpts)
+	comments, err := h.storage.GetComments(r.Context(), queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
 		// error on first page? no comments
 		if *queryOpts.PageOpts.Page == 0 {
@@ -77,7 +77,7 @@ func (h *Handler) HandleGetComment(w http.ResponseWriter, r *http.Request) {
 	}
 	entry = entry.WithField("commentID", commentID)
 
-	queryOpts := store.CommentQueryOptions{
+	queryOpts := &store.CommentQueryOptions{
 		ID: aws.Int(commentID),
 	}
 
@@ -98,7 +98,6 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 	opts := &store.CommentQueryOptions{
 		PageOpts: *pageOpts,
-		DaysAgo:  aws.Uint(7),
 	}
 
 	for param, value := range parameters {

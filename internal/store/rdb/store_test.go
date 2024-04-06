@@ -53,7 +53,7 @@ func TestStorage_Comments(t *testing.T) {
 
 	require.NoError(t, store.AddComments(context.Background(), allComments...))
 	for _, user := range users {
-		opts := stor.CommentQueryOptions{UserID: aws.Int(user)}
+		opts := &stor.CommentQueryOptions{UserID: aws.Int(user)}
 		comments, err := store.GetComments(context.Background(), opts)
 		require.NoError(t, err)
 		require.ElementsMatch(t, commentsByUser[user], comments)

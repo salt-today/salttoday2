@@ -35,6 +35,9 @@ func main() {
 	// about page
 	r.Get("/about", handler.HandleAbout)
 
+	// user leaderboard
+	r.Get("/users", handler.HandleUsers)
+
 	// user page
 	r.Get("/user/{userID}", handler.HandleUser)
 	r.Get("/user/{userID}/comments", handler.HandleGetUserComments)

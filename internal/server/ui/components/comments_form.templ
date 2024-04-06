@@ -2,14 +2,20 @@ package components
 
 import "github.com/salt-today/salttoday2/internal/store"
 
-func selectedUintPtr(ptr *uint, lookingFor uint) bool {
+func daysOptionSelected(ptr *uint, current uint, defaultDays uint) bool {
+	options := []uint{0, 1, 7, 30, 365}
 	if ptr == nil {
-		return false
+		return current == defaultDays
 	}
-	return *ptr == lookingFor
+	for _, opt := range options {
+		if opt == *ptr {
+			return true
+		}
+	}
+	return false
 }
 
-templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions) {
+templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, defaultDays uint) {
 	<form hx-get={ targetUrl } hx-target="#comments" class="mx-auto">
 		<div class="grid gap-4 my-4 md:grid-cols-4 items-end">
 			<div>
@@ -29,11 +35,13 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 					name="days_ago"
 					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
-					<option value="1" selected?={ selectedUintPtr(queryOpts.DaysAgo, 1) }>24 Hours</option>
-					<option value="7" selected?={ selectedUintPtr(queryOpts.DaysAgo, 7) }>Last Week</option>
-					<option value="30" selected?={ selectedUintPtr(queryOpts.DaysAgo, 30) }>Last Month</option>
-					<option value="365" selected?={ selectedUintPtr(queryOpts.DaysAgo, 365) }>Last Year</option>
-					<option value="0" selected?={ selectedUintPtr(queryOpts.DaysAgo, 0) }>All Time</option>
+					<option value="1" selected?={ daysOptionSelected(queryOpts.DaysAgo, 1, defaultDays ) }>24 Hours</option>
+					<option value="7" selected?={ daysOptionSelected(queryOpts.DaysAgo, 7, defaultDays ) }>
+						Last Week
+					</option>
+					<option value="30" selected?={ daysOptionSelected(queryOpts.DaysAgo, 30, defaultDays ) }>Last Month</option>
+					<option value="365" selected?={ daysOptionSelected(queryOpts.DaysAgo, 365, defaultDays ) }>Last Year</option>
+					<option value="0" selected?={ daysOptionSelected(queryOpts.DaysAgo, 0, defaultDays ) }>All Time</option>
 				</select>
 			</div>
 			<div>

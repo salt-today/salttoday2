@@ -20,10 +20,10 @@ func Round(num, unit float64) float64 {
 	return math.Round(num/unit) * unit
 }
 
-templ User(user *store.UserStats, queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
+templ User(user *store.User, queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.User.ID), queryOpts)
-		<h1 class="flex justify-center text-4xl">{ user.User.UserName }</h1>
+		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.ID), queryOpts, 0)
+		<h1 class="flex justify-center text-4xl">{ user.UserName }</h1>
 		<div class="w-full flex px-10">
 			<div class="w-full flex my-1 h-12">
 				<span class="text-end py-2"></span>
@@ -32,13 +32,13 @@ templ User(user *store.UserStats, queryOpts *store.CommentQueryOptions, comments
 						class={ fmt.Sprintf("w-[%d%%] flex items-center h-full px-2 bg-blue-600 rounded m-1",
         getGridPercentage(user.TotalLikes, user.TotalDislikes)) }
 					>
-						{ fmt.Sprintf("%d", user.TotalLikes ) }
+						{ fmt.Sprintf("%d Likes", user.TotalLikes ) }
 					</div>
 					<div
 						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-end h-full px-2 bg-red-600 rounded m-1",
         getGridPercentage(user.TotalDislikes, user.TotalLikes)) }
 					>
-						{ fmt.Sprintf("%d", user.TotalDislikes ) }
+						{ fmt.Sprintf("%d dislikes", user.TotalDislikes ) }
 					</div>
 				</div>
 			</div>
