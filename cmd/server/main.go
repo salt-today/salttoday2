@@ -37,7 +37,7 @@ func main() {
 
 	// user leaderboard
 	r.Get("/users", handler.HandleUsers)
-	r.Get("/api/users", handler.HandleUsers)
+	r.Get("/api/users", handler.HandleGetUsers)
 
 	// user page
 	r.Get("/user/{userID}", handler.HandleUser)
