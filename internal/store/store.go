@@ -6,7 +6,7 @@ import (
 )
 
 type Storage interface {
-	AddComments(ctx context.Context, comments ...*Comment) error
+	AddComments(ctx context.Context, comments []*Comment) error
 	GetComments(ctx context.Context, opts *CommentQueryOptions) ([]*Comment, error)
 	AddArticles(ctx context.Context, articles ...*Article) error
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
@@ -35,6 +35,8 @@ type CommentQueryOptions struct {
 	UserID      *int
 	OnlyDeleted bool
 	DaysAgo     *uint
+
+	ArticleID *int
 
 	PageOpts PageQueryOptions
 }

@@ -96,7 +96,7 @@ func main() {
 			Deleted:  deleted,
 		}
 	}
-	err = store.AddComments(context.Background(), comments...)
+	err = store.AddComments(context.Background(), comments)
 	if err != nil {
 		panic(err)
 	}

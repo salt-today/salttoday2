@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -66,15 +67,57 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	return s, nil
 }
 
-func (s *sqlStorage) AddComments(ctx context.Context, comments ...*store.Comment) error {
+func (s *sqlStorage) AddComments(ctx context.Context, comments []*store.Comment) error {
+	articleCommentsMap := make(map[int][]*store.Comment)
+	for _, comment := range comments {
+		articleCommentsMap[comment.Article.ID] = append(articleCommentsMap[comment.Article.ID], comment)
+	}
+
+	for articleID, comments := range articleCommentsMap {
+		if err := s.addCommentsToArticle(ctx, articleID, comments); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, comments []*store.Comment) error {
+	entry := sdk.Logger(ctx).WithField("articleID", articleID)
+
+	// Determine if any comments were deleted
+	storedComments, err := s.GetComments(ctx, &store.CommentQueryOptions{ArticleID: &articleID})
+	if errors.Is(err, &store.NoQueryResultsError{}) {
+		// no-op
+		entry.Info("New article, no comments found")
+	} else if err != nil {
+		entry.WithError(err).Error("Unable to get comments while adding new comments, required for determining if comments are deleted")
+		return err
+	}
+
+	commentsMap := make(map[int]*store.Comment)
+	for _, comment := range comments {
+		commentsMap[comment.ID] = comment
+	}
+
+	for _, storedComment := range storedComments {
+		if _, ok := commentsMap[storedComment.ID]; !ok {
+			entry.WithField("commentID", storedComment.ID).Info("Found comment was deleted!")
+			storedComment.Deleted = true
+			comments = append(comments, storedComment)
+		} else {
+			commentsMap[storedComment.ID].Deleted = false
+		}
+	}
+
 	ds := s.dialect.Insert(CommentsTable).
-		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes).
+		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, CommentsDeleted).
 		As(NewAlias).
 		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
 		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
 
 	for _, comment := range comments {
-		ds = ds.Vals(goqu.Vals{comment.ID, comment.Article.ID, comment.User.ID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes})
+		ds = ds.Vals(goqu.Vals{comment.ID, comment.Article.ID, comment.User.ID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes, comment.Deleted})
 	}
 	query, _, err := ds.ToSQL()
 	if err != nil {
@@ -167,6 +210,10 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 	if opts.DaysAgo != nil && *opts.DaysAgo != 0 {
 		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
+	}
+
+	if opts.ArticleID != nil {
+		sd = sd.Where(goqu.Ex{CommentsArticleID: *opts.ArticleID})
 	}
 
 	sd = addPaging(sd, &opts.PageOpts)
@@ -286,6 +333,10 @@ func (s *sqlStorage) AddUsers(ctx context.Context, users ...*store.User) error {
 }
 
 func addPaging(sd *goqu.SelectDataset, pageOpts *store.PageQueryOptions) *goqu.SelectDataset {
+	if pageOpts == nil {
+		return sd
+	}
+
 	limit := maxPageSize
 	if pageOpts.Limit != nil && *pageOpts.Limit < limit {
 		limit = *pageOpts.Limit
