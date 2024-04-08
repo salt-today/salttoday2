@@ -151,47 +151,59 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get host from url, cannot scrape this article!")
 	}
-	commentsUrl := fmt.Sprintf("%s/comments/load?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 
-	res, err := http.Get(commentsUrl)
-	if err != nil {
-		logEntry.WithError(err).Error("failed to download comments")
-		return nil, err
-	}
-
-	defer func() {
-		if err := res.Body.Close(); err != nil {
-			logEntry.WithError(err).Error("Error closing HTTP")
+	// Loop at least once
+	// Keep looping if theres a load more button
+	comments := make([]*store.Comment, 0)
+	loadMore := true
+	for loadMore {
+		commentsUrl := fmt.Sprintf("%s/comments/get?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
+		if len(comments) > 0 {
+			commentsUrl += fmt.Sprintf("&lastId=%d", comments[len(comments)-1].ID)
 		}
-	}()
 
-	if res.StatusCode != 200 {
-		logEntry.WithFields(logrus.Fields{
-			"status_code": res.StatusCode,
-			"status":      res.Status,
-		}).Fatal("status code error")
-		return nil, nil
+		res, err := http.Get(commentsUrl)
+		if err != nil {
+			logEntry.WithError(err).Error("failed to download comments")
+			return nil, err
+		}
+
+		defer func() {
+			if err := res.Body.Close(); err != nil {
+				logEntry.WithError(err).Error("Error closing HTTP")
+			}
+		}()
+
+		if res.StatusCode != 200 {
+			logEntry.WithFields(logrus.Fields{
+				"status_code": res.StatusCode,
+				"status":      res.Status,
+			}).Fatal("status code error")
+			return nil, nil
+		}
+
+		initialCommentDoc, err := goquery.NewDocumentFromReader(res.Body)
+		if err != nil {
+			logEntry.WithError(err).Error("Error loading HTTP response body")
+			return nil, err
+		}
+
+		foundComments := searchArticleForComments(ctx, initialCommentDoc, article, userIDToNameMap)
+		comments = append(comments, foundComments...)
+
+		loadMoreSelection := initialCommentDoc.Find("button.comments-more")
+
+		// If the button doesn't exist, just get the comments
+		if loadMoreSelection.Length() == 0 {
+			loadMore = false
+		}
 	}
 
-	initialCommentDoc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		logEntry.WithError(err).Error("Error loading HTTP response body")
-		return nil, err
-	}
-
-	numberOfCommentApiCalls := getNumberOfCommentApiCalls(ctx, initialCommentDoc)
-
-	comments := searchArticleForComments(ctx, numberOfCommentApiCalls, initialCommentDoc, article, userIDToNameMap)
 	return comments, nil
 }
 
-func searchArticleForComments(ctx context.Context, numberOfCommentApiCalls int, initialCommentDoc *goquery.Document, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
-	if numberOfCommentApiCalls <= 0 {
-		return []*store.Comment{}
-	}
-
-	// Grab all top level comments
-	commentDivs := selectTopLevelComments(initialCommentDoc)
+func searchArticleForComments(ctx context.Context, commentsDoc *goquery.Document, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
+	commentDivs := commentsDoc.Find("div.comment")
 	comments := getComments(ctx, commentDivs, article, userIDToNameMap)
 
 	return comments
@@ -360,22 +372,6 @@ func newCommentFromDiv(ctx context.Context, div *goquery.Selection, articleID in
 	}
 	userIDToNameMap[comment.User.ID] = getUsername(ctx, div)
 	return comment
-}
-
-// SooToday has two types of return values from their API
-// 1. contains a div.comments element - returned from a page load
-// 2. just contains a body tag with a collection of comments
-func selectTopLevelComments(commentsDoc *goquery.Document) *goquery.Selection {
-	// This isn't completely necessary anymore because I found a selector that works for both
-	// However, separating this might still be a good idea incase sootoday changes and allows for deeply nested replies.
-	// This only works but only top level comments have the data-replies attr
-
-	// fmt.Println(goquery.OuterHtml(commentsDoc.Selection))
-	commentsDiv := commentsDoc.Find("div#comments")
-	if commentsDiv.Length() == 0 { // is this right? we were checking if empty in clj
-		return commentsDiv.Find("div[data-replies]") // HERE DAN HERE - I'm pretty sure I did this wrong
-	}
-	return commentsDiv.Find("div#comments > div.comment")
 }
 
 // NOTE - this relies on the fact that on SooToday's comments they do not consider replies as comments
