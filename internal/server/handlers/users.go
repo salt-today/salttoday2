@@ -36,7 +36,7 @@ func (h *Handler) HandleUsers(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 	}
 
-	views.Users(users, getNextUsersUrl(userOpts)).Render(r.Context(), w)
+	views.Users(users, *userOpts.PageOpts.Order, 100, getNextUsersUrl(userOpts)).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +67,7 @@ func (h *Handler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	components.UsersListComponent(users, getNextUsersUrl(userOpts)).Render(r.Context(), w)
+	components.UsersListComponent(users, *userOpts.PageOpts.Order, 100, getNextUsersUrl(userOpts)).Render(r.Context(), w)
 
 }
 

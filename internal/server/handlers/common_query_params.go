@@ -19,27 +19,27 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 	for param, value := range parameters {
 		switch strings.ToLower(param) {
 		case "limit":
-			limitValue, err := strconv.Atoi(value)
+			limitValue, err := ParseUint(value)
 			if err != nil {
 				return nil, fmt.Errorf("limit was not a valid number: %w", err)
 			}
 
-			opts.Limit = aws.Uint(uint(limitValue))
+			opts.Limit = &limitValue
 		case "page":
-			pageValue, err := strconv.Atoi(value)
+			pageValue, err := ParseUint(value)
 			if err != nil {
 				return nil, fmt.Errorf("page was not a valid number: %w", err)
 			}
-			opts.Page = aws.Uint(uint(pageValue))
+			opts.Page = &pageValue
 		case "site":
 			opts.Site = aws.String(value)
 		case "order":
 			if value == "likes" {
-				opts.Order = aws.Int(store.OrderByLikes)
+				*opts.Order = store.OrderByLikes
 			} else if value == "dislikes" {
-				opts.Order = aws.Int(store.OrderByDislikes)
+				*opts.Order = store.OrderByDislikes
 			} else {
-				opts.Order = aws.Int(store.OrderByBoth)
+				*opts.Order = store.OrderByBoth
 			}
 		}
 	}
@@ -72,4 +72,9 @@ func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
 		str += fmt.Sprintf(`&site=%s`, *queryOpts.Site)
 	}
 	return str
+}
+
+func ParseUint(s string) (uint, error) {
+	num, err := strconv.ParseUint(s, 10, 64)
+	return uint(num), err
 }

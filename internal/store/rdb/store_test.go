@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/require"
 
 	stor "github.com/salt-today/salttoday2/internal/store"
@@ -53,7 +52,7 @@ func TestStorage_Comments(t *testing.T) {
 
 	require.NoError(t, store.AddComments(context.Background(), allComments))
 	for _, user := range users {
-		opts := &stor.CommentQueryOptions{UserID: aws.Int(user)}
+		opts := &stor.CommentQueryOptions{UserID: &user}
 		comments, err := store.GetComments(context.Background(), opts)
 		require.NoError(t, err)
 		require.ElementsMatch(t, commentsByUser[user], comments)

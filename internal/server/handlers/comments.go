@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/lo"
 
@@ -78,7 +77,7 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	entry = entry.WithField("commentID", commentID)
 
 	queryOpts := &store.CommentQueryOptions{
-		ID: aws.Int(commentID),
+		ID: &commentID,
 	}
 
 	comments, err := h.storage.GetComments(r.Context(), queryOpts)
@@ -97,7 +96,7 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 	}
 
 	opts := &store.CommentQueryOptions{
-		PageOpts: *pageOpts,
+		PageOpts: pageOpts,
 	}
 
 	for param, value := range parameters {
@@ -112,11 +111,11 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 			}
 
 		case "days_ago":
-			daysAgo, err := strconv.Atoi(value)
+			daysAgo, err := ParseUint(value)
 			if err != nil {
 				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
-			opts.DaysAgo = aws.Uint(uint(daysAgo))
+			opts.DaysAgo = &daysAgo
 		}
 
 	}
@@ -141,6 +140,6 @@ func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 		paramsString = paramsString[1:]
 	}
 
-	nextPageParamsString := getNextPageQueryString(&queryOpts.PageOpts)
+	nextPageParamsString := getNextPageQueryString(queryOpts.PageOpts)
 	return fmt.Sprintf("%s?%s&%s", path, paramsString, nextPageParamsString)
 }

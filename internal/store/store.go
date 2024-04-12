@@ -38,7 +38,7 @@ type CommentQueryOptions struct {
 
 	ArticleID *int
 
-	PageOpts PageQueryOptions
+	PageOpts *PageQueryOptions
 }
 
 type UserQueryOptions struct {

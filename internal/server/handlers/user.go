@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/salt-today/salttoday2/internal/sdk"
@@ -70,7 +69,7 @@ func (h *Handler) HandleGetUserComments(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		entry.WithError(err).Warn("invalid user id")
 	}
-	queryOpts.UserID = aws.Int(userID)
+	queryOpts.UserID = &userID
 
 	comments, err := h.storage.GetComments(r.Context(), queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
