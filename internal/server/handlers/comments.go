@@ -16,7 +16,7 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "Home")
 
 	queryOpts, err := processGetCommentQueryParameters(r)

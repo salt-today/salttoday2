@@ -13,7 +13,7 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "User")
 
 	userIDStr := chi.URLParam(r, "userID")
@@ -22,11 +22,22 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 		entry.WithError(err).Warn("invalid user id")
 	}
 	entry = entry.WithField("userID", userID)
-	userOpts := &store.UserQueryOptions{ID: &userID}
-	users, err := h.storage.GetUsers(r.Context(), userOpts)
+	userOpts, err := processGetUsersQueryParameters(r)
 	if err != nil {
+		entry.Error("error parsing user query parameters", err)
+		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	users, err := h.storage.GetUsers(r.Context(), userOpts)
+	if errors.Is(err, &store.NoQueryResultsError{}) {
 		entry.WithError(err).Warning("invalid user")
 		w.WriteHeader(404)
+		return
+	} else if err != nil {
+		entry.WithError(err).Error("unknown error getting user")
+		w.WriteHeader(500)
 		return
 	}
 	if len(users) < 1 {
@@ -36,7 +47,7 @@ func (h *Handler) HandleUser(w http.ResponseWriter, r *http.Request) {
 
 	commentOpts, err := processGetCommentQueryParameters(r)
 	if err != nil {
-		entry.Error("error parsing query parameters", err)
+		entry.Error("error parsing comment query parameters", err)
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return

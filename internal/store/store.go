@@ -12,6 +12,7 @@ type Storage interface {
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
+	GetTopUser(ctx context.Context, orderBy int) (*User, error)
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
 	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
@@ -44,7 +45,7 @@ type CommentQueryOptions struct {
 type UserQueryOptions struct {
 	ID *int
 
-	PageOpts PageQueryOptions
+	PageOpts *PageQueryOptions
 }
 
 type StorageContent interface {

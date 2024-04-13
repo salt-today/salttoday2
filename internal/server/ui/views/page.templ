@@ -29,6 +29,7 @@ templ Page(nav bool, openGraphTags map[string]string) {
 		</head>
 		<body
 			class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen"
+			hx-boost="true"
 		>
 			if nav {
 				<nav class="border-black">

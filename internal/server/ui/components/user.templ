@@ -2,17 +2,50 @@ package components
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-templ UserComponent(user *store.User) {
-	<div>
-		<span>
-			{ fmt.Sprintf("%d", user.TotalLikes) }👍
+func getOrderPercentage(userNum, topUserNum int32) int {
+	percentage := float64(userNum) / float64(topUserNum)
+	nearest := Round(percentage, 0.01)
+
+	// minus 1 stops the top score being broken into two bars
+	return int(nearest*100) - 1
+}
+
+func Round(num, unit float64) float64 {
+	return math.Round(num/unit) * unit
+}
+
+templ scoreBar(userNum, topUserNum int32, divisor float64, colour string) {
+	<span
+		class={ fmt.Sprintf("w-[%d%%] inline-block h-full px-2 %s rounded m-1", getOrderPercentage(userNum, topUserNum),
+  colour) }
+	>
+		{ fmt.Sprintf("%d", int(float64(userNum) / divisor)) }
+	</span>
+}
+
+templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
+	<tr>
+		<td class="text-nowrap text-end">
 			<a href={ templ.URL(fmt.Sprintf("/user/%d", user.ID)) }>
 				{ user.UserName }
 			</a>
-			👎 { fmt.Sprintf("%d", user.TotalDislikes) }
-		</span>
-	</div>
+		</td>
+		<td class="w-full">
+			if orderBy == store.OrderByLikes {
+				@scoreBar(user.TotalLikes, topUser.TotalLikes, 1, "bg-blue-600")
+			} else if orderBy == store.OrderByDislikes {
+				@scoreBar(user.TotalDislikes, topUser.TotalDislikes, 1, "bg-red-600")
+			} else {
+				<div class="">
+					@scoreBar(user.TotalLikes, topUser.TotalScore, 2, "bg-blue-600")
+					@scoreBar(user.TotalDislikes*2, topUser.TotalScore, 2, "bg-red-600")
+				</div>
+			}
+		</td>
+	</tr>
 }

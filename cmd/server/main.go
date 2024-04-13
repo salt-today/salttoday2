@@ -26,21 +26,21 @@ func main() {
 
 	// htmx
 	// home/comments page
-	r.Get("/", handler.HandleHome)
+	r.Get("/", handler.HandleHomePage)
 	r.Get("/api/comments", handler.HandleGetComments)
 
 	// individual comment page
 	r.Get("/comment/{commentID}", handler.HandleComment)
 
 	// about page
-	r.Get("/about", handler.HandleAbout)
+	r.Get("/about", handler.HandleAboutPage)
 
 	// user leaderboard
-	r.Get("/users", handler.HandleUsers)
+	r.Get("/users", handler.HandleUsersPage)
 	r.Get("/api/users", handler.HandleGetUsers)
 
 	// user page
-	r.Get("/user/{userID}", handler.HandleUser)
+	r.Get("/user/{userID}", handler.HandleUserPage)
 	r.Get("/api/user/{userID}/comments", handler.HandleGetUserComments)
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))

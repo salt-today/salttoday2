@@ -3,11 +3,13 @@ package views
 import "github.com/salt-today/salttoday2/internal/server/ui/components"
 import "github.com/salt-today/salttoday2/internal/store"
 
-templ Users(users []*store.User, nextUrl string) {
+templ Users(users []*store.User, orderBy int, topUser *store.User, nextUrl string) {
 	@Page(true, nil) {
 		<div id="users">
 			if len(users) > 0 {
-				@components.UsersListComponent(users, nextUrl)
+				<table class="w-full">
+					@components.UsersListComponent(users, orderBy, topUser, nextUrl)
+				</table>
 			} else {
 				@components.NoResultsFound("users")
 			}
