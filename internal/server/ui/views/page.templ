@@ -33,14 +33,14 @@ templ Page(nav bool, openGraphTags map[string]string) {
 		>
 			if nav {
 				<nav class="border-black">
-					<div class="bg-slate-950 max-w flex flex-wrap items-center justify-between mx-auto p-4">
+					<div class="bg-slate-800 max-w flex flex-wrap items-center justify-between mx-auto p-4">
 						<a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
 							<img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-8" alt="SaltToday Logo"/>
 							<span class="self-center font-semibold whitespace-norap text-white">SaltToday</span>
 						</a>
 						<div class="hidden w-full md:block md:w-auto" id="navbar-default">
 							<ul
-								class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-slate-100 rounded-lg bg-slate-950 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0"
+								class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-slate-100 rounded-lg bg-slate-800 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0"
 							>
 								<li>
 									<a href="/" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0" aria-current="page">Home</a>
@@ -63,9 +63,9 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			<div class="max-w-screen-xl p-9 min-h-80 items-center justify-between mx-auto bg-slate-900 bg-transparent">
 				{ children... }
 			</div>
-			<div class="flex flex-col justify-end">
+			<footer class="flex justify-center h-full min-h-full">
 				<img class="" src="/public/images/footer-pile.png" alt="Pile of salt"/>
-			</div>
+			</footer>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
 			<script>
     htmx.onLoad(function (content) {

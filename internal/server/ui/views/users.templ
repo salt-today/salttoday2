@@ -32,7 +32,7 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 		</form>
 		<div id="users">
 			if len(users) > 0 {
-				<table class="w-full border-separate border-spacing-x-2">
+				<table class="w-full border-separate border-spacing-4">
 					@components.UsersListComponent(users, *queryOpts.PageOpts.Order, topUser, nextUrl)
 				</table>
 			} else {

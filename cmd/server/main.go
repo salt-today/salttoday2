@@ -40,6 +40,7 @@ func main() {
 
 	// user page
 	r.Get("/user/{userID}", handler.HandleUserPage)
+	r.Get("/user/{userID}/comments", handler.HandleUserPage)
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
