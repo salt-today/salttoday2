@@ -1,0 +1,21 @@
+package components
+
+import "github.com/salt-today/salttoday2/internal/store"
+
+templ UsersFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, defaultDays uint) {
+	<form hx-get={ targetUrl } hx-target="#users" hx-trigger="change" hx-include="this" class="mx-auto">
+		<div class="flex justify-center gap-4 my-4">
+			<div>
+				<select
+					id="order"
+					name="order"
+					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+				>
+					<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
+					<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
+					<option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
+				</select>
+			</div>
+		</div>
+	</form>
+}

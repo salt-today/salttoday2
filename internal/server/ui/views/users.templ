@@ -3,12 +3,27 @@ package views
 import "github.com/salt-today/salttoday2/internal/server/ui/components"
 import "github.com/salt-today/salttoday2/internal/store"
 
-templ Users(users []*store.User, orderBy int, topUser *store.User, nextUrl string) {
+templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQueryOptions, nextUrl string) {
 	@Page(true, nil) {
+		<form hx-get="/api/users" hx-target="#users " hx-trigger="change" hx-include="this" class="mx-auto">
+			<div class="flex justify-center gap-4 my-4">
+				<div>
+					<select
+						id="order"
+						name="order"
+						class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					>
+						<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
+						<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
+						<option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
+					</select>
+				</div>
+			</div>
+		</form>
 		<div id="users">
 			if len(users) > 0 {
 				<table class="w-full">
-					@components.UsersListComponent(users, orderBy, topUser, nextUrl)
+					@components.UsersListComponent(users, *queryOpts.PageOpts.Order, topUser, nextUrl)
 				</table>
 			} else {
 				@components.NoResultsFound("users")

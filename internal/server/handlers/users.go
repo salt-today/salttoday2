@@ -42,7 +42,7 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nextUrl := getNextUsersUrl(userOpts)
-	views.Users(users, *userOpts.PageOpts.Order, topUser, nextUrl).Render(r.Context(), w)
+	views.Users(users, topUser, userOpts, nextUrl).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
