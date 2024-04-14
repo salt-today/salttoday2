@@ -29,14 +29,14 @@ templ User(user *store.User, queryOpts *store.CommentQueryOptions, comments []*s
 				<span class="text-end py-2"></span>
 				<div class="w-full flex">
 					<span
-						class={ fmt.Sprintf("w-[%d%%] flex items-center h-full px-2 bg-blue-600 rounded m-1",
+						class={ fmt.Sprintf("min-w-max w-[%d%%] flex items-center h-full px-2 bg-blue-600 rounded m-1",
         getGridPercentage(user.TotalLikes, user.TotalDislikes)) }
 					>
 						<img src="/public/images/thumbs-up-white.svg" alt="thumbs-up"/>
 						{ fmt.Sprintf("%d", user.TotalLikes ) }
 					</span>
 					<div
-						class={ fmt.Sprintf("w-[%d%%] flex items-center justify-end h-full px-2 bg-red-600 rounded m-1",
+						class={ fmt.Sprintf("min-w-max w-[%d%%] flex items-center justify-end h-full px-2 bg-red-600 rounded m-1",
         getGridPercentage(user.TotalDislikes, user.TotalLikes)) }
 					>
 						{ fmt.Sprintf("%d", user.TotalDislikes ) }
