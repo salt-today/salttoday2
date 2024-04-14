@@ -165,7 +165,12 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 	entry := sdk.Logger(ctx).WithField("articleID", articleID)
 
 	// Determine if any comments were deleted
-	storedComments, err := s.GetComments(ctx, &store.CommentQueryOptions{ArticleID: &articleID})
+  queryOpts := &store.CommentQueryOptions {
+    ArticleID: &articleID,
+    PageOpts: &store.PageQueryOptions{},
+  }
+  
+	storedComments, err := s.GetComments(ctx, queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
 		// no-op
 		entry.Info("New article, no comments found")
