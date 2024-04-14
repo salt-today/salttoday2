@@ -16,7 +16,7 @@ func daysOptionSelected(ptr *uint, current uint, defaultDays uint) bool {
 }
 
 templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, defaultDays uint) {
-	<form hx-get={ targetUrl } hx-target="#comments" hx-trigger="change" hx-include="this" class="mx-auto">
+	<form id="form" hx-get={ targetUrl } hx-target="#comments" hx-trigger="change" hx-include="this" class="mx-auto">
 		<div class="flex justify-center gap-4 my-4">
 			<div>
 				<select

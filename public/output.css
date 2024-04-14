@@ -1113,8 +1113,8 @@ input:checked + .toggle-bg {
   right: 0px;
 }
 
-.right-9 {
-  right: 2.25rem;
+.right-8 {
+  right: 2rem;
 }
 
 .top-0 {
@@ -1697,8 +1697,8 @@ input:checked + .toggle-bg {
   border-collapse: separate;
 }
 
-.border-spacing-x-4 {
-  --tw-border-spacing-x: 1rem;
+.border-spacing-x-2 {
+  --tw-border-spacing-x: 0.5rem;
   border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
 }
 
@@ -1820,10 +1820,10 @@ input:checked + .toggle-bg {
   margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+.space-y-12 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
-  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+  margin-top: calc(3rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(3rem * var(--tw-space-y-reverse));
 }
 
 .space-y-8 > :not([hidden]) ~ :not([hidden]) {

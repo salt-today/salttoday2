@@ -8,7 +8,8 @@ import (
 templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQueryOptions, nextUrl string) {
 	@Page(true, nil) {
 		<form
-			hx-get="/api/users"
+			id="form"
+			hx-get="/users"
 			hx-target="#users table"
 			hx-swap="innerHTML"
 			hx-trigger="change"
@@ -31,7 +32,7 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 		</form>
 		<div id="users">
 			if len(users) > 0 {
-				<table class="w-full border-separate border-spacing-x-4">
+				<table class="w-full border-separate border-spacing-x-2">
 					@components.UsersListComponent(users, *queryOpts.PageOpts.Order, topUser, nextUrl)
 				</table>
 			} else {

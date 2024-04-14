@@ -16,7 +16,7 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "Home")
 
 	queryOpts, err := processGetCommentQueryParameters(r)
@@ -34,36 +34,15 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	nextUrl := getNextCommentsUrl(queryOpts)
+
+	hxTrigger := r.Header.Get("HX-Trigger")
+	if hxTrigger == "pagination" || hxTrigger == "form" {
+		components.CommentsListComponent(comments, nextUrl).Render(r.Context(), w)
+		return
+	}
 	views.Home(queryOpts, comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
-}
-
-func (h *Handler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "GetComments")
-
-	queryOpts, err := processGetCommentQueryParameters(r)
-	if err != nil {
-		entry.Error("error parsing query parameters", err)
-		w.WriteHeader(400)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	comments, err := h.storage.GetComments(r.Context(), queryOpts)
-	if errors.Is(err, &store.NoQueryResultsError{}) {
-		// error on first page? no comments
-		if *queryOpts.PageOpts.Page == 0 {
-			components.NoResultsFound("Comment").Render(r.Context(), w)
-			return
-		}
-		// end of comments - nothing to do here
-		return
-	} else if err != nil {
-		entry.WithError(err).Warn("error getting comments")
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	components.CommentsListComponent(comments, getNextCommentsUrl(queryOpts)).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
@@ -125,9 +104,9 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	paramsString := ``
-	path := `/api/comments`
+	path := `/comments`
 	if queryOpts.UserID != nil {
-		path = fmt.Sprintf(`/api/user/%d/comments`, *queryOpts.UserID)
+		path = fmt.Sprintf(`/user/%d/comments`, *queryOpts.UserID)
 	}
 	if queryOpts.OnlyDeleted {
 		paramsString += `&only_deleted=true`

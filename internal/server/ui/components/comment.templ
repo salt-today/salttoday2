@@ -60,7 +60,7 @@ templ CommentComponent(comment *store.Comment) {
 			if comment.Dislikes > 0 {
 				<div class="absolute -bottom-10 -right-10">
 					<img src="/public/images/thumbs-down.svg"/>
-					<span class="absolute bottom-7 right-9">{ fmt.Sprintf("%d", comment.Dislikes) }</span>
+					<span class="absolute bottom-7 right-8">{ fmt.Sprintf("%d", comment.Dislikes) }</span>
 				</div>
 			}
 		</div>

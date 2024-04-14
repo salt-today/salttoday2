@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -42,47 +41,14 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nextUrl := getNextUsersUrl(userOpts)
+
+	hxTrigger := r.Header.Get("HX-Trigger")
+	if hxTrigger == "pagination" || hxTrigger == "form" {
+		components.UsersListComponent(users, *userOpts.PageOpts.Order, topUser, nextUrl).Render(r.Context(), w)
+		return
+	}
+
 	views.Users(users, topUser, userOpts, nextUrl).Render(r.Context(), w)
-}
-
-func (h *Handler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "GetUsers")
-
-	userOpts, err := processGetUsersQueryParameters(r)
-	if err != nil {
-		entry.Error("error parsing query parameters", err)
-		w.WriteHeader(400)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	users, err := h.storage.GetUsers(r.Context(), userOpts)
-
-	if errors.Is(err, &store.NoQueryResultsError{}) {
-		// error on first page? no comments
-		if *userOpts.PageOpts.Page == 0 {
-			components.NoResultsFound("users").Render(r.Context(), w)
-			return
-		}
-		// end of comments - nothing to do here
-		return
-	} else if err != nil {
-		entry.WithError(err).Warn("error getting users")
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	topUser, err := h.storage.GetTopUser(r.Context(), *userOpts.PageOpts.Order)
-	if err != nil {
-		entry.Error("error getting top user")
-		w.WriteHeader(500)
-		return
-	}
-
-	nextUrl := getNextUsersUrl(userOpts)
-	components.UsersListComponent(users, *userOpts.PageOpts.Order, topUser, nextUrl).Render(r.Context(), w)
-
 }
 
 func processGetUsersQueryParameters(r *http.Request) (*store.UserQueryOptions, error) {
@@ -103,7 +69,7 @@ func processGetUsersQueryParameters(r *http.Request) (*store.UserQueryOptions, e
 }
 
 func getNextUsersUrl(queryOpts *store.UserQueryOptions) string {
-	path := `/api/users`
+	path := `/users`
 
 	nextPageParamsString := getNextPageQueryString(queryOpts.PageOpts)
 	return fmt.Sprintf("%s?%s", path, nextPageParamsString)
