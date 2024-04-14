@@ -165,11 +165,11 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 	entry := sdk.Logger(ctx).WithField("articleID", articleID)
 
 	// Determine if any comments were deleted
-  queryOpts := &store.CommentQueryOptions {
-    ArticleID: &articleID,
-    PageOpts: &store.PageQueryOptions{},
-  }
-  
+	queryOpts := &store.CommentQueryOptions{
+		ArticleID: &articleID,
+		PageOpts:  &store.PageQueryOptions{},
+	}
+
 	storedComments, err := s.GetComments(ctx, queryOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
 		// no-op
@@ -277,7 +277,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 		u.TotalScore = 2*u.TotalDislikes + u.TotalLikes
 		users = append(users, u)
 	}
-
+	fmt.Println(users)
 	return users, nil
 }
 
