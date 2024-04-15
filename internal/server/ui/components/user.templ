@@ -9,20 +9,19 @@ import (
 
 func getOrderPercentage(userNum, topUserNum int32) int {
 	percentage := float64(userNum) / float64(topUserNum)
-	nearest := Round(percentage, 0.01)
+	nearest := Round(percentage, 0.01) - 1
 
 	// minus 1 stops the top score being broken into two bars
 	return int(nearest * 100)
 }
-
 func Round(num, unit float64) float64 {
 	return math.Round(num/unit) * unit
 }
 
 templ scoreBar(displayNum, userNum, topUserNum int32, colour string) {
 	<span
-		class={ fmt.Sprintf("min-w-max w-[%d%%] inline-block h-10 p-2 %s rounded m-0.5", getOrderPercentage(userNum,
-  topUserNum), colour) }
+		class={ fmt.Sprintf("w-[%d%%] inline-block h-10 p-2 %s rounded m-0.5", getOrderPercentage(userNum, topUserNum),
+  colour) }
 	>
 		{ fmt.Sprintf("%d", int(displayNum)) }
 	</span>
@@ -42,7 +41,7 @@ templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
 				@scoreBar(user.TotalDislikes, user.TotalDislikes, topUser.TotalDislikes, "bg-red-600")
 			} else {
 				<div class="">
-					@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalScore*2, "bg-blue-600")
+					@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalScore, "bg-blue-600")
 					@scoreBar(user.TotalDislikes, user.TotalDislikes*2, topUser.TotalScore, "bg-red-600")
 				</div>
 			}
