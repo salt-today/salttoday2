@@ -1697,6 +1697,11 @@ input:checked + .toggle-bg {
   min-width: max-content;
 }
 
+.min-w-min {
+  min-width: -moz-min-content;
+  min-width: min-content;
+}
+
 .max-w-screen-xl {
   max-width: 1280px;
 }
