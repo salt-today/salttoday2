@@ -24,7 +24,7 @@ templ scoreBar(displayNum, userNum, topUserNum int32, colour string) {
 		class={ fmt.Sprintf("min-w-max w-[%d%%] inline-block h-10 p-2 %s rounded m-0.5", getOrderPercentage(userNum,
   topUserNum), colour) }
 	>
-		//{ fmt.Sprintf("%d", int(displayNum)) }
+		{ fmt.Sprintf("%d", int(displayNum)) }
 	</span>
 }
 
@@ -37,13 +37,13 @@ templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
 		</td>
 		<td class="w-full">
 			if orderBy == store.OrderByLikes {
-				@scoreBar(user.TotalLikes, topUser.TotalLikes, 1, "bg-blue-600")
+				@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalLikes, "bg-blue-600")
 			} else if orderBy == store.OrderByDislikes {
-				@scoreBar(user.TotalDislikes, topUser.TotalDislikes, 1, "bg-red-600")
+				@scoreBar(user.TotalDislikes, user.TotalDislikes, topUser.TotalDislikes, "bg-red-600")
 			} else {
-				<div>
-					@scoreBar(user.TotalLikes, topUser.TotalScore, 2, "bg-blue-600")
-					@scoreBar(user.TotalDislikes*2, topUser.TotalScore, 2, "bg-red-600")
+				<div class="">
+					@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalScore*2, "bg-blue-600")
+					@scoreBar(user.TotalDislikes, user.TotalDislikes*2, topUser.TotalScore, "bg-red-600")
 				</div>
 			}
 		</td>
