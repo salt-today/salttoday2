@@ -31,10 +31,18 @@ templ scoreBar(likes, dislikes, userNum, topUserNum int32) {
 			</span>
 		}
 		if dislikes > 0 {
-			<span class="flex text-right">
-				{ fmt.Sprintf("%d", int(dislikes)) }
-				<img src="/public/images/thumbs-down-white.svg"/>
-			</span>
+			// if also likes must be sorting by score, change order of text and image
+			if likes > 0 {
+				<span class="flex text-right">
+					{ fmt.Sprintf("%d", int(dislikes)) }
+					<img src="/public/images/thumbs-down-white.svg"/>
+				</span>
+			} else {
+				<span class="flex text-right">
+					<img src="/public/images/thumbs-down-white.svg"/>
+					{ fmt.Sprintf("%d", int(dislikes)) }
+				</span>
+			}
 		}
 	</div>
 }
