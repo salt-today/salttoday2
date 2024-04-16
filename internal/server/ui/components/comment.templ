@@ -17,7 +17,7 @@ func getGradient(likes, dislikes, plus int32) string {
 		return "bg-blue-600"
 	}
 	return fmt.Sprintf("bg-gradient-to-r from-blue-600 to-red-600 from-%d%% to-%d%%",
-		max(0,
+		max(5,
 			int((float64(likes)/float64(likes+dislikes+plus))*100)/5*5),
 		min(100,
 			int((float64(likes)/float64(likes+dislikes+plus))*100+float64(plus))/5*5),
