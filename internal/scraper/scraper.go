@@ -60,7 +60,7 @@ func ScrapeAndStoreComments(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articles, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*7))
+	articles, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*14))
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get article ids")
 		return

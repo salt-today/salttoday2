@@ -19,13 +19,24 @@ func Round(num, unit float64) float64 {
 	return math.Round(num/unit) * unit
 }
 
-templ scoreBar(displayNum, userNum, topUserNum int32, colour string) {
-	<span
-		class={ fmt.Sprintf("min-w-max w-[%d%%] inline-block h-10 p-1 %s rounded m-0.5", getOrderPercentage(userNum,
-  topUserNum), colour) }
+templ scoreBar(likes, dislikes, userNum, topUserNum int32) {
+	<div
+		class={ fmt.Sprintf("justify-between space-x-4 min-w-max flex w-[%d%%] h-10 p-1 %s rounded m-0.5",
+  getOrderPercentage(userNum, topUserNum), getGradient(likes, dislikes, 0)) }
 	>
-		{ fmt.Sprintf("%d", int(displayNum)) }
-	</span>
+		if likes > 0 {
+			<span class="flex">
+				<img src="/public/images/thumbs-up-white.svg"/>
+				{ fmt.Sprintf("%d", int(likes)) }
+			</span>
+		}
+		if dislikes > 0 {
+			<span class="flex text-right">
+				{ fmt.Sprintf("%d", int(dislikes)) }
+				<img src="/public/images/thumbs-down-white.svg"/>
+			</span>
+		}
+	</div>
 }
 
 templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
@@ -37,13 +48,12 @@ templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
 		</td>
 		<td class="w-full">
 			if orderBy == store.OrderByLikes {
-				@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalLikes, "bg-blue-600")
+				@scoreBar(user.TotalLikes, 0, user.TotalLikes, topUser.TotalLikes)
 			} else if orderBy == store.OrderByDislikes {
-				@scoreBar(user.TotalDislikes, user.TotalDislikes, topUser.TotalDislikes, "bg-red-600")
+				@scoreBar(0, user.TotalDislikes, user.TotalDislikes, topUser.TotalDislikes)
 			} else {
 				<div class="">
-					@scoreBar(user.TotalLikes, user.TotalLikes, topUser.TotalScore, "bg-blue-600")
-					@scoreBar(user.TotalDislikes, user.TotalDislikes*2, topUser.TotalScore, "bg-red-600")
+					@scoreBar(user.TotalLikes, user.TotalDislikes, user.TotalScore, topUser.TotalScore)
 				</div>
 			}
 		</td>

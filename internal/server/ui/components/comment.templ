@@ -6,21 +6,21 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func getGradient(comment *store.Comment) string {
-	if comment.Likes+comment.Dislikes == 0 {
+func getGradient(likes, dislikes, plus int32) string {
+	if likes+dislikes == 0 {
 		return "bg-gray-500"
 	}
-	if comment.Likes == 0 {
+	if likes == 0 {
 		return "bg-red-600"
 	}
-	if comment.Dislikes == 0 {
+	if dislikes == 0 {
 		return "bg-blue-600"
 	}
 	return fmt.Sprintf("bg-gradient-to-r from-blue-600 to-red-600 from-%d%% to-%d%%",
 		max(0,
-			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100)/5*5),
+			int((float64(likes)/float64(likes+dislikes))*100)/5*5),
 		min(100,
-			int((float64(comment.Likes)/float64(comment.Likes+comment.Dislikes))*100+5)/5*5),
+			int((float64(likes)/float64(likes+dislikes))*100+float64(plus))/5*5),
 	)
 
 }
@@ -47,7 +47,7 @@ templ CommentComponent(comment *store.Comment) {
 				<img src="/public/images/link.svg" onclick={ CopyLinkClicked(comment.ID) }/>
 			</a>
 		</div>
-		<div class={ fmt.Sprintf(`relative flex flex-col p-1 rounded %s`, getGradient(comment)) }>
+		<div class={ fmt.Sprintf(`relative flex flex-col p-1 rounded %s`, getGradient(comment.Likes, comment.Dislikes, 5)) }>
 			if comment.Likes > 0 {
 				<div class="absolute -top-10 -left-10">
 					<img class="" src="/public/images/thumbs-up.svg"/>
