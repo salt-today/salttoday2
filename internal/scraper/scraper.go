@@ -82,10 +82,13 @@ func ScrapeAndStoreComments(ctx context.Context) {
 	if err := storage.AddComments(ctx, comments); err != nil {
 		logEntry.WithError(err).Error("failed to add comments ids")
 	}
+	logEntry.WithField("comments", commentIDs).Info("Added comments")
 
 	if err := storage.AddUsers(ctx, users...); err != nil {
 		logEntry.WithError(err).Error("failed to add user ids")
 	}
+	logEntry.Info("Added users")
+
 }
 
 func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) ([]*store.Comment, []*store.User) {

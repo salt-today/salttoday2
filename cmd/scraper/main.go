@@ -4,10 +4,14 @@ import (
 	"context"
 
 	"github.com/salt-today/salttoday2/internal/scraper"
+	"github.com/salt-today/salttoday2/internal/sdk"
 )
 
 func main() {
-	scraper.ScrapeAndStoreArticles(context.Background())
+	ctx := context.Background()
 
-	scraper.ScrapeAndStoreComments(context.Background())
+	scraper.ScrapeAndStoreArticles(ctx)
+	scraper.ScrapeAndStoreComments(ctx)
+
+	sdk.Logger(ctx).Info("Scraping complete")
 }

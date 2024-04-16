@@ -152,13 +152,13 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments []*store.Comment)
 		articleCommentsMap[comment.Article.ID] = append(articleCommentsMap[comment.Article.ID], comment)
 	}
 
+	var err error
 	for articleID, comments := range articleCommentsMap {
-		if err := s.addCommentsToArticle(ctx, articleID, comments); err != nil {
-			return err
-		}
+		addErr := s.addCommentsToArticle(ctx, articleID, comments)
+		err = errors.Join(err, addErr)
 	}
 
-	return nil
+	return err
 }
 
 func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, comments []*store.Comment) error {
