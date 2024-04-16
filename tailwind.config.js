@@ -5,6 +5,7 @@ module.exports = {
   // Can't have dynamic values via string interpolation
   // Need this safelist for gradients on comments to work
   safelist: [
+    'to-0%',
     'to-5%',
     'to-10%',
     'to-15%',
@@ -24,6 +25,7 @@ module.exports = {
     'to-85%',
     'to-90%',
     'to-95%',
+    'from-0%',
     'from-5%',
     'from-10%',
     'from-15%',
