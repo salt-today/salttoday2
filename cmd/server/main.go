@@ -27,7 +27,6 @@ func main() {
 	// htmx
 	// home/comments page
 	r.Get("/", handler.HandleCommentsPage)
-	r.Get("/comments", handler.HandleCommentsPage)
 
 	// individual comment page
 	r.Get("/comment/{commentID}", handler.HandleComment)
@@ -40,7 +39,6 @@ func main() {
 
 	// user page
 	r.Get("/user/{userID}", handler.HandleUserPage)
-	r.Get("/user/{userID}/comments", handler.HandleUserPage)
 
 	r.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 

@@ -8,12 +8,20 @@ import (
 )
 
 func commentOpenGraphTags(comment *store.Comment) map[string]string {
+	var image string
+	if comment.Likes > comment.Dislikes {
+		image = "/public/images/thumbs-up.svg"
+	} else {
+		image = "/public/images/thumbs-down.svg"
+	}
+
 	tags := map[string]string{
-		// TODO different image for likes/dislikes
-		"type":        "website",
-		"title":       fmt.Sprintf("%s's comment on %s", comment.User.UserName, comment.Article.Title),
+		"type":  "website",
+		"title": fmt.Sprintf("%s's comment on %s", comment.User.UserName, comment.Article.Title),
+		// TODO do we need to include the entire url here?
 		"url":         fmt.Sprintf("https://www.salttoday.ca/comment/%d", comment.ID),
 		"description": comment.Text,
+		"image":       image,
 	}
 	return tags
 }

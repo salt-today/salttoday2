@@ -7,7 +7,7 @@ import (
 
 templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent("/comments", queryOpts, 7)
+		@components.CommentsFormComponent("/", queryOpts, 7)
 		<div id="comments" class="space-y-12">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
@@ -15,5 +15,6 @@ templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, next
 				@components.NoResultsFound("comments")
 			}
 		</div>
+		<img id="spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
 	}
 }

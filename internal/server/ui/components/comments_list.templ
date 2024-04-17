@@ -9,6 +9,13 @@ templ CommentsListComponent(comments []*store.Comment, nextUrl string) {
 		}
 	</div>
 	if len(comments) > 0 {
-		<div id="pagination" hx-get={ nextUrl } hx-trigger="revealed" hx-swap="outerHTML"></div>
+		<div
+			id="pagination"
+			class="flex justify-center items-center"
+			hx-get={ nextUrl }
+			hx-trigger="revealed"
+			hx-swap="outerHTML"
+			hx-indicator="#spinner"
+		></div>
 	}
 }

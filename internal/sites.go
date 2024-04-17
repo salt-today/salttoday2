@@ -2,9 +2,9 @@ package internal
 
 // TODO uncomment sites when we're ready, no need to hammer all of them yet
 // List taken from here: villagemedia.ca/sites/
-func GetSites() []string {
-	return []string{
-		"https://www.tbnewswatch.com",
+func GetSites() map[string]string {
+	return map[string]string{
+		"tbay": "https://www.tbnewswatch.com",
 		// "https://www.barrietoday.com",
 		// "https://www.baytoday.ca",
 		// "https://www.bradfordtoday.ca",
@@ -22,7 +22,7 @@ func GetSites() []string {
 		// "https://www.northernontariobusiness.com",
 		// "https://www.orilliamatters.com",
 		// "https://www.pelhamtoday.ca",
-		"https://www.sootoday.com",
+		"sootoday": "https://www.sootoday.com",
 		// "https://www.stratfordtoday.ca",
 		// "https://sudbury.com",
 		// "https://www.thoroldtoday.ca",

@@ -15,6 +15,7 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 			hx-trigger="change"
 			hx-include="this"
 			hx-push-url="true"
+			hx-indicator="#spinner"
 			class="mx-auto"
 		>
 			<div class="flex justify-center gap-4 my-4">
@@ -40,5 +41,6 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 				@components.NoResultsFound("users")
 			}
 		</div>
+		<img id="spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
 	}
 }

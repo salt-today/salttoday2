@@ -104,9 +104,9 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	paramsString := ``
-	path := `/comments`
+	path := `/`
 	if queryOpts.UserID != nil {
-		path = fmt.Sprintf(`/user/%d/comments`, *queryOpts.UserID)
+		path = fmt.Sprintf(`/user/%d/`, *queryOpts.UserID)
 	}
 	if queryOpts.OnlyDeleted {
 		paramsString += `&only_deleted=true`

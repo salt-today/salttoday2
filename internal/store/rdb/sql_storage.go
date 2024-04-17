@@ -19,6 +19,8 @@ import (
 	"github.com/salt-today/salttoday2/internal/store/rdb/migrations"
 )
 
+const dislikeMultiplier = 2
+
 var _ store.Storage = (*sqlStorage)(nil)
 
 type sqlStorage struct {
@@ -220,16 +222,17 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 
 	// only get the comments we need since we're summing all the values
 	cols := []interface{}{UsersID, UsersName}
-	// TODO this feels kinda bad - can probably rework this.
-	if opts.PageOpts.Order == nil || *opts.PageOpts.Order == store.OrderByLikes {
-		cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes))
-		sd = sd.Order(goqu.I(UserLikes).Desc())
-	} else if *opts.PageOpts.Order == store.OrderByDislikes {
-		cols = append(cols, goqu.SUM(CommentsDislikes).As(UserDislikes))
-		sd = sd.Order(goqu.I(UserDislikes).Desc())
-	} else {
-		cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes))
-		sd = sd.Order(goqu.L(UserLikes + "+ 2 * " + UserDislikes).Desc())
+	if opts.PageOpts.Order != nil {
+		if *opts.PageOpts.Order == store.OrderByLikes {
+			cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes))
+			sd = sd.Order(goqu.I(UserLikes).Desc())
+		} else if *opts.PageOpts.Order == store.OrderByDislikes {
+			cols = append(cols, goqu.SUM(CommentsDislikes).As(UserDislikes))
+			sd = sd.Order(goqu.I(UserDislikes).Desc())
+		} else {
+			cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes))
+			sd = sd.Order(goqu.L(UserLikes + fmt.Sprintf("+ %d * ", dislikeMultiplier) + UserDislikes).Desc())
+		}
 	}
 	sd = sd.Select(cols...)
 
@@ -274,16 +277,15 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 
 		// TODO feels bad.
 		// Have to calculate score since it's not calculated in select anymore
-		u.TotalScore = 2*u.TotalDislikes + u.TotalLikes
+		u.TotalScore = dislikeMultiplier*u.TotalDislikes + u.TotalLikes
 		users = append(users, u)
 	}
-	fmt.Println(users)
 	return users, nil
 }
 
 func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOptions) ([]*store.Comment, error) {
 	sd := s.dialect.
-		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+" + 2 * "+CommentsDislikes).
+		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+fmt.Sprintf(" + %d * ", dislikeMultiplier)+CommentsDislikes).
 			As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, ArticlesUrl, UsersID, UsersName).
 		From(CommentsTable).
 		InnerJoin(goqu.T(UsersTable).As(UsersTable), goqu.On(goqu.I(CommentsUserID).Eq(goqu.I(UsersID)))).
@@ -416,7 +418,7 @@ func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*store.Arti
 }
 
 func (s *sqlStorage) AddUsers(ctx context.Context, users ...*store.User) error {
-	ds := s.dialect.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(goqu.DoNothing()) // TODO Something other than nothing
+	ds := s.dialect.Insert(UsersTable).Cols(UsersID, UsersName).OnConflict(goqu.DoNothing())
 	for _, user := range users {
 		ds = ds.Vals(goqu.Vals{user.ID, user.UserName})
 	}
