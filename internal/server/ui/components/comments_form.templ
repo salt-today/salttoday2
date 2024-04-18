@@ -23,6 +23,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 		hx-trigger="change"
 		hx-include="this"
 		hx-push-url="true"
+		hx-indicator="#form-spinner"
 		class="mx-auto"
 	>
 		<div class="flex justify-center gap-4 my-4">
@@ -63,5 +64,6 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				</select>
 			</div>
 		</div>
+		<img id="form-spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
 	</form>
 }

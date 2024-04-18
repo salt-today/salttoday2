@@ -7,6 +7,6 @@ templ UsersListComponent(users []*store.User, orderBy int, topUser *store.User, 
 		@UserComponent(comment, orderBy, topUser)
 	}
 	if len(users) > 0 {
-		<tr id="pagination" hx-get={ nextUrl } hx-trigger="revealed" hx-swap="outerHTML" hx-indicator="#spinner"></tr>
+		<tr id="pagination" hx-get={ nextUrl } hx-trigger="revealed" hx-swap="outerHTML" hx-indicator="#pagination-spinner"></tr>
 	}
 }

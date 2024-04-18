@@ -15,6 +15,11 @@ templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, next
 				@components.NoResultsFound("comments")
 			}
 		</div>
-		<img id="spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
+		<img
+			id="pagination-spinner"
+			class="htmx-indicator mx-auto"
+			src="/public/images/spinner.svg"
+			alt="Mining more salt..."
+		/>
 	}
 }
