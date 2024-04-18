@@ -53,6 +53,7 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	userOpts.ID = &userID
 
 	users, err := h.storage.GetUsers(r.Context(), userOpts)
 	if errors.Is(err, &store.NoQueryResultsError{}) {
