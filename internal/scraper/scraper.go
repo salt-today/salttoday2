@@ -50,6 +50,11 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to add articles")
 	}
+	articleIDs := make([]int, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	logEntry.WithField("articles", articleIDs).Info("Found and stored articles")
 }
 
 func ScrapeAndStoreComments(ctx context.Context) {
@@ -66,21 +71,23 @@ func ScrapeAndStoreComments(ctx context.Context) {
 		logEntry.WithError(err).Error("failed to get article ids")
 		return
 	}
+	logEntry.WithField("articlesSince", articlesSince).Info("found articles since")
 
 	// determine if article should be scraped
-	now := time.Now()
+	// now := time.Now()
 	articles := make([]*store.Article, 0)
 	for _, article := range articlesSince {
-		for i := 0; i < maxDays; i++ {
-			multiplier := time.Duration(math.Pow(2, float64(i)))
-			if article.DiscoveryTime.After(now.Add(-time.Hour * 24 * time.Duration(i))) {
-				if article.LastScrapeTime.After(now.Add(-time.Minute * 15 * multiplier)) {
-					articles = append(articles, article)
-				}
-				break
-			}
-		}
+		// for i := 0; i < maxDays; i++ {
+		// 	multiplier := time.Duration(math.Pow(2, float64(i)))
+		// 	if article.DiscoveryTime.After(now.Add(-time.Hour * 24 * time.Duration(i))) {
+		// 		if article.LastScrapeTime.After(now.Add(-time.Minute * 15 * multiplier)) {
+		articles = append(articles, article)
+		//		}
+		//		break
+		//	}
+		// }
 	}
+	logEntry.WithField("articlesToScrape", articles).Info("articlesToScrape")
 
 	comments, users := ScrapeCommentsFromArticles(ctx, articles)
 	commentIDs := make([]int, len(comments))
