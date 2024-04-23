@@ -20,6 +20,7 @@ import (
 )
 
 const dislikeMultiplier = 2
+const maxPageSize uint = 20
 
 var _ store.Storage = (*sqlStorage)(nil)
 
@@ -36,8 +37,6 @@ type cachedResults struct {
 	topLikedUser    *store.User
 	topDislikedUser *store.User
 }
-
-const maxPageSize uint = 20
 
 func getSqlConnString(ctx context.Context) string {
 	url := os.Getenv("MYSQL_URL")
@@ -70,7 +69,12 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	}
 
 	// periodically calculate the most likes, dislikes
-	s.cacheTopUsers(ctx)
+	err = s.cacheTopUsers(ctx)
+	if err != nil {
+		entry.Error("Unable to cache top users on storage startup")
+		return nil, err
+	}
+
 	ticker := time.NewTicker(time.Hour)
 	go func() error {
 		<-ticker.C
@@ -123,21 +127,25 @@ func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
 	}
 
 	users, err := s.GetUsers(ctx, opts)
-	if err != nil || len(users) < 1 {
+	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest scoring user")
+		return err
+	} else if len(users) < 1 {
+		entry.Warn("no users found")
+		return nil
 	}
 	s.cachedResults.topScoringUser = users[0]
 
 	opts.PageOpts.Order = aws.Int(store.OrderByLikes)
 	users, err = s.GetUsers(ctx, opts)
-	if err != nil || len(users) < 1 {
+	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest liked user")
 	}
 	s.cachedResults.topLikedUser = users[0]
 
 	opts.PageOpts.Order = aws.Int(store.OrderByDislikes)
 	users, err = s.GetUsers(ctx, opts)
-	if err != nil || len(users) < 1 {
+	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest disliked user")
 		return err
 	}
@@ -211,6 +219,7 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 	}
 
 	_, err = s.db.ExecContext(ctx, query)
+
 	return err
 }
 
@@ -547,20 +556,6 @@ func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshol
 	}
 
 	return articles, nil
-}
-
-func (s *sqlStorage) SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error {
-	ds := s.dialect.Update(ArticlesTable).
-		Where(goqu.Ex{ArticlesID: articleIDs}).
-		Set(goqu.Record{ArticlesLastScrapeTime: time.Now().Truncate(time.Second)})
-
-	query, _, err := ds.ToSQL()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.ExecContext(ctx, query)
-	return err
 }
 
 func (s *sqlStorage) SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error {

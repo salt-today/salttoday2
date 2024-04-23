@@ -60,10 +60,26 @@ func ScrapeAndStoreComments(ctx context.Context) {
 	}
 
 	// Get articles from the last 7 days
-	articles, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*14))
+	maxDays := 14
+	articlesSince, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*time.Duration(maxDays)))
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get article ids")
 		return
+	}
+
+	// determine if article should be scraped
+	now := time.Now()
+	articles := make([]*store.Article, 0)
+	for _, article := range articlesSince {
+		for i := 0; i < maxDays; i++ {
+			multiplier := time.Duration(math.Pow(2, float64(i)))
+			if article.DiscoveryTime.After(now.Add(-time.Hour * 24 * time.Duration(i))) {
+				if article.LastScrapeTime.After(now.Add(-time.Minute * 15 * multiplier)) {
+					articles = append(articles, article)
+				}
+				break
+			}
+		}
 	}
 
 	comments, users := ScrapeCommentsFromArticles(ctx, articles)
@@ -88,6 +104,13 @@ func ScrapeAndStoreComments(ctx context.Context) {
 		logEntry.WithError(err).Error("failed to add user ids")
 	}
 	logEntry.Info("Added users")
+
+	// Update the last scrape time for the articles
+	articleIDs := make([]int, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	storage.SetArticleScrapedAt(ctx, time.Now(), articleIDs...)
 
 }
 

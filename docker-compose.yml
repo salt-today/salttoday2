@@ -12,7 +12,7 @@ services:
     expose:
       - "3306"
     volumes:
-      - ./internal/store/migrations/0000-init.sql:/data/application/init.sql
+      - ./internal/store/rdb/migrations/0000-init.sql:/data/application/init.sql
     command: --init-file /data/application/init.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-psalt"]

@@ -14,7 +14,6 @@ type Storage interface {
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
 	GetTopUser(ctx context.Context, orderBy int) (*User, error)
 	GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*Article, error)
-	SetArticleScrapedNow(ctx context.Context, articleIDs ...int) error
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
 }
 

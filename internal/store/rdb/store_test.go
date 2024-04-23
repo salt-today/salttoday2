@@ -127,7 +127,7 @@ func TestStorage_Articles(t *testing.T) {
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), toScrapeTimes[numArts/2])
 	require.ElementsMatch(t, allArticles[numArts/2:], arts)
 
-	require.NoError(t, store.SetArticleScrapedNow(context.Background(), artIDs...))
+	require.NoError(t, store.SetArticleScrapedAt(context.Background(), time.Now(), artIDs...))
 
 	arts, err = store.GetUnscrapedArticlesSince(context.Background(), time.Now().Add(-time.Second))
 	require.NoError(t, err)
