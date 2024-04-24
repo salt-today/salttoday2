@@ -14,7 +14,6 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="stylesheet" href="/public/output.css"/>
-			<link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet"/>
 			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 			<!-- fonts -->
 			<link
@@ -24,6 +23,8 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			<link rel="preconnect" href="https://fonts.googleapis.com"/>
 			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 			<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet"/>
+			<script src="https://kit.fontawesome.com/2245da1ce6.js" crossorigin="anonymous"></script>
+			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 			@components.OpenGraphTagsComponent(openGraphTags)
 		</head>
@@ -66,12 +67,6 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			<footer class="flex justify-center h-full min-h-full">
 				<img class="" src="/public/images/footer-pile.png" alt="Pile of salt"/>
 			</footer>
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
-			<script>
-    htmx.onLoad(function (content) {
-      initFlowbite();
-    })
-  </script>
 		</body>
 	</html>
 }

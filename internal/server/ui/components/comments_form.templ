@@ -31,7 +31,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				<select
 					id="order"
 					name="order"
-					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
 					<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
@@ -42,7 +42,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				<select
 					id="days_ago"
 					name="days_ago"
-					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="1" selected?={ daysOptionSelected(queryOpts.DaysAgo, 1, defaultDays ) }>24 Hours</option>
 					<option value="7" selected?={ daysOptionSelected(queryOpts.DaysAgo, 7, defaultDays ) }>
@@ -57,7 +57,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				<select
 					id="only_deleted"
 					name="only_deleted"
-					class="text-xl text-white bg-slate-700 rounded block w-full mb-0 border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="false" selected?={ !queryOpts.OnlyDeleted }>All</option>
 					<option value="true" selected?={ queryOpts.OnlyDeleted }>Only Deleted</option>

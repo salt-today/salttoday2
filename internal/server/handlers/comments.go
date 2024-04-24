@@ -56,7 +56,8 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	entry = entry.WithField("commentID", commentID)
 
 	queryOpts := &store.CommentQueryOptions{
-		ID: &commentID,
+		ID:       &commentID,
+		PageOpts: &store.PageQueryOptions{},
 	}
 
 	comments, err := h.storage.GetComments(r.Context(), queryOpts)
