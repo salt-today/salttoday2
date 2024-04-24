@@ -21,7 +21,7 @@ import (
 )
 
 // verify these are still correct and if there's any missing
-var potentialPrefixes = []string{
+var articleCategories = []string{
 	"/good-morning", // doesn't have a trailing slash because -thunder-bay, -sudbury, etc
 	"/local-news/",
 	"/spotlight/",
@@ -158,9 +158,9 @@ func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) 
 	return comments, users
 }
 
-func hasArticlePrefix(href string) bool {
-	for _, prefix := range potentialPrefixes {
-		if strings.HasPrefix(href, prefix) {
+func isArticleUrl(href string) bool {
+	for _, prefix := range articleCategories {
+		if strings.Contains(href, prefix) {
 			return true
 		}
 	}
@@ -460,7 +460,7 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 	var articles []*store.Article
 	doc.Find("a.section-item").Each(func(i int, sel *goquery.Selection) {
 		if href, exists := sel.Attr("href"); exists {
-			if hasArticlePrefix(href) {
+			if isArticleUrl(href) {
 				title := sel.Find("div.section-title").First().Text()
 				// sometimes theres numbers at the end of titles - clean em up
 				title = strings.TrimSpace(title)
