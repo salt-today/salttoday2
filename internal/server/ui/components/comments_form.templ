@@ -2,68 +2,45 @@ package components
 
 import "github.com/salt-today/salttoday2/internal/store"
 
-func daysOptionSelected(ptr *uint, current uint, defaultDays uint) bool {
-	options := []uint{0, 1, 7, 30, 365}
+func daysOptionSelected(ptr *uint, current uint) bool {
 	if ptr == nil {
-		return current == defaultDays
+		return current == 0
 	}
-	for _, opt := range options {
-		if opt == *ptr {
-			return true
-		}
-	}
-	return false
+	return *ptr == current
 }
 
-templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, defaultDays uint) {
-	<form
-		id="form"
-		hx-get={ targetUrl }
-		hx-target="#comments"
-		hx-trigger="change"
-		hx-include="this"
-		hx-push-url="true"
-		hx-indicator="#form-spinner"
-		class="mx-auto"
-	>
-		<div class="flex justify-center gap-4 my-4">
-			<div>
-				<select
-					id="order"
-					name="order"
-					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
-				>
-					<option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
-					<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
-					<option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
-				</select>
-			</div>
-			<div>
-				<select
-					id="days_ago"
-					name="days_ago"
-					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
-				>
-					<option value="1" selected?={ daysOptionSelected(queryOpts.DaysAgo, 1, defaultDays ) }>24 Hours</option>
-					<option value="7" selected?={ daysOptionSelected(queryOpts.DaysAgo, 7, defaultDays ) }>
-						Last Week
-					</option>
-					<option value="30" selected?={ daysOptionSelected(queryOpts.DaysAgo, 30, defaultDays ) }>Last Month</option>
-					<option value="365" selected?={ daysOptionSelected(queryOpts.DaysAgo, 365, defaultDays ) }>Last Year</option>
-					<option value="0" selected?={ daysOptionSelected(queryOpts.DaysAgo, 0, defaultDays ) }>All Time</option>
-				</select>
-			</div>
-			<div>
-				<select
-					id="only_deleted"
-					name="only_deleted"
-					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
-				>
-					<option value="false" selected?={ !queryOpts.OnlyDeleted }>All</option>
-					<option value="true" selected?={ queryOpts.OnlyDeleted }>Only Deleted</option>
-				</select>
-			</div>
-		</div>
-		<img id="form-spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
-	</form>
+templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions) {
+<form id="form" hx-get={ targetUrl } hx-target="#comments" hx-trigger="change" hx-include="this" hx-push-url="true"
+  hx-indicator="#form-spinner" class="mx-auto">
+  <div class="flex justify-center gap-4 my-4">
+    <div>
+      <select id="order" name="order"
+        class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500">
+        <option value="both" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
+        <option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
+        <option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
+      </select>
+    </div>
+    <div>
+      <select id="days_ago" name="days_ago"
+        class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500">
+        <option value="1" selected?={ daysOptionSelected(queryOpts.DaysAgo, 1) }>24 Hours</option>
+        <option value="7" selected?={ daysOptionSelected(queryOpts.DaysAgo, 7) }>
+          Last Week
+        </option>
+        <option value="30" selected?={ daysOptionSelected(queryOpts.DaysAgo, 30) }>Last Month</option>
+        <option value="365" selected?={ daysOptionSelected(queryOpts.DaysAgo, 365) }>Last Year</option>
+        <option value="0" selected?={ daysOptionSelected(queryOpts.DaysAgo, 0) }>All Time</option>
+      </select>
+    </div>
+    <div>
+      <select id="only_deleted" name="only_deleted"
+        class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500">
+        <option value="false" selected?={ !queryOpts.OnlyDeleted }>All</option>
+        <option value="true" selected?={ queryOpts.OnlyDeleted }>Only Deleted</option>
+      </select>
+    </div>
+  </div>
+  <img id="form-spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..." />
+</form>
 }

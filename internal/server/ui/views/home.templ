@@ -7,7 +7,7 @@ import (
 
 templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent("/", queryOpts, 7)
+		@components.CommentsFormComponent("/", queryOpts)
 		<div id="comments" class="space-y-12">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)

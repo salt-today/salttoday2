@@ -19,7 +19,7 @@ import (
 func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 	entry := sdk.Logger(r.Context()).WithField("handler", "Home")
 
-	queryOpts, err := processGetCommentQueryParameters(r)
+	queryOpts, err := processGetCommentQueryParameters(r, 7)
 	if err != nil {
 		entry.Error("error parsing query parameters", err)
 		w.WriteHeader(400)
@@ -65,7 +65,7 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	views.Comment(comments[0]).Render(r.Context(), w)
 }
 
-func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptions, error) {
+func processGetCommentQueryParameters(r *http.Request, defaultDays uint) (*store.CommentQueryOptions, error) {
 	parameters := lo.MapValues(r.URL.Query(), func(value []string, key string) string {
 		return value[0]
 	})
@@ -77,6 +77,7 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 
 	opts := &store.CommentQueryOptions{
 		PageOpts: pageOpts,
+		DaysAgo:  &defaultDays,
 	}
 
 	for param, value := range parameters {
@@ -97,7 +98,6 @@ func processGetCommentQueryParameters(r *http.Request) (*store.CommentQueryOptio
 			}
 			opts.DaysAgo = &daysAgo
 		}
-
 	}
 
 	return opts, nil
