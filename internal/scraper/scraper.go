@@ -20,13 +20,18 @@ import (
 	"github.com/salt-today/salttoday2/internal/store/rdb"
 )
 
-// verify these are still correct and if there's any missing
+// TODO don't depend on this
 var articleCategories = []string{
 	"/good-morning", // doesn't have a trailing slash because -thunder-bay, -sudbury, etc
 	"/local-news/",
+	"/columns/",
+	"/local-business/",
 	"/spotlight/",
+	"/around-ontario/",
 	"/great-stories/",
 	"/videos/",
+	"/opp-beat/",
+	"/arts-culture/",
 	"/local-sports/",
 	"/local-entertainment",
 	"/bulletin/",
@@ -46,6 +51,7 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 		foundArticles := ScrapeArticles(ctx, site)
 		articles = append(articles, foundArticles...)
 	}
+
 	err = storage.AddArticles(ctx, articles...)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to add articles")
@@ -118,7 +124,6 @@ func ScrapeAndStoreComments(ctx context.Context) {
 		articleIDs[i] = article.ID
 	}
 	storage.SetArticleScrapedAt(ctx, time.Now(), articleIDs...)
-
 }
 
 func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) ([]*store.Comment, []*store.User) {
