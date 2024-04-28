@@ -190,7 +190,7 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	lastParentId := 0
 
 	pagesLeft := 10 // number to prevent infinite loop
-	for ; loadMore && pagesLeft > 0; pagesLeft -= 1 {
+	for ; loadMore && pagesLeft >= 0; pagesLeft -= 1 {
 		commentsUrl := fmt.Sprintf("%s/comments/get?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 		if len(comments) > 0 {
 			commentsUrl += fmt.Sprintf("&lastId=%d", lastParentId)
@@ -475,6 +475,12 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 				title = strings.TrimRightFunc(title, func(r rune) bool {
 					return unicode.IsNumber(r) || unicode.IsSpace(r)
 				})
+				if strings.HasPrefix(href, "http") {
+					// This is a news article from a different site
+					// putting this in would end up with a url like https://www.sootoday.comhttps://www.tbnewswatch.com/...
+					// we don't want that
+					return
+				}
 				articles = append(articles, &store.Article{
 					ID:             getArticleId(ctx, href),
 					Title:          title,
