@@ -11,6 +11,7 @@ const (
 const (
 	LikesSuffix    = "Likes"
 	DislikesSuffix = "Dislikes"
+	DeletedSuffix  = "Deleted"
 
 	CommentsID        = CommentsTable + "." + "ID"
 	CommentsArticleID = CommentsTable + "." + "ArticleID"
@@ -20,7 +21,7 @@ const (
 	CommentsLikes     = CommentsTable + "." + LikesSuffix
 	CommentsDislikes  = CommentsTable + "." + DislikesSuffix
 	CommentsScore     = "Score"
-	CommentsDeleted   = CommentsTable + "." + "Deleted"
+	CommentsDeleted   = CommentsTable + "." + DeletedSuffix
 
 	ArticlesID             = ArticlesTable + "." + "ID"
 	ArticlesUrl            = ArticlesTable + "." + "Url"
@@ -37,4 +38,5 @@ const (
 	NewAlias         = "NewAlias"
 	NewAliasLikes    = NewAlias + "." + LikesSuffix
 	NewAliasDislikes = NewAlias + "." + DislikesSuffix
+	NewAliasDeleted  = NewAlias + "." + DeletedSuffix
 )

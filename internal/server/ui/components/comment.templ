@@ -39,7 +39,7 @@ func min(x, y int32) int32 {
 templ CommentComponent(comment *store.Comment) {
 	<div class="">
 		<div class="px-8 flex flex-row whitespace-nowrap">
-			<a class="hover:underline decoration-2" href={ templ.URL(comment.Article.Url) }>
+			<a class="hover:underline decoration-2" href={ templ.URL(comment.Article.Url) } target="_blank">
 				{ comment.Article.Title }
 			</a>
 			<span class="fas fa-link py-0 px-2 hover:cursor-pointer" onclick={ CopyLinkClicked(comment.ID) }></span>

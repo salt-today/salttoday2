@@ -124,11 +124,6 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 	}
 	logEntry.Info("Added users")
 
-	// Update the last scrape time for the articles
-	articleIDs := make([]int, len(articles))
-	for i, article := range articles {
-		articleIDs[i] = article.ID
-	}
 	storage.SetArticleScrapedAt(ctx, time.Now(), articleIDs...)
 }
 
@@ -200,6 +195,10 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	for ; loadMore && pagesLeft >= 0; pagesLeft -= 1 {
 		commentsUrl := fmt.Sprintf("%s/comments/get?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 		if len(comments) > 0 {
+			if lastParentId == 0 {
+				// This should mean there aren't more comments
+				break
+			}
 			commentsUrl += fmt.Sprintf("&lastId=%d", lastParentId)
 		}
 		logEntry.WithField("commentsUrl", commentsUrl).Info("Fetching comments")
@@ -235,7 +234,7 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 
 		loadMoreSelection := initialCommentDoc.Find("button.comments-more")
 
-		if loadMoreSelection.Length() == 0 || len(foundComments) <= 20 {
+		if loadMoreSelection.Length() == 0 {
 			loadMore = false
 		}
 	}

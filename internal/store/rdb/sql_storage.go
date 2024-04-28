@@ -198,10 +198,13 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 
 	for _, storedComment := range storedComments {
 		if _, ok := commentsMap[storedComment.ID]; !ok {
-			entry.WithField("commentID", storedComment.ID).Info("Found comment was deleted!")
-			storedComment.Deleted = true
-			comments = append(comments, storedComment)
+			if !storedComment.Deleted {
+				entry.WithField("commentID", storedComment.ID).Info("Found comment was deleted!")
+				storedComment.Deleted = true
+				comments = append(comments, storedComment)
+			}
 		} else {
+			// Update just incase we found a comment that we thought was deleted before, but we're just bad at scraping
 			commentsMap[storedComment.ID].Deleted = false
 		}
 	}
@@ -210,7 +213,8 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, CommentsDeleted).
 		As(NewAlias).
 		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
-		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes))))
+		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes)))).
+		OnConflict(goqu.DoUpdate(CommentsDeleted, goqu.C(DeletedSuffix).Set(goqu.I(NewAliasDeleted))))
 
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.Article.ID, comment.User.ID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes, comment.Deleted})
