@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Articles (
     INDEX scrape_time (LastScrapeTime)
 );
 
-Create TABLE IF NOT EXISTS Users (
+CREATE TABLE IF NOT EXISTS Users (
     ID INT NOT NULL,
     Name VARCHAR(255) NOT NULL,
     PRIMARY KEY (ID)
