@@ -71,7 +71,6 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 	}
 
 	startingTime := time.Now().Add(-time.Hour * 24 * time.Duration(daysAgo))
-	logEntry.WithField("article starting time", startingTime).Info("Fetching articles from storage to scrape")
 
 	// Get articles from X days ago
 	articlesSince, err := storage.GetRecentlyDiscoveredArticles(ctx, startingTime)
@@ -80,26 +79,33 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 		return
 	}
 
+	logEntry.WithFields(
+		logrus.Fields{
+			"article starting time": startingTime,
+			"articles since":        len(articlesSince),
+		},
+	).Info("Fetching articles from storage to scrape")
+
 	// determine if article should be scraped
-	// now := time.Now()
+	now := time.Now()
 	articles := make([]*store.Article, 0)
 	for _, article := range articlesSince {
-		// for i := 0; i < maxDays; i++ {
-		// 	multiplier := time.Duration(math.Pow(2, float64(i)))
-		// 	if article.DiscoveryTime.After(now.Add(-time.Hour * 24 * time.Duration(i))) {
-		// 		if article.LastScrapeTime.After(now.Add(-time.Minute * 15 * multiplier)) {
-		articles = append(articles, article)
-		//		}
-		//		break
-		//	}
-		// }
+		hoursSinceDiscovery := now.Sub(article.DiscoveryTime).Hours()
+		minsSinceLastScrape := now.Sub(article.LastScrapeTime).Minutes()
+		if hoursSinceDiscovery < 48 {
+			articles = append(articles, article)
+		} else if hoursSinceDiscovery < 96 && minsSinceLastScrape > 30 {
+			articles = append(articles, article)
+		} else if hoursSinceDiscovery >= 96 && minsSinceLastScrape > 60 {
+			articles = append(articles, article)
+		}
 	}
 
 	articleIDs := make([]int, len(articles))
 	for i, article := range articles {
 		articleIDs[i] = article.ID
 	}
-	logEntry.WithField("articles", articleIDs).Info("Collected articles to scrape")
+	logEntry.WithField("articles", len(articleIDs)).Info("Collected articles to scrape")
 
 	comments, users := ScrapeCommentsFromArticles(ctx, articles)
 	commentIDs := make([]int, len(comments))
