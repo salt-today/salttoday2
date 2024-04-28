@@ -188,11 +188,14 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	loadMore := true
 	foundComments := []*store.Comment{}
 	lastParentId := 0
-	for loadMore {
+
+	pagesLeft := 10 // number to prevent infinite loop
+	for ; loadMore && pagesLeft > 0; pagesLeft -= 1 {
 		commentsUrl := fmt.Sprintf("%s/comments/get?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 		if len(comments) > 0 {
 			commentsUrl += fmt.Sprintf("&lastId=%d", lastParentId)
 		}
+		logEntry.WithField("commentsUrl", commentsUrl).Info("Fetching comments")
 
 		res, err := http.Get(commentsUrl)
 		if err != nil {
@@ -225,10 +228,13 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 
 		loadMoreSelection := initialCommentDoc.Find("button.comments-more")
 
-		// If the button doesn't exist, just get the comments
-		if loadMoreSelection.Length() == 0 {
+		if loadMoreSelection.Length() == 0 || len(foundComments) <= 20 {
 			loadMore = false
 		}
+	}
+
+	if pagesLeft <= 0 {
+		logEntry.Error("Exceeded max pages")
 	}
 
 	return comments, nil
