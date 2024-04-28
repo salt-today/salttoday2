@@ -63,16 +63,15 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 	logEntry.WithField("articles", articleIDs).Info("Found and stored articles")
 }
 
-func ScrapeAndStoreComments(ctx context.Context) {
+func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 	logEntry := sdk.Logger(ctx).WithField("job", "scraper/comments")
 	storage, err := rdb.New(ctx)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
 
-	// Get articles from the last 7 days
-	maxDays := 14
-	articlesSince, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*time.Duration(maxDays)))
+	// Get articles from X days ago
+	articlesSince, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*time.Duration(daysAgo)))
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get article ids")
 		return
