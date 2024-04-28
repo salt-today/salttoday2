@@ -61,14 +61,14 @@ templ CommentComponent(comment *store.Comment) {
 				</div>
 			}
 		</div>
-		<div class="w-half flex flex-row max-width">
+		<div class="w-full flex flex-row justify-between">
 			<div class="px-2 hover:underline decoration-2">
 				<a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>
 					- { comment.User.UserName }
 				</a>
 			</div>
 			if comment.Deleted {
-				<div class="px-3 text-right font-bold text-red-600">DELETED</div>
+				<div class="px-8 text-right font-bold text-red-600">DELETED</div>
 			}
 		</div>
 	</div>
