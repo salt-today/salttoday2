@@ -15,7 +15,7 @@ templ CommentsListComponent(comments []*store.Comment, nextUrl string) {
 			hx-get={ nextUrl }
 			hx-trigger="revealed"
 			hx-swap="outerHTML"
-			hx-indicator="#spinner"
+			hx-indicator="#pagination-spinner"
 		></div>
 	}
 }
