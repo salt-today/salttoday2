@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["../**/*.templ"],
+  content: ["internal/server/ui/**/*.templ"],
   // Can't have dynamic values via string interpolation
   // Need this safelist for gradients on comments to work
   safelist: [
