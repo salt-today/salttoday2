@@ -19,8 +19,10 @@ import (
 	"github.com/salt-today/salttoday2/internal/store/rdb/migrations"
 )
 
-const dislikeMultiplier = 2
-const maxPageSize uint = 20
+const (
+	dislikeMultiplier      = 2
+	maxPageSize       uint = 20
+)
 
 var _ store.Storage = (*sqlStorage)(nil)
 
@@ -496,47 +498,13 @@ func hydrateArticles(rows *sql.Rows) ([]*store.Article, error) {
 	return articles, nil
 }
 
-func (s *sqlStorage) GetUnscrapedArticlesSince(ctx context.Context, scrapeThreshold time.Time) ([]*store.Article, error) {
-	sd := s.dialect.
-		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		From(ArticlesTable).
-		Where(
-			goqu.Or(
-				goqu.Ex{
-					ArticlesLastScrapeTime: nil,
-				},
-				goqu.Ex{
-					ArticlesDiscoveryTime: goqu.Op{"lte": scrapeThreshold.Truncate(time.Second)},
-				},
-			),
-		)
-
-	query, _, err := sd.ToSQL()
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	articles, err := hydrateArticles(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	return articles, nil
-}
-
 func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshold time.Time) ([]*store.Article, error) {
 	sd := s.dialect.
 		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
 		Where(
 			goqu.Ex{
-				ArticlesLastScrapeTime: goqu.Op{"gte": threshold.Truncate(time.Second)},
+				ArticlesDiscoveryTime: goqu.Op{"gte": threshold.Truncate(time.Second)},
 			},
 		)
 	query, _, err := sd.ToSQL()

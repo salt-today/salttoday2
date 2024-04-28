@@ -70,13 +70,15 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
 
+	startingTime := time.Now().Add(-time.Hour * 24 * time.Duration(daysAgo))
+	logEntry.WithField("article starting time", startingTime).Info("Fetching articles from storage to scrape")
+
 	// Get articles from X days ago
-	articlesSince, err := storage.GetUnscrapedArticlesSince(ctx, time.Now().Add(-time.Hour*24*time.Duration(daysAgo)))
+	articlesSince, err := storage.GetRecentlyDiscoveredArticles(ctx, startingTime)
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get article ids")
 		return
 	}
-	logEntry.WithField("articlesSince", articlesSince).Info("found articles since")
 
 	// determine if article should be scraped
 	// now := time.Now()
@@ -92,7 +94,12 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 		//	}
 		// }
 	}
-	logEntry.WithField("articlesToScrape", articles).Info("articlesToScrape")
+
+	articleIDs := make([]int, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	logEntry.WithField("articles", articleIDs).Info("Collected articles to scrape")
 
 	comments, users := ScrapeCommentsFromArticles(ctx, articles)
 	commentIDs := make([]int, len(comments))

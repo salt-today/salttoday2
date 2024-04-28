@@ -107,29 +107,29 @@ func TestStorage_Articles(t *testing.T) {
 	}
 
 	require.NoError(t, store.AddArticles(context.Background(), allArticles...))
-	arts, err := store.GetUnscrapedArticlesSince(context.Background(), start)
+	arts, err := store.GetRecentlyDiscoveredArticles(context.Background(), start)
 	require.NoError(t, err)
 	require.ElementsMatch(t, allArticles, arts)
 
 	// nothing has been scraped yet, should still get all articles
 	dur := time.Second * time.Duration(numArts/2+1)
-	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start.Add(-dur))
+	arts, err = store.GetRecentlyDiscoveredArticles(context.Background(), start.Add(-dur))
 	require.ElementsMatch(t, allArticles, arts)
 
 	for i := 0; i < numArts; i++ {
 		require.NoError(t, store.SetArticleScrapedAt(context.Background(), toScrapeTimes[i], allArticles[i].ID))
 		allArticles[i].LastScrapeTime = toScrapeTimes[i]
 	}
-	arts, err = store.GetUnscrapedArticlesSince(context.Background(), start)
+	arts, err = store.GetRecentlyDiscoveredArticles(context.Background(), start)
 	// should still have everything
 	require.ElementsMatch(t, allArticles, arts)
 
-	arts, err = store.GetUnscrapedArticlesSince(context.Background(), toScrapeTimes[numArts/2])
+	arts, err = store.GetRecentlyDiscoveredArticles(context.Background(), toScrapeTimes[numArts/2])
 	require.ElementsMatch(t, allArticles[numArts/2:], arts)
 
 	require.NoError(t, store.SetArticleScrapedAt(context.Background(), time.Now(), artIDs...))
 
-	arts, err = store.GetUnscrapedArticlesSince(context.Background(), time.Now().Add(-time.Second))
+	arts, err = store.GetRecentlyDiscoveredArticles(context.Background(), time.Now().Add(-time.Second))
 	require.NoError(t, err)
 	require.Empty(t, arts)
 
