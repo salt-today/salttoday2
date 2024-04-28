@@ -139,13 +139,6 @@ func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) 
 		}
 
 		comments = append(comments, articleComments...)
-
-		for _, comment := range comments {
-			logEntry.WithFields(logrus.Fields{
-				"comments found": comment,
-				"article":        article,
-			}).Info("Found comments from article")
-		}
 	}
 	logEntry.WithFields(logrus.Fields{
 		"articles": len(articles),
@@ -194,10 +187,12 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	// Keep looping if theres a load more button
 	comments := make([]*store.Comment, 0)
 	loadMore := true
+	foundComments := []*store.Comment{}
+	lastParentId := 0
 	for loadMore {
 		commentsUrl := fmt.Sprintf("%s/comments/get?Type=Comment&ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest", baseUrl, article.ID)
 		if len(comments) > 0 {
-			commentsUrl += fmt.Sprintf("&lastId=%d", comments[len(comments)-1].ID)
+			commentsUrl += fmt.Sprintf("&lastId=%d", lastParentId)
 		}
 
 		res, err := http.Get(commentsUrl)
@@ -226,7 +221,7 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 			return nil, err
 		}
 
-		foundComments := searchArticleForComments(ctx, initialCommentDoc, article, userIDToNameMap)
+		foundComments, lastParentId = searchArticleForComments(ctx, initialCommentDoc, article, userIDToNameMap)
 		comments = append(comments, foundComments...)
 
 		loadMoreSelection := initialCommentDoc.Find("button.comments-more")
@@ -240,16 +235,17 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 	return comments, nil
 }
 
-func searchArticleForComments(ctx context.Context, commentsDoc *goquery.Document, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
+func searchArticleForComments(ctx context.Context, commentsDoc *goquery.Document, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, int) {
 	commentDivs := commentsDoc.Find("div.comment")
-	comments := getComments(ctx, commentDivs, article, userIDToNameMap)
+	comments, lastParentId := getComments(ctx, commentDivs, article, userIDToNameMap)
 
-	return comments
+	return comments, lastParentId
 }
 
-func getComments(ctx context.Context, commentDivs *goquery.Selection, article *store.Article, userIDToNameMap map[int]string) []*store.Comment {
+func getComments(ctx context.Context, commentDivs *goquery.Selection, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, int) {
 	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
 	comments := make([]*store.Comment, 0)
+	lastParentId := 0
 	commentDivs.Each(func(i int, commentDiv *goquery.Selection) {
 		numRepliesStr := commentDiv.AttrOr("data-replies", "0")
 		numReplies, err := strconv.Atoi(numRepliesStr)
@@ -260,7 +256,9 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, article *s
 		// fmt.Println(selection.First().Text())
 		if numReplies == 0 {
 			// If comment has no replies, just get the comment itself
-			comments = append(comments, newCommentFromDiv(ctx, commentDiv, article.ID, userIDToNameMap))
+			comment := newCommentFromDiv(ctx, commentDiv, article.ID, userIDToNameMap)
+			comments = append(comments, comment)
+			lastParentId = comment.ID
 		} else { // If the comment has replies, check for a "Load More" button
 			loadMore := commentDiv.Find("button.comments-more")
 
@@ -288,7 +286,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, article *s
 		}
 	})
 
-	return comments
+	return comments, lastParentId
 }
 
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
