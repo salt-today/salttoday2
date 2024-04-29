@@ -4,7 +4,7 @@ package internal
 // List taken from here: villagemedia.ca/sites/
 func GetSites() map[string]string {
 	return map[string]string{
-		"tbay": "https://www.tbnewswatch.com",
+		"TBnewswatch": "https://www.tbnewswatch.com",
 		// "https://www.barrietoday.com",
 		// "https://www.baytoday.ca",
 		// "https://www.bradfordtoday.ca",
@@ -22,7 +22,7 @@ func GetSites() map[string]string {
 		// "https://www.northernontariobusiness.com",
 		// "https://www.orilliamatters.com",
 		// "https://www.pelhamtoday.ca",
-		"sootoday": "https://www.sootoday.com",
+		"SooToday": "https://www.sootoday.com",
 		// "https://www.stratfordtoday.ca",
 		// "https://sudbury.com",
 		// "https://www.thoroldtoday.ca",

@@ -14,6 +14,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 
+	"github.com/salt-today/salttoday2/internal"
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/store"
 	"github.com/salt-today/salttoday2/internal/store/rdb/migrations"
@@ -314,9 +315,14 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
 	}
 
+	fmt.Println(opts.PageOpts.Site)
 	if opts.PageOpts.Site != nil {
-		// TODO
-		// sd = sd.Where()
+		siteUrl, ok := internal.GetSites()[*opts.PageOpts.Site]
+		fmt.Println(siteUrl)
+		if !ok {
+			return nil, fmt.Errorf("site %s not found", *opts.PageOpts.Site)
+		}
+		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
 	}
 
 	if opts.OnlyDeleted == true {

@@ -32,7 +32,9 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			}
 			opts.Page = &pageValue
 		case "site":
-			opts.Site = aws.String(value)
+			if value != "" {
+				opts.Site = aws.String(value)
+			}
 		case "order":
 			if value == "likes" {
 				*opts.Order = store.OrderByLikes

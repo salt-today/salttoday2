@@ -5,9 +5,9 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string) {
+templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string, sites map[string]string) {
 	@Page(true, nil) {
-		@components.CommentsFormComponent("/", queryOpts)
+		@components.CommentsFormComponent("/", queryOpts, sites)
 		<div id="comments" class="space-y-12">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
