@@ -4,82 +4,82 @@ package internal
 // List taken from here: villagemedia.ca/sites/
 func GetSites() map[string]string {
 	return map[string]string{
-		"TBnewswatch": "https://www.tbnewswatch.com",
-		// "https://www.barrietoday.com",
-		// "https://www.baytoday.ca",
-		// "https://www.bradfordtoday.ca",
-		// "https://burlingtontoday.com",
-		// "https://www.cambridgetoday.ca",
-		// "https://www.collingwoodtoday.ca",
-		// "https://www.elliotlaketoday.com",
-		// "https://www.elorafergustoday.com",
-		// "https://www.guelphtoday.com",
-		// "https://www.haltonhillstoday.ca",
-		// "https://www.innisfiltoday.ca",
-		// "https://midlandtoday.ca",
-		// "https://www.newmarkettoday.ca",
-		// "https://www.notllocal.com",
-		// "https://www.northernontariobusiness.com",
-		// "https://www.orilliamatters.com",
-		// "https://www.pelhamtoday.ca",
-		"SooToday": "https://www.sootoday.com",
-		// "https://www.stratfordtoday.ca",
-		// "https://sudbury.com",
-		// "https://www.thoroldtoday.ca",
-		// "https://www.timminstoday.com",
-		// "https://www.alimoshotoday.com",
-		// "https://www.broomfieldleader.com",
-		// "https://www.lasutoday.com",
-		// "https://www.longmontleader.com",
-		// "https://www.sooleader.com",
-		// "https://www.bkreader.com", // verify this works, doesn't look like others
-		// "https://www.charlestoncitypaper.com", // verify this works, doesn't look like others
-		// "https://www.nwonewswatch.com", // I think this one is just articles from the other sites in the region
-		// "https://www.snnewswatch.com", // I think this one is just articles from the other sites in the region
-		// "https://chulavistatoday.com",
-		// "https://www.livermorevine.com", // verify this works, doesn't look like others
-		// "https://www.rwcpulse.com", // verify this works, doesn't look like others
-		// "https://www.alaskahighwaynews.ca",
-		// "https://www.bowenislandundercurrent.com",
-		// "https://www.burnabynow.com",
-		// "https://www.coastreporter.net",
-		// "https://www.dawsoncreekmirror.ca",
-		// "https://www.delta-optimist.com",
-		// "https://www.thereminder.ca",
-		// "https://www.kamloopsthisweek.com",
-		// "https://www.moosejawtoday.com",
-		// "https://newwestrecord.ca",
-		// "https://www.nsnews.com",
-		// "https://www.piquenewsmagazine.com",
-		// "https://www.prpeak.com",
-		// "https://www.prairieag.com",
-		// "https://www.princegeorgecitizen.com",
-		// "https://www.richmond-news.com",
-		// "https://www.sasktoday.ca", // verify this works, doesn't look like others
-		// "https://www.squamishchief.com",
-		// "https://www.thompsoncitizen.net",
-		// "https://www.tricitynews.com",
-		// "https://www.vancouverisawesome.com",
-		// "https://www.timescolonist.com",
-		// "https://www.empireadvance.ca",
-		// "https://www.westerninvestor.com",
-		// "https://www.airdrietoday.com",
-		// "https://www.albertaprimetimes.com",
-		// "https://www.cochranetoday.ca",
-		// "https://www.lakelandtoday.ca",
-		// "https://www.mountainviewtoday.ca",
-		// "https://www.okotokstoday.ca",
-		// "https://www.rmoutlook.com",
-		// "https://www.stalbertgazette.com",
-		// "https://www.townandcountrytoday.com",
-		// "https://www.grinceconnect.com",
-		// "https://www.localprofile.com", // verify this works, doesn't look like others
-		// "https://www.gazetteleader.com",
-		// "https://www.queenscreeksuntimes.com",
-		// "https://www.roughdraftatlanta.com", // verify this works, doesn't look like others
-		// "https://www.halifax.citynews.ca", // verify this works, doesn't look like others
-		// "https://www.kitchener.citynews.ca", // verify this works, doesn't look like others
-		// "https://www.ottawa.citynews.ca", // verify this works, doesn't look like others
-		// "https://www.washingtoncitypaper.com", // verify this works, doesn't look like others
+		"TBNewsWatch": "https://www.tbnewswatch.com",
+		// "BarrieToday":   "https://www.barrietoday.com",
+		"BayToday": "https://www.baytoday.ca",
+		// "BradfordToday": "https://www.bradfordtoday.ca",
+		// "BurlingtonToday":  "https://burlingtontoday.com",
+		// "CambridgeToday":   "https://www.cambridgetoday.ca",
+		"CollingwoodToday": "https://www.collingwoodtoday.ca",
+		"ElliotLakeToday":  "https://www.elliotlaketoday.com",
+		"EloraFergusToday": "https://www.elorafergustoday.com",
+		"GuelphToday":      "https://www.guelphtoday.com",
+		// "HaltonHillsToday": "https://www.haltonhillstoday.ca",
+		// "innisfilToday":           "https://www.innisfiltoday.ca",
+		// "MidlandToday":            "https://midlandtoday.ca",
+		"NewMarketToday": "https://www.newmarkettoday.ca",
+		// "NotLocal":                "https://www.notllocal.com",
+		"NorthernOntarioBusiness": "https://www.northernontariobusiness.com",
+		"OrilliaMatters":          "https://www.orilliamatters.com",
+		// "PelhamToday":             "https://www.pelhamtoday.ca",
+		"SooToday":        "https://www.sootoday.com",
+		"StratefordToday": "https://www.stratfordtoday.ca",
+		// "Sudbury":         "https://sudbury.com", // This requires Javascript to be enabled. The jerks.
+		// "ThoroldToday":            "https://www.thoroldtoday.ca",
+		"TimminsToday":  "https://www.timminstoday.com",
+		"AlimoshoToday": "https://www.alimoshotoday.com",
+		// "BroomfieldLeader":        "https://www.broomfieldleader.com",
+		// "Lasutoday":      "https://www.lasutoday.com",
+		"LongmontLeader": "https://www.longmontleader.com",
+		// "Sooleader":              "https://www.sooleader.com",
+		// "BkReader":               "https://www.bkreader.com",            // verify this works, doesn't look like others
+		// "CharlestonCityPaper": "https://www.charlestoncitypaper.com", // verify this works, doesn't look like others
+		// "NWONewsWatch":           "https://www.nwonewswatch.com",        // I think this one is just articles from the other sites in the region
+		"SNNewsWatch": "https://www.snnewswatch.com", // I think this one is just articles from the other sites in the region
+		// "ChulavisToday":          "https://chulavistatoday.com",
+		// "LivermoreVine":          "https://www.livermorevine.com", // verify this works, doesn't look like others
+		// "RWCPulse":               "https://www.rwcpulse.com",      // verify this works, doesn't look like others
+		// "AlaskaHighwayNews":      "https://www.alaskahighwaynews.ca", // Under maintenance?
+		"BownIslandUnderCurrent": "https://www.bowenislandundercurrent.com",
+		"BurnabyNow":             "https://www.burnabynow.com",
+		"CoastReporter":          "https://www.coastreporter.net",
+		// "DawsonCreekMirror":       "https://www.dawsoncreekmirror.ca",
+		// "DeltaOptimist":       "https://www.delta-optimist.com",
+		// "TheReminder": "https://www.thereminder.ca",
+		// "KamloopsThisWeek": "https://www.kamloopsthisweek.com",
+		"MooseJawToday": "https://www.moosejawtoday.com",
+		// "NewwestRecord":       "https://newwestrecord.ca",
+		"NSNews":             "https://www.nsnews.com",
+		"PiqeueNewsMagazine": "https://www.piquenewsmagazine.com",
+		"PRPeak":             "https://www.prpeak.com",
+		// "Praireag":            "https://www.prairieag.com",
+		"PrinceGeorgeCitizen": "https://www.princegeorgecitizen.com",
+		"RichmondNews":        "https://www.richmond-news.com",
+		"SaskToday":           "https://www.sasktoday.ca", // verify this works, doesn't look like others
+		"SquamishChief":       "https://www.squamishchief.com",
+		"ThompsonCitizen":     "https://www.thompsoncitizen.net",
+		"TricityNews":         "https://www.tricitynews.com",
+		"VancouverIsAwesome":  "https://www.vancouverisawesome.com",
+		"TimesColonist":       "https://www.timescolonist.com",
+		"EmpireAdvance":       "https://www.empireadvance.ca",
+		// "WesternInvestor":     "https://www.westerninvestor.com",
+		"AirdrieToday":      "https://www.airdrietoday.com",
+		"AlbertaPrimeTimes": "https://www.albertaprimetimes.com",
+		"CochraneToday":     "https://www.cochranetoday.ca",
+		"LakelandToday":     "https://www.lakelandtoday.ca",
+		"MountainviewToday": "https://www.mountainviewtoday.ca",
+		"OkotoksToday":      "https://www.okotokstoday.ca",
+		// "RMOutlook":           "https://www.rmoutlook.com",
+		"StalbertGazette":     "https://www.stalbertgazette.com",
+		"TownAndCountryToday": "https://www.townandcountrytoday.com",
+		"GriceConnect":        "https://www.griceconnect.com",
+		"LocalProfile":        "https://www.localprofile.com", // verify this works, doesn't look like others
+		// "GazetteLeader":       "https://www.gazetteleader.com",
+		"QueenCreekSunTimes": "https://www.queencreeksuntimes.com",
+		// "RoughDraftAtlanta":  "https://www.roughdraftatlanta.com", // verify this works, doesn't look like others
+		// "HalifaxCityNews":     "https://www.halifax.citynews.ca",   // verify this works, doesn't look like others
+		// "KitchenerCityNews":   "https://www.kitchener.citynews.ca", // verify this works, doesn't look like others
+		// "OttawaCityNews":          "https://www.ottawa.citynews.ca",      // verify this works, doesn't look like others
+		// "WashingtonCityPaper": "https://www.washingtoncitypaper.com", // verify this works, doesn't look like others
 	}
 }

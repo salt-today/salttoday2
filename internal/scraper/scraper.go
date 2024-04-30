@@ -3,6 +3,7 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -466,10 +467,17 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 	}()
 
 	if res.StatusCode != 200 {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			logEntry.Error("Error reading response body")
+		}
+
 		logEntry.WithFields(logrus.Fields{
 			"status_code": res.StatusCode,
 			"status":      res.StatusCode,
-		}).Fatal("status code error")
+			"body":        string(bodyBytes),
+		}).Error("status code error")
+		return nil
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
