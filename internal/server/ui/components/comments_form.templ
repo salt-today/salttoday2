@@ -9,7 +9,7 @@ func daysOptionSelected(ptr *uint, current uint) bool {
 	return *ptr == current
 }
 
-templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, sites map[string]string) {
+templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptions, sites []string) {
 	<form
 		id="form"
 		hx-get={ targetUrl }
@@ -64,7 +64,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 					class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				>
 					<option value="">All Sites</option>
-					for site := range sites {
+					for _, site := range sites {
 						<option value={ site }>{ site }</option>
 					}
 				</select>

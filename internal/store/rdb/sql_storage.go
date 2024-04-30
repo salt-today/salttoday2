@@ -128,7 +128,7 @@ func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
 	entry := sdk.Logger(ctx)
 
 	s.cacheTopUserForSite(ctx, "")
-	for site := range internal.GetSites() {
+	for _, site := range internal.SitesMapKeys {
 		if err := s.cacheTopUserForSite(ctx, site); err != nil {
 			return err
 		}
@@ -277,7 +277,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 	sd = addPaging(sd, opts.PageOpts)
 
 	if opts.PageOpts.Site != `` {
-		siteUrl, ok := internal.GetSites()[opts.PageOpts.Site]
+		siteUrl, ok := internal.SitesMap[opts.PageOpts.Site]
 		if !ok {
 			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
 		}
@@ -340,7 +340,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	}
 
 	if opts.PageOpts.Site != `` {
-		siteUrl, ok := internal.GetSites()[opts.PageOpts.Site]
+		siteUrl, ok := internal.SitesMap[opts.PageOpts.Site]
 		if !ok {
 			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
 		}

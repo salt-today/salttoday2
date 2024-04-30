@@ -70,5 +70,5 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 		entry.Warning("invalid user")
 		w.WriteHeader(404)
 	}
-	views.User(users[0], commentOpts, comments, getNextCommentsUrl(commentOpts), internal.GetSites()).Render(r.Context(), w)
+	views.User(users[0], commentOpts, comments, getNextCommentsUrl(commentOpts), internal.SitesMapKeys).Render(r.Context(), w)
 }

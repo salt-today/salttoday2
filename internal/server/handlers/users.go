@@ -49,7 +49,7 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views.Users(users, topUser, userOpts, internal.GetSites(), nextUrl).Render(r.Context(), w)
+	views.Users(users, topUser, userOpts, internal.SitesMapKeys, nextUrl).Render(r.Context(), w)
 }
 
 func processGetUsersQueryParameters(r *http.Request) (*store.UserQueryOptions, error) {

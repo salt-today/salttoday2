@@ -48,7 +48,7 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 	}
 
 	articles := make([]*store.Article, 0)
-	for _, site := range internal.GetSites() {
+	for _, site := range internal.SitesMap {
 		foundArticles := ScrapeArticles(ctx, site)
 		articles = append(articles, foundArticles...)
 	}

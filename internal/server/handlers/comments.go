@@ -43,7 +43,7 @@ func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 		components.CommentsListComponent(comments, nextUrl).Render(r.Context(), w)
 		return
 	}
-	views.Home(queryOpts, comments, getNextCommentsUrl(queryOpts), internal.GetSites()).Render(r.Context(), w)
+	views.Home(queryOpts, comments, getNextCommentsUrl(queryOpts), internal.SitesMapKeys).Render(r.Context(), w)
 }
 
 func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {

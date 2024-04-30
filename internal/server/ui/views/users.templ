@@ -5,7 +5,7 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQueryOptions, sites map[string]string,
+templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQueryOptions, sites []string,
 	nextUrl string) {
 	@Page(true, nil) {
 		<form
@@ -38,7 +38,7 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 						class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 					>
 						<option value="">All Sites</option>
-						for site := range sites {
+						for _, site := range sites {
 							<option value={ site }>{ site }</option>
 						}
 					</select>

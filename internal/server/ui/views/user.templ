@@ -21,7 +21,7 @@ func Round(num, unit float64) float64 {
 }
 
 templ User(user *store.User, queryOpts *store.CommentQueryOptions,
-	comments []*store.Comment, nextUrl string, sites map[string]string) {
+	comments []*store.Comment, nextUrl string, sites []string) {
 	@Page(true, nil) {
 		@components.CommentsFormComponent(fmt.Sprintf("/user/%d/comments", user.ID), queryOpts, sites)
 		<h1 class="flex justify-center text-4xl">{ user.UserName }</h1>
