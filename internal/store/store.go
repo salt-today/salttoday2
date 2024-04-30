@@ -12,7 +12,7 @@ type Storage interface {
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
-	GetTopUser(ctx context.Context, orderBy int) (*User, error)
+	GetTopUser(ctx context.Context, orderBy int, site string) (*User, error)
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
 }
 
@@ -26,7 +26,7 @@ type PageQueryOptions struct {
 	Limit *uint
 	Page  *uint
 	Order *int
-	Site  *string
+	Site  string
 }
 
 type CommentQueryOptions struct {

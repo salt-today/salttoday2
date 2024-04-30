@@ -36,9 +36,9 @@ type sqlStorage struct {
 
 // Store expensive reults here
 type cachedResults struct {
-	topScoringUser  *store.User
-	topLikedUser    *store.User
-	topDislikedUser *store.User
+	topScoringUser  map[string]*store.User
+	topLikedUser    map[string]*store.User
+	topDislikedUser map[string]*store.User
 }
 
 func getSqlConnString(ctx context.Context) string {
@@ -66,9 +66,13 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	}
 
 	s := &sqlStorage{
-		db:            db,
-		dialect:       goqu.Dialect("mysql"),
-		cachedResults: &cachedResults{},
+		db:      db,
+		dialect: goqu.Dialect("mysql"),
+		cachedResults: &cachedResults{
+			topScoringUser:  make(map[string]*store.User),
+			topLikedUser:    make(map[string]*store.User),
+			topDislikedUser: make(map[string]*store.User),
+		},
 	}
 
 	// periodically calculate the most likes, dislikes
@@ -95,25 +99,25 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	return s, nil
 }
 
-func (s *sqlStorage) GetTopUser(ctx context.Context, orderBy int) (*store.User, error) {
+func (s *sqlStorage) GetTopUser(ctx context.Context, orderBy int, site string) (*store.User, error) {
 	if orderBy == store.OrderByBoth {
-		if s.cachedResults.topScoringUser == nil {
+		if s.cachedResults.topScoringUser[site] == nil {
 			return nil, &store.NoQueryResultsError{}
 		}
-		return s.cachedResults.topScoringUser, nil
+		return s.cachedResults.topScoringUser[site], nil
 
 	} else if orderBy == store.OrderByLikes {
-		if s.cachedResults.topLikedUser == nil {
+		if s.cachedResults.topLikedUser[site] == nil {
 			return nil, &store.NoQueryResultsError{}
 		}
-		return s.cachedResults.topLikedUser, nil
+		return s.cachedResults.topLikedUser[site], nil
 
 	} else if orderBy == store.OrderByDislikes {
 		if s.cachedResults.topDislikedUser == nil {
 			return nil, &store.NoQueryResultsError{}
 		}
 
-		return s.cachedResults.topDislikedUser, nil
+		return s.cachedResults.topDislikedUser[site], nil
 
 	} else {
 		return nil, fmt.Errorf("unknown orderBy %d", orderBy)
@@ -121,14 +125,29 @@ func (s *sqlStorage) GetTopUser(ctx context.Context, orderBy int) (*store.User, 
 }
 
 func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
-	entry := sdk.Logger(ctx).WithField("cache", "top users")
+	entry := sdk.Logger(ctx)
+
+	s.cacheTopUserForSite(ctx, "")
+	for site := range internal.GetSites() {
+		if err := s.cacheTopUserForSite(ctx, site); err != nil {
+			return err
+		}
+	}
+
+	entry.Info("successfully updated top users cache")
+	return nil
+}
+
+func (s *sqlStorage) cacheTopUserForSite(ctx context.Context, site string) error {
+	entry := sdk.Logger(ctx)
+
 	opts := &store.UserQueryOptions{
 		PageOpts: &store.PageQueryOptions{
 			Order: aws.Int(store.OrderByBoth),
 			Limit: aws.Uint(1),
+			Site:  site,
 		},
 	}
-
 	users, err := s.GetUsers(ctx, opts)
 	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest scoring user")
@@ -137,14 +156,14 @@ func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
 		entry.Warn("no users found")
 		return nil
 	}
-	s.cachedResults.topScoringUser = users[0]
+	s.cachedResults.topScoringUser[site] = users[0]
 
 	opts.PageOpts.Order = aws.Int(store.OrderByLikes)
 	users, err = s.GetUsers(ctx, opts)
 	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest liked user")
 	}
-	s.cachedResults.topLikedUser = users[0]
+	s.cachedResults.topLikedUser[site] = users[0]
 
 	opts.PageOpts.Order = aws.Int(store.OrderByDislikes)
 	users, err = s.GetUsers(ctx, opts)
@@ -152,9 +171,8 @@ func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
 		entry.WithError(err).Error("unable to calculate highest disliked user")
 		return err
 	}
-	s.cachedResults.topDislikedUser = users[0]
+	s.cachedResults.topDislikedUser[site] = users[0]
 
-	entry.Info("successfully updated top users cache")
 	return nil
 }
 
@@ -258,8 +276,14 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 
 	sd = addPaging(sd, opts.PageOpts)
 
-	// TODO Implement other options
-	// site
+	if opts.PageOpts.Site != `` {
+		siteUrl, ok := internal.GetSites()[opts.PageOpts.Site]
+		if !ok {
+			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
+		}
+		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl+"%")).
+			InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
+	}
 
 	sd = addPaging(sd, opts.PageOpts)
 
@@ -315,12 +339,10 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 		sd = sd.Where(goqu.Ex{CommentsUserID: opts.UserID})
 	}
 
-	fmt.Println(opts.PageOpts.Site)
-	if opts.PageOpts.Site != nil {
-		siteUrl, ok := internal.GetSites()[*opts.PageOpts.Site]
-		fmt.Println(siteUrl)
+	if opts.PageOpts.Site != `` {
+		siteUrl, ok := internal.GetSites()[opts.PageOpts.Site]
 		if !ok {
-			return nil, fmt.Errorf("site %s not found", *opts.PageOpts.Site)
+			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
 		}
 		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
 	}

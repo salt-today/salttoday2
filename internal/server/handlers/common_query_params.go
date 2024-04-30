@@ -33,7 +33,7 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			opts.Page = &pageValue
 		case "site":
 			if value != "" {
-				opts.Site = aws.String(value)
+				opts.Site = value
 			}
 		case "order":
 			if value == "likes" {
@@ -70,8 +70,8 @@ func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
 		}
 		str += fmt.Sprintf(`&order=%s`, order)
 	}
-	if queryOpts.Site != nil {
-		str += fmt.Sprintf(`&site=%s`, *queryOpts.Site)
+	if queryOpts.Site != `` {
+		str += fmt.Sprintf(`&site=%s`, queryOpts.Site)
 	}
 	return str
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/samber/lo"
 
+	"github.com/salt-today/salttoday2/internal"
 	"github.com/salt-today/salttoday2/internal/sdk"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
@@ -33,7 +34,7 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 		entry.Warning("no users found")
 	}
 
-	topUser, err := h.storage.GetTopUser(r.Context(), *userOpts.PageOpts.Order)
+	topUser, err := h.storage.GetTopUser(r.Context(), *userOpts.PageOpts.Order, userOpts.PageOpts.Site)
 	if err != nil {
 		entry.WithError(err).Error("error getting top user")
 		w.WriteHeader(500)
@@ -48,7 +49,7 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views.Users(users, topUser, userOpts, nextUrl).Render(r.Context(), w)
+	views.Users(users, topUser, userOpts, internal.GetSites(), nextUrl).Render(r.Context(), w)
 }
 
 func processGetUsersQueryParameters(r *http.Request) (*store.UserQueryOptions, error) {
