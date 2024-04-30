@@ -93,11 +93,15 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 	for _, article := range articlesSince {
 		hoursSinceDiscovery := now.Sub(article.DiscoveryTime).Hours()
 		minsSinceLastScrape := now.Sub(article.LastScrapeTime).Minutes()
-		if hoursSinceDiscovery < 48 {
+		if hoursSinceDiscovery < 24 && minsSinceLastScrape > 15 {
 			articles = append(articles, article)
-		} else if hoursSinceDiscovery < 96 && minsSinceLastScrape > 30 {
+		} else if hoursSinceDiscovery < 48 && minsSinceLastScrape > 30 {
 			articles = append(articles, article)
-		} else if hoursSinceDiscovery >= 96 && minsSinceLastScrape > 60 {
+		} else if hoursSinceDiscovery < 96 && minsSinceLastScrape > 60 {
+			articles = append(articles, article)
+		} else if hoursSinceDiscovery < 120 && minsSinceLastScrape > 120 {
+			articles = append(articles, article)
+		} else if hoursSinceDiscovery >= 120 && minsSinceLastScrape > 240 {
 			articles = append(articles, article)
 		}
 	}
