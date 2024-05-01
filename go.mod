@@ -14,7 +14,7 @@ require (
 	github.com/rubenv/sql-migrate v1.6.1
 	github.com/samber/lo v1.39.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
