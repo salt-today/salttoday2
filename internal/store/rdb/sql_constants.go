@@ -23,6 +23,10 @@ const (
 	CommentsScore     = "Score"
 	CommentsDeleted   = CommentsTable + "." + DeletedSuffix
 
+	CommentControverstyView            = "CommentControversy"
+	CommentControverstyID              = CommentControverstyView + "." + "ID"
+	CommentControverstyWeightedEntropy = CommentControverstyView + "." + "WeightedEntropy"
+
 	ArticlesID             = ArticlesTable + "." + "ID"
 	ArticlesUrl            = ArticlesTable + "." + "Url"
 	ArticlesTitle          = ArticlesTable + "." + "Title"

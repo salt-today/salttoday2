@@ -324,9 +324,11 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 }
 
 func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOptions) ([]*store.Comment, error) {
+	cols := []interface{}{
+		CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes,
+		CommentsDeleted, ArticlesID, ArticlesTitle, ArticlesUrl, UsersID, UsersName,
+	}
 	sd := s.dialect.
-		Select(CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, goqu.L(CommentsLikes+fmt.Sprintf(" + %d * ", dislikeMultiplier)+CommentsDislikes).
-			As(CommentsScore), CommentsDeleted, CommentsArticleID, CommentsUserID, ArticlesID, ArticlesTitle, ArticlesUrl, UsersID, UsersName).
 		From(CommentsTable).
 		InnerJoin(goqu.T(UsersTable).As(UsersTable), goqu.On(goqu.I(CommentsUserID).Eq(goqu.I(UsersID)))).
 		InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
@@ -347,7 +349,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
 	}
 
-	if opts.OnlyDeleted == true {
+	if opts.OnlyDeleted {
 		sd = sd.Where(goqu.Ex{CommentsDeleted: true})
 	}
 
@@ -367,11 +369,18 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 		} else if *opts.PageOpts.Order == store.OrderByDislikes {
 			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
 		} else if *opts.PageOpts.Order == store.OrderByBoth {
+			cols = append(cols, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore))
 			sd = sd.Order(goqu.I(CommentsScore).Desc())
+		} else if *opts.PageOpts.Order == store.OrderByControversial {
+			cols = append(cols, CommentControverstyWeightedEntropy)
+			sd = sd.Order(goqu.I(CommentControverstyWeightedEntropy).Desc()).
+				InnerJoin(goqu.T(CommentControverstyView).As(CommentControverstyView), goqu.On(goqu.I(CommentsID).Eq(goqu.I(CommentControverstyID))))
 		} else {
 			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.PageOpts.Order)
 		}
 	}
+
+	sd = sd.Select(cols...)
 
 	query, _, err := sd.ToSQL()
 	if err != nil {
@@ -385,34 +394,22 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	defer rows.Close()
 
 	comments := make([]*store.Comment, 0)
-	var id, articleID, commentsArticleID, userID, commentsUserID int
-	var tm time.Time
-	var text string
-	var likes, dislikes int32
-	var score int64
-	var deleted bool
-	var articleTitle string
-	var articleUrl string
-	var userName string
+	var score int
+	var weightedEntropy float64
 	for rows.Next() {
-		err := rows.Scan(&id, &tm, &text, &likes, &dislikes, &score, &deleted, &commentsArticleID, &commentsUserID, &articleID, &articleTitle, &articleUrl, &userID, &userName)
-		if err != nil {
-			return nil, err
+		c := &store.Comment{Article: store.Article{}, User: store.User{}}
+		dests := []interface{}{&c.ID, &c.Time, &c.Text, &c.Likes, &c.Dislikes, &c.Deleted, &c.Article.ID, &c.Article.Title, &c.Article.Url, &c.User.ID, &c.User.UserName}
+		if *opts.PageOpts.Order == store.OrderByBoth {
+			dests = append(dests, &score)
+		} else if *opts.PageOpts.Order == store.OrderByControversial {
+			dests = append(dests, &weightedEntropy)
 		}
-		comments = append(comments, &store.Comment{
-			ID:       id,
-			Article:  store.Article{ID: articleID, Title: articleTitle, Url: articleUrl},
-			User:     store.User{ID: userID, UserName: userName},
-			Time:     tm.Local(),
-			Text:     text,
-			Likes:    likes,
-			Dislikes: dislikes,
-			Deleted:  deleted,
-		})
-	}
+		err := rows.Scan(dests...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan comment record: %w", err)
+		}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
+		comments = append(comments, c)
 	}
 
 	if len(comments) == 0 {

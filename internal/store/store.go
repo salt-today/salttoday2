@@ -17,9 +17,10 @@ type Storage interface {
 }
 
 const (
-	OrderByLikes    = iota
-	OrderByDislikes = iota
-	OrderByBoth     = iota
+	OrderByLikes         = iota
+	OrderByDislikes      = iota
+	OrderByBoth          = iota
+	OrderByControversial = iota
 )
 
 type PageQueryOptions struct {

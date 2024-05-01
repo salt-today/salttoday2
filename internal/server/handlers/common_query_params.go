@@ -40,6 +40,8 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 				*opts.Order = store.OrderByLikes
 			} else if value == "dislikes" {
 				*opts.Order = store.OrderByDislikes
+			} else if value == "controversial" {
+				*opts.Order = store.OrderByControversial
 			} else {
 				*opts.Order = store.OrderByBoth
 			}
@@ -67,6 +69,8 @@ func getNextPageQueryString(queryOpts *store.PageQueryOptions) string {
 			order = "likes"
 		} else if *queryOpts.Order == store.OrderByDislikes {
 			order = "dislikes"
+		} else if *queryOpts.Order == store.OrderByControversial {
+			order = "controversial"
 		}
 		str += fmt.Sprintf(`&order=%s`, order)
 	}
