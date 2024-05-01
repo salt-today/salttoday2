@@ -3,8 +3,7 @@ module github.com/salt-today/salttoday2
 go 1.21
 
 require (
-	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/a-h/templ v0.2.663
+	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.13.13
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.7.13
@@ -19,7 +18,7 @@ require (
 )
 
 require (
-	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.20.4 // indirect
@@ -31,7 +30,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
