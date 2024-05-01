@@ -399,7 +399,9 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	for rows.Next() {
 		c := &store.Comment{Article: store.Article{}, User: store.User{}}
 		dests := []interface{}{&c.ID, &c.Time, &c.Text, &c.Likes, &c.Dislikes, &c.Deleted, &c.Article.ID, &c.Article.Title, &c.Article.Url, &c.User.ID, &c.User.UserName}
-		if *opts.PageOpts.Order == store.OrderByBoth {
+		if opts.PageOpts.Order == nil {
+			// no-op
+		} else if *opts.PageOpts.Order == store.OrderByBoth {
 			dests = append(dests, &score)
 		} else if *opts.PageOpts.Order == store.OrderByControversial {
 			dests = append(dests, &weightedEntropy)
