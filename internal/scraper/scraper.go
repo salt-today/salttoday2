@@ -50,10 +50,10 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 	articlesMap := make(map[int]*store.Article)
 	for siteName, siteUrl := range internal.SitesMap {
 		foundArticles := ScrapeArticles(ctx, siteUrl)
-		for _, foundArticle := range foundArticles {
-			if _, ok := articlesMap[foundArticle.ID]; ok {
-				logEntry.WithField("article_id", foundArticle.ID).Info("Article found on multiple sites")
-				foundArticle.SiteName = "All"
+
+		for id, foundArticle := range foundArticles {
+			if _, ok := articlesMap[id]; ok {
+				foundArticle.SiteName = internal.AllSitesName
 			} else {
 				foundArticle.SiteName = siteName
 			}
@@ -61,7 +61,7 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 		}
 	}
 
-	articleIDs := make([]int, len(articlesMap))
+	articleIDs := make([]int, 0, len(articlesMap))
 	articles := make([]*store.Article, 0, len(articlesMap))
 	for id, article := range articlesMap {
 		articleIDs = append(articleIDs, id)
@@ -119,35 +119,27 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int, forceScrape bool) 
 		}
 	}
 
-	articleIDs := make([]int, len(articles))
-	for i, article := range articles {
-		articleIDs[i] = article.ID
-	}
-	logEntry.WithField("articles", len(articleIDs)).Info("Collected articles to scrape")
+	logEntry.WithField("articles", len(articles)).Info("Filtered articles to scrape")
 
 	comments, users := ScrapeCommentsFromArticles(ctx, articles)
-	commentIDs := make([]int, len(comments))
-	for i, comment := range comments {
-		commentIDs[i] = comment.ID
-	}
-	logEntry.WithField("comments", commentIDs).Info("Found comments")
+	logEntry.Info("Found comments")
 
-	userIDs := make([]int, len(users))
-	for i, user := range users {
-		userIDs[i] = user.ID
-	}
-	logEntry.WithField("users", userIDs).Info("Found users")
+	logEntry.WithField("users", len(users)).Info("Found users")
 
 	if err := storage.AddComments(ctx, comments); err != nil {
 		logEntry.WithError(err).Error("failed to add comments ids")
 	}
-	logEntry.WithField("comments", commentIDs).Info("Added comments")
+	logEntry.WithField("comments", len(comments)).Info("Added comments")
 
 	if err := storage.AddUsers(ctx, users...); err != nil {
 		logEntry.WithError(err).Error("failed to add user ids")
 	}
 	logEntry.Info("Added users")
 
+	articleIDs := make([]int, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
 	storage.SetArticleScrapedAt(ctx, time.Now(), articleIDs...)
 }
 
@@ -469,7 +461,7 @@ func getArticleId(ctx context.Context, url string) int {
 	return articleId
 }
 
-func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
+func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article {
 	logEntry := sdk.Logger(ctx).WithField("site_url", siteUrl)
 	res, err := http.Get(siteUrl)
 	if err != nil {
@@ -502,7 +494,8 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 		logEntry.WithError(err).Error("Error loading article")
 	}
 
-	var articles []*store.Article
+	// Map because we can find articles multiple times on the home page
+	articles := make(map[int]*store.Article)
 	doc.Find("a.section-item").Each(func(i int, sel *goquery.Selection) {
 		if href, exists := sel.Attr("href"); exists {
 			if isArticleUrl(href) {
@@ -518,20 +511,23 @@ func ScrapeArticles(ctx context.Context, siteUrl string) []*store.Article {
 					// we don't want that
 					return
 				}
-				articles = append(articles, &store.Article{
-					ID:             getArticleId(ctx, href),
-					Title:          title,
-					Url:            siteUrl + href,
-					DiscoveryTime:  time.Now(),
-					LastScrapeTime: time.Now(),
-				})
+				articleId := getArticleId(ctx, href)
+				if _, ok := articles[articleId]; !ok {
+					articles[articleId] = &store.Article{
+						ID:             getArticleId(ctx, href),
+						Title:          title,
+						Url:            siteUrl + href,
+						DiscoveryTime:  time.Now(),
+						LastScrapeTime: time.Now(),
+					}
+				}
 			}
 		}
 	})
 
-	articleIDs := make([]int, len(articles))
-	for i, article := range articles {
-		articleIDs[i] = article.ID
+	articleIDs := make([]int, 0, len(articles))
+	for id := range articles {
+		articleIDs = append(articleIDs, id)
 	}
 	logEntry.WithField("articles", articleIDs).Info("Articles found")
 	return articles

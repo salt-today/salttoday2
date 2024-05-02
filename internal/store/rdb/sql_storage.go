@@ -449,13 +449,12 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 }
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article) error {
-	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		As(NewAlias).
-		OnConflict(goqu.DoUpdate(ArticlesSiteName, goqu.C(SiteNameSuffix).Set(goqu.I(NewAliasSiteName))))
+	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesSiteName, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		As(NewAlias).OnConflict(goqu.DoUpdate(ArticlesSiteName, goqu.C(SiteNameSuffix).Set(internal.AllSitesName)))
 
 	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {
-		ds = ds.Vals(goqu.Vals{article.ID, article.Url, article.Title, article.DiscoveryTime, nil})
+		ds = ds.Vals(goqu.Vals{article.ID, article.SiteName, article.Url, article.Title, article.DiscoveryTime, nil})
 	}
 
 	query, _, err := ds.ToSQL()

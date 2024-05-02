@@ -12,6 +12,9 @@ func init() {
 
 var SitesMapKeys []string
 
+// Used for articles across multiple sites
+const AllSitesName = "all"
+
 // TODO uncomment sites when we're ready, no need to hammer all of them yet
 // List taken from here: villagemedia.ca/sites/
 var SitesMap = map[string]string{
