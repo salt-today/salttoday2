@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) < 2 {
 		fmt.Println("Expected days ago as an argument")
 		os.Exit(1)
 	}
@@ -22,10 +22,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	forceScrape := false
+	if len(os.Args) > 2 {
+		forceStr := os.Args[2]
+		forceScrape, err = strconv.ParseBool(forceStr)
+		if err != nil {
+			fmt.Println(fmt.Errorf("unable to convert force scrape from string to bool %w", err))
+			os.Exit(1)
+		}
+	}
+
 	ctx := context.Background()
 
 	scraper.ScrapeAndStoreArticles(ctx)
-	scraper.ScrapeAndStoreComments(ctx, daysAgo)
+	scraper.ScrapeAndStoreComments(ctx, daysAgo, forceScrape)
 
 	sdk.Logger(ctx).Info("Scraping complete")
 }

@@ -198,7 +198,9 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 	// Determine if any comments were deleted
 	queryOpts := &store.CommentQueryOptions{
 		ArticleID: &articleID,
-		PageOpts:  &store.PageQueryOptions{},
+		PageOpts: &store.PageQueryOptions{
+			Order: aws.Int(store.OrderByBoth),
+		},
 	}
 
 	storedComments, err := s.GetComments(ctx, queryOpts)
@@ -228,12 +230,15 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 		}
 	}
 
+	// Upsert comment into database
 	ds := s.dialect.Insert(CommentsTable).
 		Cols(CommentsID, CommentsArticleID, CommentsUserID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes, CommentsDeleted).
 		As(NewAlias).
-		OnConflict(goqu.DoUpdate(CommentsLikes, goqu.C(LikesSuffix).Set(goqu.I(NewAliasLikes)))).
-		OnConflict(goqu.DoUpdate(CommentsDislikes, goqu.C(DislikesSuffix).Set(goqu.I(NewAliasDislikes)))).
-		OnConflict(goqu.DoUpdate(CommentsDeleted, goqu.C(DeletedSuffix).Set(goqu.I(NewAliasDeleted))))
+		OnConflict(goqu.DoUpdate(OldAlias, goqu.Record{
+			CommentsLikes:    goqu.I(NewAliasLikes),
+			CommentsDislikes: goqu.I(NewAliasDislikes),
+			CommentsDeleted:  goqu.I(NewAliasDeleted),
+		}))
 
 	for _, comment := range comments {
 		ds = ds.Vals(goqu.Vals{comment.ID, comment.Article.ID, comment.User.ID, comment.Time.Truncate(time.Second), comment.Text, comment.Likes, comment.Dislikes, comment.Deleted})

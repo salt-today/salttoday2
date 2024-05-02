@@ -43,4 +43,6 @@ const (
 	NewAliasLikes    = NewAlias + "." + LikesSuffix
 	NewAliasDislikes = NewAlias + "." + DislikesSuffix
 	NewAliasDeleted  = NewAlias + "." + DeletedSuffix
+
+	OldAlias = "OldAlias"
 )

@@ -64,7 +64,7 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 	logEntry.WithField("articles", articleIDs).Info("Found and stored articles")
 }
 
-func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
+func ScrapeAndStoreComments(ctx context.Context, daysAgo int, forceScrape bool) {
 	logEntry := sdk.Logger(ctx).WithField("job", "scraper/comments")
 	storage, err := rdb.New(ctx)
 	if err != nil {
@@ -93,7 +93,9 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int) {
 	for _, article := range articlesSince {
 		hoursSinceDiscovery := now.Sub(article.DiscoveryTime).Hours()
 		minsSinceLastScrape := now.Sub(article.LastScrapeTime).Minutes()
-		if hoursSinceDiscovery < 24 && minsSinceLastScrape > 15 {
+		if forceScrape {
+			articles = append(articles, article)
+		} else if hoursSinceDiscovery < 24 && minsSinceLastScrape > 15 {
 			articles = append(articles, article)
 		} else if hoursSinceDiscovery < 48 && minsSinceLastScrape > 30 {
 			articles = append(articles, article)
