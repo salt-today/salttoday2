@@ -96,6 +96,7 @@ func New(ctx context.Context) (*sqlStorage, error) {
 		}
 	}()
 
+	err = s.fillSiteName(ctx)
 	return s, err
 }
 
@@ -448,7 +449,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article) error {
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesSiteName, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		As(NewAlias).OnConflict(goqu.DoUpdate(ArticlesSiteName, goqu.C(SiteNameSuffix).Set(internal.AllSitesName)))
+		As(NewAlias).OnConflict(goqu.DoNothing())
 
 	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {
