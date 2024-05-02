@@ -96,8 +96,6 @@ func New(ctx context.Context) (*sqlStorage, error) {
 		}
 	}()
 
-	err = s.fillSiteName(ctx)
-
 	return s, err
 }
 
