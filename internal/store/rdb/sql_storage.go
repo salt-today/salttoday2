@@ -96,7 +96,29 @@ func New(ctx context.Context) (*sqlStorage, error) {
 		}
 	}()
 
-	return s, nil
+	err = s.fillSiteName(ctx)
+
+	return s, err
+}
+
+func (s *sqlStorage) fillSiteName(ctx context.Context) error {
+	for siteName, siteUrl := range internal.SitesMap {
+		ds := s.dialect.Update(ArticlesTable).
+			Set(goqu.Record{ArticlesSiteName: siteName}).
+			Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
+
+		query, _, err := ds.ToSQL()
+		if err != nil {
+			return err
+		}
+		_, err = s.db.ExecContext(ctx, query)
+		if err != nil {
+			return err
+		}
+
+	}
+	sdk.Logger(ctx).Info("Successfully updated site names")
+	return nil
 }
 
 func (s *sqlStorage) GetTopUser(ctx context.Context, orderBy int, site string) (*store.User, error) {
@@ -428,7 +450,8 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article) error {
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		OnConflict(goqu.DoNothing())
+		As(NewAlias).
+		OnConflict(goqu.DoUpdate(ArticlesSiteName, goqu.C(SiteNameSuffix).Set(goqu.I(NewAliasSiteName))))
 
 	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {

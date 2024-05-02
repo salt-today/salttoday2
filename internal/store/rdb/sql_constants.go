@@ -12,6 +12,7 @@ const (
 	LikesSuffix    = "Likes"
 	DislikesSuffix = "Dislikes"
 	DeletedSuffix  = "Deleted"
+	SiteNameSuffix = "SiteName"
 
 	CommentsID        = CommentsTable + "." + "ID"
 	CommentsArticleID = CommentsTable + "." + "ArticleID"
@@ -28,6 +29,7 @@ const (
 	CommentControverstyWeightedEntropy = CommentControverstyView + "." + "WeightedEntropy"
 
 	ArticlesID             = ArticlesTable + "." + "ID"
+	ArticlesSiteName       = ArticlesTable + "." + SiteNameSuffix
 	ArticlesUrl            = ArticlesTable + "." + "Url"
 	ArticlesTitle          = ArticlesTable + "." + "Title"
 	ArticlesDiscoveryTime  = ArticlesTable + "." + "DiscoveryTime"
@@ -43,6 +45,8 @@ const (
 	NewAliasLikes    = NewAlias + "." + LikesSuffix
 	NewAliasDislikes = NewAlias + "." + DislikesSuffix
 	NewAliasDeleted  = NewAlias + "." + DeletedSuffix
+
+	NewAliasSiteName = NewAlias + "." + SiteNameSuffix
 
 	OldAlias = "OldAlias"
 )

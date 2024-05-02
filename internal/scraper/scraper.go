@@ -47,19 +47,30 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 		logEntry.WithError(err).Fatal("failed to create storage")
 	}
 
-	articles := make([]*store.Article, 0)
-	for _, site := range internal.SitesMap {
-		foundArticles := ScrapeArticles(ctx, site)
-		articles = append(articles, foundArticles...)
+	articlesMap := make(map[int]*store.Article)
+	for siteName, siteUrl := range internal.SitesMap {
+		foundArticles := ScrapeArticles(ctx, siteUrl)
+		for _, foundArticle := range foundArticles {
+			if _, ok := articlesMap[foundArticle.ID]; ok {
+				logEntry.WithField("article_id", foundArticle.ID).Info("Article found on multiple sites")
+				foundArticle.SiteName = "All"
+			} else {
+				foundArticle.SiteName = siteName
+			}
+			articlesMap[foundArticle.ID] = foundArticle
+		}
+	}
+
+	articleIDs := make([]int, len(articlesMap))
+	articles := make([]*store.Article, 0, len(articlesMap))
+	for id, article := range articlesMap {
+		articleIDs = append(articleIDs, id)
+		articles = append(articles, article)
 	}
 
 	err = storage.AddArticles(ctx, articles...)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to add articles")
-	}
-	articleIDs := make([]int, len(articles))
-	for i, article := range articles {
-		articleIDs[i] = article.ID
 	}
 	logEntry.WithField("articles", articleIDs).Info("Found and stored articles")
 }

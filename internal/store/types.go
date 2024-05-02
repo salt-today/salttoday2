@@ -19,6 +19,7 @@ type Comment struct {
 type Article struct {
 	ID             int
 	Title          string
+	SiteName       string
 	Url            string
 	DiscoveryTime  time.Time
 	LastScrapeTime time.Time
