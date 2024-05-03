@@ -40,6 +40,8 @@ func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 
 	if queryOpts.PageOpts.Site != `` {
 		comments = stripArticleSiteName(comments)
+	} else {
+		comments = stripArticleSiteNameAll(comments)
 	}
 
 	hxTrigger := r.Header.Get("HX-Trigger")
@@ -83,6 +85,15 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	views.Comment(comments[0]).Render(r.Context(), w)
+}
+
+func stripArticleSiteNameAll(comments []*store.Comment) []*store.Comment {
+	for _, comment := range comments {
+		if comment.Article.SiteName == internal.AllSitesName {
+			comment.Article.SiteName = ""
+		}
+	}
+	return comments
 }
 
 func stripArticleSiteName(comments []*store.Comment) []*store.Comment {
