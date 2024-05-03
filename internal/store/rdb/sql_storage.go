@@ -303,11 +303,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 	sd = addPaging(sd, opts.PageOpts)
 
 	if opts.PageOpts.Site != `` {
-		siteUrl, ok := internal.SitesMap[opts.PageOpts.Site]
-		if !ok {
-			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
-		}
-		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl+"%")).
+		sd = sd.Where(goqu.I(ArticlesSiteName).Eq(opts.PageOpts.Site)).
 			InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
 	}
 
@@ -368,11 +364,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	}
 
 	if opts.PageOpts.Site != `` {
-		siteUrl, ok := internal.SitesMap[opts.PageOpts.Site]
-		if !ok {
-			return nil, fmt.Errorf("site %s not found", opts.PageOpts.Site)
-		}
-		sd = sd.Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
+		sd = sd.Where(goqu.I(ArticlesSiteName).Eq(opts.PageOpts.Site))
 	}
 
 	if opts.OnlyDeleted {
@@ -449,7 +441,10 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article) error {
 	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesSiteName, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		As(NewAlias).OnConflict(goqu.DoUpdate(NewAlias, goqu.Record{SiteNameSuffix: goqu.I(NewAliasSiteName)}))
+		As(NewAlias).
+		OnConflict(
+			goqu.DoUpdate(ArticlesSiteName,
+				goqu.C(SiteNameSuffix).Set(goqu.L("IF(?, ?, ?)", goqu.I(NewAliasSiteName).Eq(internal.AllSitesName), goqu.I(NewAliasSiteName), goqu.I(ArticlesSiteName)))))
 
 	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {
