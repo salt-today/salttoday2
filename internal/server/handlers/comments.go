@@ -38,11 +38,16 @@ func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 
 	nextUrl := getNextCommentsUrl(queryOpts)
 
+	if queryOpts.PageOpts.Site != `` {
+		comments = stripArticleSiteName(comments)
+	}
+
 	hxTrigger := r.Header.Get("HX-Trigger")
 	if hxTrigger == "pagination" || hxTrigger == "form" {
 		components.CommentsListComponent(comments, nextUrl).Render(r.Context(), w)
 		return
 	}
+
 	views.Home(queryOpts, comments, getNextCommentsUrl(queryOpts), internal.SitesMapKeys).Render(r.Context(), w)
 }
 
@@ -62,8 +67,29 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comments, err := h.storage.GetComments(r.Context(), queryOpts)
+	if err != nil && !errors.Is(err, &store.NoQueryResultsError{}) {
+		// TODO make this check a reusable func?
+		entry.WithError(err).Warn("error getting comment")
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if len(comments) > 1 {
+		entry.WithError(err).Error("multiple comments found for the same ID")
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
 
 	views.Comment(comments[0]).Render(r.Context(), w)
+}
+
+func stripArticleSiteName(comments []*store.Comment) []*store.Comment {
+	for _, comment := range comments {
+		comment.Article.SiteName = ""
+	}
+	return comments
 }
 
 func processGetCommentQueryParameters(r *http.Request, defaultDays uint) (*store.CommentQueryOptions, error) {

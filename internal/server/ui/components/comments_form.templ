@@ -68,7 +68,7 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 				>
 					<option value="">All Sites</option>
 					for _, site := range sites {
-						<option value={ site }>{ site }</option>
+						<option value={ site } selected?={ queryOpts.PageOpts.Site==site }>{ site }</option>
 					}
 				</select>
 			</div>

@@ -38,11 +38,14 @@ func min(x, y int32) int32 {
 
 templ CommentComponent(comment *store.Comment) {
 	<div class="">
-		<div class="px-8 flex flex-row whitespace-nowrap">
-			<a class="hover:underline decoration-2" href={ templ.URL(comment.Article.Url) } target="_blank">
-				{ comment.Article.Title }
-			</a>
-			<span class="fas fa-link py-0 px-2 hover:cursor-pointer" onclick={ CopyLinkClicked(comment.ID) }></span>
+		<div class="px-8 flex flex-row whitespace-nowrap justify-between">
+			<div>
+				<a class="hover:underline decoration-2" href={ templ.URL(comment.Article.Url) } target="_blank">
+					{ comment.Article.Title }
+				</a>
+				<span class="fas fa-link py-0 px-2 hover:cursor-pointer" onclick={ CopyLinkClicked(comment.ID) }></span>
+			</div>
+			<span>{ comment.Article.SiteName }</span>
 		</div>
 		<div class={ fmt.Sprintf(`relative flex flex-col p-1 rounded %s`, getGradient(comment.Likes, comment.Dislikes, 5)) }>
 			if comment.Likes > 0 {

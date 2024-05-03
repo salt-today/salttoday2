@@ -348,7 +348,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOptions) ([]*store.Comment, error) {
 	cols := []interface{}{
 		CommentsID, CommentsTime, CommentsText, CommentsLikes, CommentsDislikes,
-		CommentsDeleted, ArticlesID, ArticlesTitle, ArticlesUrl, UsersID, UsersName,
+		CommentsDeleted, ArticlesID, ArticlesTitle, ArticlesSiteName, ArticlesUrl, UsersID, UsersName,
 	}
 	sd := s.dialect.
 		From(CommentsTable).
@@ -416,7 +416,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	var weightedEntropy float64
 	for rows.Next() {
 		c := &store.Comment{Article: store.Article{}, User: store.User{}}
-		dests := []interface{}{&c.ID, &c.Time, &c.Text, &c.Likes, &c.Dislikes, &c.Deleted, &c.Article.ID, &c.Article.Title, &c.Article.Url, &c.User.ID, &c.User.UserName}
+		dests := []interface{}{&c.ID, &c.Time, &c.Text, &c.Likes, &c.Dislikes, &c.Deleted, &c.Article.ID, &c.Article.Title, &c.Article.SiteName, &c.Article.Url, &c.User.ID, &c.User.UserName}
 		if opts.PageOpts.Order == nil {
 			// no-op
 		} else if *opts.PageOpts.Order == store.OrderByBoth {
