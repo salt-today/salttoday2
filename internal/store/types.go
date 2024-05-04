@@ -33,6 +33,13 @@ type User struct {
 	TotalScore    int32
 }
 
+type Site struct {
+	Name          int
+	TotalLikes    int32
+	TotalDislikes int32
+	TotalScore    int32
+}
+
 type NoQueryResultsError struct{}
 
 func (e *NoQueryResultsError) Error() string {

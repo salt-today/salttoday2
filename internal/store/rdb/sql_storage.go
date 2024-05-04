@@ -300,8 +300,6 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 		sd = sd.Where(goqu.Ex{UsersID: opts.ID})
 	}
 
-	sd = addPaging(sd, opts.PageOpts)
-
 	if opts.PageOpts.Site != `` {
 		sd = sd.Where(goqu.I(ArticlesSiteName).Eq(opts.PageOpts.Site)).
 			InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
@@ -492,6 +490,67 @@ func (s *sqlStorage) AddUsers(ctx context.Context, users ...*store.User) error {
 
 	_, err = s.db.ExecContext(ctx, query)
 	return err
+}
+
+func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions) ([]*store.Site, error) {
+	sd := s.dialect.
+		From(UsersTable).
+		InnerJoin(goqu.T(CommentsTable).As(CommentsTable), goqu.On(goqu.I(UsersID).Eq(goqu.I(CommentsUserID)))).
+		InnerJoin(goqu.T(CommentsTable).As(CommentsTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID)))).
+		GroupBy(ArticlesSiteName)
+
+	// only get the comments we need since we're summing all the values
+	cols := []interface{}{ArticlesSiteName}
+	if opts.Order != nil {
+		if *opts.Order == store.OrderByLikes {
+			cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes))
+			sd = sd.Order(goqu.I(SiteLikes).Desc())
+		} else if *opts.Order == store.OrderByDislikes {
+			cols = append(cols, goqu.SUM(CommentsDislikes).As(SiteDislikes))
+			sd = sd.Order(goqu.I(SiteDislikes).Desc())
+		} else {
+			cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes), goqu.SUM(CommentsDislikes).As(SiteDislikes))
+			sd = sd.Order(goqu.L(SiteLikes + "+" + SiteDislikes).Desc())
+		}
+	}
+	sd = sd.Select(cols...)
+
+	sd = addPaging(sd, opts)
+
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sites := make([]*store.Site, 0)
+	for rows.Next() {
+		site := &store.Site{}
+		dests := []interface{}{&site.Name}
+		if *opts.Order == store.OrderByLikes {
+			dests = append(dests, &site.TotalLikes)
+		} else if *opts.Order == store.OrderByDislikes {
+			dests = append(dests, &site.TotalDislikes)
+		} else {
+			dests = append(dests, &site.TotalLikes, &site.TotalDislikes)
+		}
+		err := rows.Scan(dests...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user record: %w", err)
+		}
+
+		// TODO feels bad.
+		// Have to calculate score since it's not calculated in select anymore
+		// TODO not convinced we actually have to do this anymore - verify
+		site.TotalScore = dislikeMultiplier*site.TotalDislikes + site.TotalLikes
+		sites = append(sites, site)
+	}
+	return sites, nil
 }
 
 func addPaging(sd *goqu.SelectDataset, pageOpts *store.PageQueryOptions) *goqu.SelectDataset {

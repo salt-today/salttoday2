@@ -41,6 +41,10 @@ const (
 	UserDislikes = "UserDislikes"
 	UserScore    = "UserScore"
 
+	SiteLikes    = "SiteLikes"
+	SiteDislikes = "SiteDislikes"
+	SiteScore    = "SiteScore"
+
 	NewAlias         = "NewAlias"
 	NewAliasLikes    = NewAlias + "." + LikesSuffix
 	NewAliasDislikes = NewAlias + "." + DislikesSuffix
