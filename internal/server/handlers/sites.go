@@ -24,13 +24,13 @@ func (h *Handler) HandleSitesPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.storage.GetSites(r.Context(), queryOpts)
+	sites, err := h.storage.GetSites(r.Context(), queryOpts)
 	if err != nil {
 		entry.WithError(err).Warning("error listing sites")
 		w.WriteHeader(500)
 		return
 	}
-	if len(users) < 1 {
+	if len(sites) < 1 {
 		entry.Warning("no sites found")
 	}
 
@@ -45,9 +45,9 @@ func (h *Handler) HandleSitesPage(w http.ResponseWriter, r *http.Request) {
 
 	hxTrigger := r.Header.Get("HX-Trigger")
 	if hxTrigger == "pagination" || hxTrigger == "form" {
-		components.SitesListComponent(users, *queryOpts.Order, topSite, nextUrl).Render(r.Context(), w)
+		components.SitesListComponent(sites, *queryOpts.Order, topSite, nextUrl).Render(r.Context(), w)
 		return
 	}
 
-	views.Sites(users, topSite, queryOpts, nextUrl).Render(r.Context(), w)
+	views.Sites(sites, topSite, queryOpts, nextUrl).Render(r.Context(), w)
 }

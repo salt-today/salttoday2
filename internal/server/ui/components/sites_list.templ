@@ -3,19 +3,10 @@ package components
 import "github.com/salt-today/salttoday2/internal/store"
 
 templ SitesListComponent(sites []*store.Site, orderBy int, topSite *store.Site, nextUrl string) {
-	<div class="space-y-12">
-		for _, site := range sites {
-			@SiteComponent(site, orderBy, topSite)
-		}
-	</div>
+	for _, site := range sites {
+		@SiteComponent(site, orderBy, topSite)
+	}
 	if len(sites) > 0 {
-		<div
-			id="pagination"
-			class="flex justify-center items-center"
-			hx-get={ nextUrl }
-			hx-trigger="revealed"
-			hx-swap="outerHTML"
-			hx-indicator="#pagination-spinner"
-		></div>
+		<tr id="pagination" hx-get={ nextUrl } hx-trigger="revealed" hx-swap="outerHTML" hx-indicator="#pagination-spinner"></tr>
 	}
 }
