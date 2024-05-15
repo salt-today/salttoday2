@@ -34,7 +34,7 @@ type User struct {
 }
 
 type Site struct {
-	Name          int
+	Name          string
 	TotalLikes    int32
 	TotalDislikes int32
 	TotalScore    int32

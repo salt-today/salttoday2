@@ -14,6 +14,7 @@ type Storage interface {
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
 	GetTopUser(ctx context.Context, orderBy int, site string) (*User, error)
 	GetSites(ctx context.Context, opts *PageQueryOptions) ([]*Site, error)
+	GetTopSite(ctx context.Context, orderBy int) (*Site, error)
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
 }
 

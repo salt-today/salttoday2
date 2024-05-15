@@ -1,0 +1,20 @@
+package views
+
+import (
+"github.com/salt-today/salttoday2/internal/server/ui/components"
+"github.com/salt-today/salttoday2/internal/store"
+)
+
+templ Sites(sites []*store.Site, topSite *store.Site, queryOpts *store.PageQueryOptions, nextUrl string) {
+@Page(true, nil) {
+<div id="sites" class="space-y-12">
+  if len(sites) > 0 {
+  @components.SitesListComponent(sites, *queryOpts.Order, topSite, nextUrl)
+  } else {
+  @components.NoResultsFound("sites")
+  }
+</div>
+<img id="pagination-spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg"
+  alt="Mining more salt..." />
+}
+}
