@@ -572,6 +572,7 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 	sd := s.dialect.
 		From(CommentsTable).
 		InnerJoin(goqu.T(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID)))).
+		Where(goqu.Ex{ArticlesSiteName: goqu.Op{"neq": internal.AllSitesName}}).
 		GroupBy(ArticlesSiteName)
 
 	// only get the comments we need since we're summing all the values

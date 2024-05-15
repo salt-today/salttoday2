@@ -1,28 +1,28 @@
 package components
 
 import (
-"fmt"
+	"fmt"
 
-"github.com/salt-today/salttoday2/internal/store"
+	"github.com/salt-today/salttoday2/internal/store"
 )
 
 templ SiteComponent(site *store.Site, orderBy int, topSite *store.Site) {
-<div>
-  <td class="text-nowrap text-end">
-    <a href={ templ.URL(fmt.Sprintf("/?site=%s", site.Name)) } class="hover:underline text-decoration-2">
-      { site.Name }
-    </a>
-  </td>
-  <td class="w-full">
-    if orderBy == store.OrderByLikes {
-    @scoreBar(site.TotalLikes, 0, site.TotalLikes, site.TotalLikes)
-    } else if orderBy == store.OrderByDislikes {
-    @scoreBar(0, site.TotalDislikes, site.TotalDislikes, topSite.TotalDislikes)
-    } else {
-    <div class="">
-      @scoreBar(site.TotalLikes, site.TotalDislikes, site.TotalScore, topSite.TotalScore)
-    </div>
-    }
-  </td>
-</div>
+	<tr>
+		<td class="text-nowrap text-end">
+			<a href={ templ.URL(fmt.Sprintf("/?site=%s", site.Name)) } class="hover:underline text-decoration-2">
+				{ site.Name }
+			</a>
+		</td>
+		<td class="w-full">
+			if orderBy == store.OrderByLikes {
+				@scoreBar(site.TotalLikes, 0, site.TotalLikes, site.TotalLikes)
+			} else if orderBy == store.OrderByDislikes {
+				@scoreBar(0, site.TotalDislikes, site.TotalDislikes, topSite.TotalDislikes)
+			} else {
+				<div class="">
+					@scoreBar(site.TotalLikes, site.TotalDislikes, site.TotalScore, topSite.TotalScore)
+				</div>
+			}
+		</td>
+	</tr>
 }

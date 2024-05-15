@@ -7,12 +7,12 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-func getOrderPercentage(userNum, topUserNum int32) int {
+func getOrderPercentage(userNum, topUserNum int32) int32 {
 	percentage := float64(userNum) / float64(topUserNum)
 	nearest := Round(percentage, 0.01)
 
 	// minus 1 stops the top score being broken into two bars
-	return int(nearest*100) - 3
+	return max(int32(nearest*100)-1, 0)
 }
 
 func Round(num, unit float64) float64 {
