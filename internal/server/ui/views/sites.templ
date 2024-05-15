@@ -7,6 +7,32 @@ import (
 
 templ Sites(sites []*store.Site, topSite *store.Site, queryOpts *store.PageQueryOptions, nextUrl string) {
 	@Page(true, nil) {
+		<form
+			id="form"
+			hx-get="/sites"
+			hx-target="#sites table"
+			hx-swap="innerHTML"
+			hx-trigger="change"
+			hx-include="this"
+			hx-push-url="true"
+			hx-indicator="#form-spinner"
+			class="mx-auto"
+		>
+			<div class="flex justify-center gap-4 my-4">
+				<div>
+					<select
+						id="order"
+						name="order"
+						class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					>
+						<option value="score" selected?={ *queryOpts.Order==store.OrderByBoth }>Top</option>
+						<option value="dislikes" selected?={ *queryOpts.Order==store.OrderByDislikes }>Dislikes</option>
+						<option value="likes" selected?={ *queryOpts.Order==store.OrderByLikes }>Likes</option>
+					</select>
+				</div>
+			</div>
+			<img id="form-spinner" class="htmx-indicator mx-auto" src="/public/images/spinner.svg" alt="Mining more salt..."/>
+		</form>
 		<div id="sites">
 			if len(sites) > 0 {
 				<table class="w-full border-separate border-spacing-4">

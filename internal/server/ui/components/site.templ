@@ -15,7 +15,7 @@ templ SiteComponent(site *store.Site, orderBy int, topSite *store.Site) {
 		</td>
 		<td class="w-full">
 			if orderBy == store.OrderByLikes {
-				@scoreBar(site.TotalLikes, 0, site.TotalLikes, site.TotalLikes)
+				@scoreBar(site.TotalLikes, 0, site.TotalLikes, topSite.TotalLikes)
 			} else if orderBy == store.OrderByDislikes {
 				@scoreBar(0, site.TotalDislikes, site.TotalDislikes, topSite.TotalDislikes)
 			} else {
