@@ -21,8 +21,7 @@ import (
 )
 
 const (
-	dislikeMultiplier      = 2
-	maxPageSize       uint = 20
+	maxPageSize uint = 20
 )
 
 var _ store.Storage = (*sqlStorage)(nil)
@@ -367,7 +366,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 			sd = sd.Order(goqu.I(UserDislikes).Desc())
 		} else {
 			cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes))
-			sd = sd.Order(goqu.L(UserLikes + fmt.Sprintf("+ %d * ", dislikeMultiplier) + UserDislikes).Desc())
+			sd = sd.Order(goqu.L(UserLikes + "+" + UserDislikes).Desc())
 		}
 	}
 	sd = sd.Select(cols...)
@@ -413,7 +412,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 
 		// TODO feels bad.
 		// Have to calculate score since it's not calculated in select anymore
-		u.TotalScore = dislikeMultiplier*u.TotalDislikes + u.TotalLikes
+		u.TotalScore = u.TotalDislikes + u.TotalLikes
 		users = append(users, u)
 	}
 	return users, nil
@@ -623,7 +622,7 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 		// TODO feels bad.
 		// Have to calculate score since it's not calculated in select anymore
 		// TODO not convinced we actually have to do this anymore - verify
-		site.TotalScore = dislikeMultiplier*site.TotalDislikes + site.TotalLikes
+		site.TotalScore = site.TotalDislikes + site.TotalLikes
 		sites = append(sites, site)
 	}
 	return sites, nil

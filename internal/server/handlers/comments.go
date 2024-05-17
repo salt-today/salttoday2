@@ -77,13 +77,6 @@ func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(comments) > 1 {
-		entry.WithError(err).Error("multiple comments found for the same ID")
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
 	views.Comment(comments[0]).Render(r.Context(), w)
 }
 

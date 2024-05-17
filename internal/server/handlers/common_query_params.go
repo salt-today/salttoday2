@@ -36,13 +36,14 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 				opts.Site = value
 			}
 		case "order":
-			if value == "likes" {
+			switch value {
+			case "likes":
 				*opts.Order = store.OrderByLikes
-			} else if value == "dislikes" {
+			case "dislikes":
 				*opts.Order = store.OrderByDislikes
-			} else if value == "controversial" {
+			case "controversial":
 				*opts.Order = store.OrderByControversial
-			} else {
+			default:
 				*opts.Order = store.OrderByBoth
 			}
 		}
