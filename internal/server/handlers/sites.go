@@ -3,14 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/samber/lo"
 )
 
 func (h *Handler) HandleSitesPage(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "Sites")
+	entry := logger.New(r.Context()).WithField("handler", "Sites")
 
 	parameters := lo.MapValues(r.URL.Query(), func(value []string, key string) string {
 		return value[0]

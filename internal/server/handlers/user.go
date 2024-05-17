@@ -8,14 +8,14 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/salt-today/salttoday2/internal"
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "User")
+	entry := logger.New(r.Context()).WithField("handler", "User")
 
 	userIDStr := chi.URLParam(r, "userID")
 	userID, err := strconv.Atoi(userIDStr)

@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/salt-today/salttoday2/internal"
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/store"
 	"github.com/salt-today/salttoday2/internal/store/rdb/migrations"
 )
@@ -47,7 +47,7 @@ func getSqlConnString(ctx context.Context) string {
 	url := os.Getenv("MYSQL_URL")
 
 	if url == `` {
-		sdk.Logger(ctx).Info("Missing database configuration, defaulting to local dev")
+		logger.New(ctx).Info("Missing database configuration, defaulting to local dev")
 		return "root:salt@tcp(localhost:3306)/salt"
 	}
 	return url
@@ -94,7 +94,7 @@ func New(ctx context.Context) (*sqlStorage, error) {
 		<-ctx.Done()
 		err := s.shutdown()
 		if err != nil {
-			sdk.Logger(ctx).WithError(err).Error("Error shutting down SQL storage")
+			logger.New(ctx).WithError(err).Error("Error shutting down SQL storage")
 		}
 	}()
 
@@ -118,7 +118,7 @@ func (s *sqlStorage) fillSiteName(ctx context.Context) error {
 		}
 
 	}
-	sdk.Logger(ctx).Info("Successfully updated site names")
+	logger.New(ctx).Info("Successfully updated site names")
 	return nil
 }
 
@@ -185,7 +185,7 @@ func (s *sqlStorage) GetTopSite(ctx context.Context, orderBy int) (*store.Site, 
 }
 
 func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
-	entry := sdk.Logger(ctx)
+	entry := logger.New(ctx)
 
 	opts := &store.PageQueryOptions{
 		Order: aws.Int(store.OrderByBoth),
@@ -221,7 +221,7 @@ func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
 }
 
 func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
-	entry := sdk.Logger(ctx)
+	entry := logger.New(ctx)
 
 	s.cacheTopUserForSite(ctx, "")
 	for _, site := range internal.SitesMapKeys {
@@ -235,7 +235,7 @@ func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
 }
 
 func (s *sqlStorage) cacheTopUserForSite(ctx context.Context, site string) error {
-	entry := sdk.Logger(ctx)
+	entry := logger.New(ctx)
 
 	opts := &store.UserQueryOptions{
 		PageOpts: &store.PageQueryOptions{
@@ -289,7 +289,7 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments []*store.Comment)
 }
 
 func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, comments []*store.Comment) error {
-	entry := sdk.Logger(ctx).WithField("articleID", articleID)
+	entry := logger.New(ctx).WithField("articleID", articleID)
 
 	// Determine if any comments were deleted
 	queryOpts := &store.CommentQueryOptions{

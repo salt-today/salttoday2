@@ -16,7 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/salt-today/salttoday2/internal"
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/store"
 	"github.com/salt-today/salttoday2/internal/store/rdb"
 )
@@ -41,7 +41,7 @@ var articleCategories = []string{
 }
 
 func ScrapeAndStoreArticles(ctx context.Context) {
-	logEntry := sdk.Logger(ctx).WithField("job", "scraper/articles")
+	logEntry := logger.New(ctx).WithField("job", "scraper/articles")
 	storage, err := rdb.New(ctx)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
@@ -76,7 +76,7 @@ func ScrapeAndStoreArticles(ctx context.Context) {
 }
 
 func ScrapeAndStoreComments(ctx context.Context, daysAgo int, forceScrape bool) {
-	logEntry := sdk.Logger(ctx).WithField("job", "scraper/comments")
+	logEntry := logger.New(ctx).WithField("job", "scraper/comments")
 	storage, err := rdb.New(ctx)
 	if err != nil {
 		logEntry.WithError(err).Fatal("failed to create storage")
@@ -144,7 +144,7 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int, forceScrape bool) 
 }
 
 func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) ([]*store.Comment, []*store.User) {
-	logEntry := sdk.Logger(ctx)
+	logEntry := logger.New(ctx)
 
 	comments := make([]*store.Comment, 0)
 	userIDToNameMap := make(map[int]string)
@@ -194,7 +194,7 @@ func getBaseUrl(urlString string) (string, error) {
 // This logic is ported from the old scraper so blame Tyler if it's bad
 // The api for sootoday comments is awful so also thanks Tyler for figuring this out
 func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, error) {
-	logEntry := sdk.Logger(ctx).WithField("articleId", article.ID)
+	logEntry := logger.New(ctx).WithField("articleId", article.ID)
 	baseUrl, err := getBaseUrl(article.Url)
 	if err != nil {
 		logEntry.WithError(err).Error("failed to get host from url, cannot scrape this article!")
@@ -270,7 +270,7 @@ func searchArticleForComments(ctx context.Context, commentsDoc *goquery.Document
 }
 
 func getComments(ctx context.Context, commentDivs *goquery.Selection, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, int) {
-	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
+	logEntry := logger.New(ctx).WithField("article_id", article.ID)
 	comments := make([]*store.Comment, 0)
 	lastParentId := 0
 	commentDivs.Each(func(i int, commentDiv *goquery.Selection) {
@@ -319,7 +319,7 @@ func getComments(ctx context.Context, commentDivs *goquery.Selection, article *s
 // TODO - lastId is currently unused because I've yet to see a reply chain > 20 comments
 // We can nly surmise on the usage currently
 func getReplies(ctx context.Context, article *store.Article, parentID string, userIDToNameMap map[int]string) []*store.Comment {
-	logEntry := sdk.Logger(ctx).WithField("article_id", article.ID)
+	logEntry := logger.New(ctx).WithField("article_id", article.ID)
 	baseUrl, _ := getBaseUrl(article.Url) // not worried about error because we would have errored on this in the parent function
 	commentsUrl := fmt.Sprintf("%s/comments/get?ContentId=%d&TagId=2346&TagType=Content&Sort=Oldest&lastId=%22%22&ParentId=%s", baseUrl, article.ID, parentID)
 	res, err := http.Get(commentsUrl)
@@ -360,7 +360,7 @@ func getContentHelper(s *goquery.Selection) string {
 }
 
 func getCommentID(ctx context.Context, s *goquery.Selection) int {
-	logEntry := sdk.Logger(ctx)
+	logEntry := logger.New(ctx)
 	idString := s.AttrOr("data-id", "")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -376,7 +376,7 @@ func getUserID(ctx context.Context, s *goquery.Selection) int {
 	idString := splitProfile[len(splitProfile)-1]
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Couldn't parse user ID, using 0")
+		logger.New(ctx).WithError(err).Error("Couldn't parse user ID, using 0")
 		return 0
 	}
 	return id
@@ -391,7 +391,7 @@ func getTimestamp(ctx context.Context, s *goquery.Selection) time.Time {
 	timeString := s.Find("time").AttrOr("datetime", now.String())
 	commentTime, err := time.Parse(time.RFC3339, timeString)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Couldn't parse time, using current time")
+		logger.New(ctx).WithError(err).Error("Couldn't parse time, using current time")
 		return now
 	}
 	return commentTime
@@ -405,7 +405,7 @@ func getLikes(ctx context.Context, s *goquery.Selection) int32 {
 	likeString := getContentHelper(s.Find("[value=Upvote]"))
 	likes, err := strconv.Atoi(likeString)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Unable to get likes")
+		logger.New(ctx).WithError(err).Error("Unable to get likes")
 		return 0
 	}
 
@@ -416,7 +416,7 @@ func getDislikes(ctx context.Context, s *goquery.Selection) int32 {
 	dislikeString := getContentHelper(s.Find("[value=Downvote]"))
 	dislikes, err := strconv.Atoi(dislikeString)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Unable to get dislikes")
+		logger.New(ctx).WithError(err).Error("Unable to get dislikes")
 		return 0
 	}
 
@@ -444,7 +444,7 @@ func getNumberOfCommentApiCalls(ctx context.Context, doc *goquery.Document) int 
 	topLevelCommentCountStr := doc.Find("div#comments").First().AttrOr("data-count", "0")
 	topLevelCommentCount, err := strconv.Atoi(topLevelCommentCountStr)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Error converting data-count to int")
+		logger.New(ctx).WithError(err).Error("Error converting data-count to int")
 		return 0
 	}
 
@@ -455,14 +455,14 @@ func getArticleId(ctx context.Context, url string) int {
 	articleIdStr := url[strings.LastIndex(url, "-")+1:]
 	articleId, err := strconv.Atoi(articleIdStr)
 	if err != nil {
-		sdk.Logger(ctx).WithError(err).Error("Error converting article ID to int, using 0")
+		logger.New(ctx).WithError(err).Error("Error converting article ID to int, using 0")
 		return 0
 	}
 	return articleId
 }
 
 func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article {
-	logEntry := sdk.Logger(ctx).WithField("site_url", siteUrl)
+	logEntry := logger.New(ctx).WithField("site_url", siteUrl)
 	res, err := http.Get(siteUrl)
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to load articles")

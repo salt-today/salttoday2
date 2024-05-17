@@ -11,14 +11,14 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/salt-today/salttoday2/internal"
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "Home")
+	entry := logger.New(r.Context()).WithField("handler", "Home")
 
 	queryOpts, err := processGetCommentQueryParameters(r, 7)
 	if err != nil {
@@ -54,7 +54,7 @@ func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "GetComment")
+	entry := logger.New(r.Context()).WithField("handler", "GetComment")
 
 	commentIDStr := chi.URLParam(r, "commentID")
 	commentID, err := strconv.Atoi(commentIDStr)

@@ -1,4 +1,4 @@
-package sdk
+package logger
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 const ctxLogger = "logger"
 
-func Logger(ctx context.Context) logrus.FieldLogger {
+func New(ctx context.Context) logrus.FieldLogger {
 	defaultLogger := logrus.StandardLogger()
 
 	if ctx == nil {

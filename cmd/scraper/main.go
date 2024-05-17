@@ -6,8 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/scraper"
-	"github.com/salt-today/salttoday2/internal/sdk"
 )
 
 func main() {
@@ -37,5 +37,5 @@ func main() {
 	scraper.ScrapeAndStoreArticles(ctx)
 	scraper.ScrapeAndStoreComments(ctx, daysAgo, forceScrape)
 
-	sdk.Logger(ctx).Info("Scraping complete")
+	logger.New(ctx).Info("Scraping complete")
 }

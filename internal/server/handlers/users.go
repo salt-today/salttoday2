@@ -7,14 +7,14 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/salt-today/salttoday2/internal"
-	"github.com/salt-today/salttoday2/internal/sdk"
+	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
-	entry := sdk.Logger(r.Context()).WithField("handler", "Users")
+	entry := logger.New(r.Context()).WithField("handler", "Users")
 
 	userOpts, err := processGetUsersQueryParameters(r)
 	if err != nil {
