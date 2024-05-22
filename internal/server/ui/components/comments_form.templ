@@ -18,9 +18,8 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 		hx-include="this"
 		hx-push-url="true"
 		hx-indicator="#form-spinner"
-		class="mx-auto"
 	>
-		<div class="flex justify-center gap-4 my-4">
+		<div class="flex flex-wrap justify-center gap-4 my-4">
 			<div>
 				<select
 					id="order"

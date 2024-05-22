@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"embed"
 	"io/fs"
-	"net/http"
 
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/sirupsen/logrus"
@@ -20,8 +19,9 @@ func MigrateDb(db *sql.DB) error {
 		panic(err)
 	}
 	entry.WithField(`files`, files).Info(`migration files found`)
-	migrations := migrate.HttpFileSystemMigrationSource{
-		FileSystem: http.FS(sources),
+	migrations := migrate.EmbedFileSystemMigrationSource{
+		FileSystem: sources,
+		Root:       ".",
 	}
 	n, err := migrate.Exec(db, `mysql`, migrations, migrate.Up)
 	if err != nil {
