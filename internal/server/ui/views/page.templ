@@ -29,7 +29,7 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			@components.OpenGraphTagsComponent(openGraphTags)
 		</head>
 		<body
-			class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen"
+			class="font-bebas text-2xl leading-tight bg-slate-900 text-white min-h-screen"
 			hx-boost="true"
 		>
 			if nav {
@@ -66,12 +66,15 @@ templ Page(nav bool, openGraphTags map[string]string) {
 					</div>
 				</nav>
 			}
-			<div class="max-w-screen-xl p-9 min-h-80 items-center justify-between mx-auto bg-slate-900 bg-transparent">
-				{ children... }
+			<!-- Apply the falling salt only to the comments background to give spaces specifically for the end of page pile.-->
+            <div class="max-w-screen-xl min-h-full items-center justify-end mx-auto bg-slate-900 bg-transparent text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y" style="height: 100%;">
+                { children... }
+            </div>
+<!-- There is a bit of empty space at the top of this div / bottom of the last div that was causing it to be detached. -->
+<!-- Adding a negative top margin here fixes that. The classes used are just to align the salt pile to the center of the screen.-->
+            <div class="flex items-center justify-center" style="margin-top: -5vh; width: 100%;">
+                <img class="" src="/public/images/footer-pile.png" alt="Pile of salt" />
 			</div>
-			<footer class="flex justify-center h-full min-h-full" style="align-self: end">
-				<img class="" src="/public/images/footer-pile.png" alt="Pile of salt"/>
-			</footer>
 		</body>
 	</html>
 }
