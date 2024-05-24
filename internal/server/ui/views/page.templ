@@ -33,36 +33,30 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			hx-boost="true"
 		>
 			if nav {
-				<nav class="border-black">
-					<div class="bg-slate-800 max-w flex flex-wrap items-center justify-between mx-auto p-4">
-						<a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-							<img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-8" alt="SaltToday Logo"/>
-							<span class="self-center font-semibold whitespace-norap text-white">SaltToday</span>
+				<nav class="bg-gray-300">
+					<div class="bg-slate-800 md:w-12/12 h-16 shadow-md flex justify-between items-center flex-col md:flex-row">
+						<a href="/">
+							<div class="cursor-pointer flex justify-center items-center ml-3">
+								<img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-10 mx-3" alt="SaltToday Logo"/>
+								<h3 class="text-white font-semibold py-2 md:py-0">SaltToday</h3>
+							</div>
 						</a>
-						<div class="hidden w-full md:block md:w-auto" id="navbar-default">
-							<ul
-								class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-slate-100 rounded-lg bg-slate-800 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0"
-							>
-								<li>
-									<a href="/" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0" aria-current="page">Home</a>
-								</li>
-								<li>
-									<a href="/users" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0">
-										Users
-									</a>
-								</li>
-								<li>
-									<a href="/sites" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0">
-										Sites
-									</a>
-								</li>
-								<li>
-									<a href="/about" class="block py-2 px-3 text-white rounded md:bg-transparent md:p-0">
-										About
-									</a>
-								</li>
-							</ul>
-						</div>
+						<ul
+							class="flex lg:justify-end md:justify-end justify-evenly items-center w-full md:w-1/2 lg:w-1/3 bg-slate-700 md:bg-slate-800 mr-0 md:mr-5 py-2 md:py-0"
+						>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/">Home</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/users">Users</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/sites">Sites</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/about">About</a>
+							</li>
+						</ul>
 					</div>
 				</nav>
 			}
