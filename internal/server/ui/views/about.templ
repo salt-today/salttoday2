@@ -3,11 +3,16 @@ package views
 import (
 	"fmt"
 
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 templ About(user *store.User) {
-	@Page(true, nil) {
+	@Page(true, opengraph.New(
+		opengraph.WithTitle("About"),
+		opengraph.WithDescription("Whats a SaltToday?s?"),
+		opengraph.WithUrl("https://www.salttoday.ca/about"),
+	)) {
 		<div class="space-y-8">
 			<div>
 				<div>

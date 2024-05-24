@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
@@ -22,7 +23,13 @@ func Round(num, unit float64) float64 {
 
 templ User(user *store.User, queryOpts *store.CommentQueryOptions,
 	comments []*store.Comment, nextUrl string, sites []string) {
-	@Page(true, nil) {
+	@Page(true,
+		opengraph.New(
+			opengraph.WithTitle(user.UserName),
+			opengraph.WithDescription(fmt.Sprintf("%s's comments on SaltToday", user.UserName)),
+			opengraph.WithType("profile"),
+			opengraph.WithUrl(fmt.Sprintf("salttoday.ca/user/%d", user.ID)),
+		)) {
 		@components.CommentsFormComponent(fmt.Sprintf("/user/%d", user.ID), queryOpts, sites)
 		<h1 class="flex justify-center text-4xl">{ user.UserName }</h1>
 		<div class="w-full flex my-4">

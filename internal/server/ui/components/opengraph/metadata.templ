@@ -1,0 +1,73 @@
+package opengraph
+
+type Metadata struct {
+	title       string
+	image       string
+	url         string
+	description string
+	typ         string
+}
+
+type option func(*Metadata)
+
+func WithTitle(title string) option {
+	return func(ogTags *Metadata) {
+		ogTags.title = title
+	}
+}
+
+func WithImage(image string) option {
+	return func(ogTags *Metadata) {
+		ogTags.image = image
+	}
+}
+
+func WithLikesDislikesImage(likes, dislikes int32) option {
+	image := "https://salttoday.ca/public/images/thumbs-down.png"
+	if likes > dislikes {
+		image = "https://salttoday.ca/public/images/thumbs-up.png"
+	}
+	return WithImage(image)
+}
+
+func WithUrl(url string) option {
+	return func(ogTags *Metadata) {
+		ogTags.url = url
+	}
+}
+
+func WithDescription(description string) option {
+	return func(ogTags *Metadata) {
+		ogTags.description = description
+	}
+}
+
+func WithType(typ string) option {
+	return func(ogTags *Metadata) {
+		ogTags.typ = typ
+	}
+}
+
+func New(options ...option) Metadata {
+	metadata := &Metadata{
+		image:       "https://salttoday.ca/public/images/SaltTodayLogoRedBlue.psd",
+		title:       "SaltToday.ca",
+		url:         "https://www.salttoday.ca",
+		description: "A leaderboard for Village Media news sites users and comments.",
+		typ:         "website",
+	}
+
+	for _, opt := range options {
+		opt(metadata)
+	}
+
+	return *metadata
+}
+
+templ OpenGraphTagsComponent(metadata Metadata) {
+	<meta property="og:title" content={ metadata.title }/>
+	<meta property="og:image" content={ metadata.image }/>
+	<meta property="og:URL" content={ metadata.url }/>
+	<meta property="og:description" content={ metadata.description }/>
+	<meta property="og:type" content={ metadata.typ }/>
+}

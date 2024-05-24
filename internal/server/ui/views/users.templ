@@ -2,12 +2,17 @@ package views
 
 import (
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQueryOptions, sites []string,
 	nextUrl string) {
-	@Page(true, nil) {
+	@Page(true, opengraph.New(
+		opengraph.WithTitle("Users"),
+		opengraph.WithDescription("Users on SaltToday"),
+		opengraph.WithUrl("salttoday.ca/users"),
+	)) {
 		<form
 			id="form"
 			hx-get="/users"

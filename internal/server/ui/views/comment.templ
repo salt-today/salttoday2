@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
@@ -27,7 +28,12 @@ func commentOpenGraphTags(comment *store.Comment) map[string]string {
 }
 
 templ Comment(comment *store.Comment) {
-	@Page(true, commentOpenGraphTags(comment)) {
+	@Page(true, opengraph.New(
+		opengraph.WithTitle(fmt.Sprintf("%s's comment", comment.User.UserName)),
+		opengraph.WithDescription(comment.Text),
+		opengraph.WithUrl(fmt.Sprintf("https://www.salttoday.ca/comment/%d", comment.ID)),
+		opengraph.WithLikesDislikesImage(comment.Likes, comment.Dislikes),
+	)) {
 		@components.CommentComponent(comment)
 	}
 }

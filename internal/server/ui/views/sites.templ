@@ -2,11 +2,16 @@ package views
 
 import (
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 templ Sites(sites []*store.Site, topSite *store.Site, queryOpts *store.PageQueryOptions, nextUrl string) {
-	@Page(true, nil) {
+	@Page(true, opengraph.New(
+		opengraph.WithTitle("Site Comparison"),
+		opengraph.WithDescription("sites on SaltToday"),
+		opengraph.WithUrl("salttoday.ca/sites"),
+	)) {
 		<form
 			id="form"
 			hx-get="/sites"

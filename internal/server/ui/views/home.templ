@@ -1,12 +1,13 @@
 package views
 
 import (
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/server/ui/components"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
 templ Home(queryOpts *store.CommentQueryOptions, comments []*store.Comment, nextUrl string, sites []string) {
-	@Page(true, nil) {
+	@Page(true, opengraph.New()) {
 		@components.CommentsFormComponent("/", queryOpts, sites)
 		<div id="comments" class="space-y-12">
 			if len(comments) > 0 {

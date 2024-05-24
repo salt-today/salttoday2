@@ -1,13 +1,14 @@
 package views
 
 import (
-	"github.com/salt-today/salttoday2/internal/server/ui/components"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 )
 
-templ Page(nav bool, openGraphTags map[string]string) {
+templ Page(nav bool, ogMeta opengraph.Metadata) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
+			@opengraph.OpenGraphTagsComponent(ogMeta)
 			<title>SaltToday 2</title>
 			<link rel="icon" type="image/x-icon" href="/public/images/SaltTodayLogoRedBlue.psd"/>
 			<link rel="icon" href="/public/output.css"/>
@@ -26,7 +27,6 @@ templ Page(nav bool, openGraphTags map[string]string) {
 			<script src="https://kit.fontawesome.com/2245da1ce6.js" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-			@components.OpenGraphTagsComponent(openGraphTags)
 		</head>
 		<body
 			class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen"
