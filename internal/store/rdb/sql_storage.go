@@ -375,6 +375,11 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 		sd = sd.Where(goqu.Ex{UsersID: opts.ID})
 	}
 
+	if opts.Name != `` {
+		// Get users where their name contains opts.Name and ignoring case
+		sd = sd.Where(goqu.I(UsersName).ILike("%" + opts.Name + "%"))
+	}
+
 	if opts.PageOpts.Site != `` {
 		sd = sd.Where(goqu.I(ArticlesSiteName).Eq(opts.PageOpts.Site)).
 			InnerJoin(goqu.T(ArticlesTable).As(ArticlesTable), goqu.On(goqu.I(CommentsArticleID).Eq(goqu.I(ArticlesID))))
@@ -450,6 +455,10 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 	if opts.ArticleID != nil {
 		sd = sd.Where(goqu.Ex{CommentsArticleID: *opts.ArticleID})
+	}
+
+	if opts.Text != `` {
+		sd = sd.Where(goqu.I(CommentsText).ILike("%" + opts.Text + "%"))
 	}
 
 	sd = addPaging(sd, opts.PageOpts)

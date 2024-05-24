@@ -37,6 +37,7 @@ type CommentQueryOptions struct {
 	UserID      *int
 	OnlyDeleted bool
 	DaysAgo     *uint
+	Text        string
 
 	ArticleID *int
 
@@ -44,7 +45,8 @@ type CommentQueryOptions struct {
 }
 
 type UserQueryOptions struct {
-	ID *int
+	ID   *int
+	Name string
 
 	PageOpts *PageQueryOptions
 }

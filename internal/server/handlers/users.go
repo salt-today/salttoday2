@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/samber/lo"
 
@@ -66,12 +67,23 @@ func processGetUsersQueryParameters(r *http.Request) (*store.UserQueryOptions, e
 		PageOpts: pageOpts,
 	}
 
+	for param, value := range parameters {
+		switch strings.ToLower(param) {
+		case "name":
+			opts.Name = value
+		}
+	}
+
 	return opts, nil
 }
 
 func getNextUsersUrl(queryOpts *store.UserQueryOptions) string {
 	path := `/users`
+	paramsString := ``
 
-	nextPageParamsString := getNextPageQueryString(queryOpts.PageOpts)
-	return fmt.Sprintf("%s?%s", path, nextPageParamsString)
+	if queryOpts.Name != `` {
+		paramsString += `&name=` + queryOpts.Name
+	}
+	paramsString += getNextPageQueryString(queryOpts.PageOpts)
+	return fmt.Sprintf("%s?%s", path, paramsString)
 }

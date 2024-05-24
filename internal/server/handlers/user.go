@@ -24,29 +24,6 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 	}
 	entry = entry.WithField("userID", userID)
 
-	commentOpts, err := processGetCommentQueryParameters(r, 0)
-	if err != nil {
-		entry.Error("error parsing comment query parameters", err)
-		w.WriteHeader(400)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	commentOpts.UserID = &userID
-
-	comments, err := h.storage.GetComments(r.Context(), commentOpts)
-	if errors.Is(err, &store.NoQueryResultsError{}) {
-		entry.WithError(err).Warn("error getting comments")
-		w.WriteHeader(404)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	hxTrigger := r.Header.Get("HX-Trigger")
-	if hxTrigger == "pagination" || hxTrigger == "form" {
-		components.CommentsListComponent(comments, getNextCommentsUrl(commentOpts)).Render(r.Context(), w)
-		return
-	}
-
 	userOpts, err := processGetUsersQueryParameters(r)
 	if err != nil {
 		entry.Error("error parsing user query parameters", err)
@@ -70,5 +47,36 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 		entry.Warning("invalid user")
 		w.WriteHeader(404)
 	}
+
+	commentOpts, err := processGetCommentQueryParameters(r, 7)
+	if err != nil {
+		entry.Error("error parsing query parameters", err)
+		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	comments, err := h.storage.GetComments(r.Context(), commentOpts)
+	if err != nil && !errors.Is(err, &store.NoQueryResultsError{}) {
+		entry.WithError(err).Warn("error getting comments")
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	nextUrl := getNextCommentsUrl(commentOpts)
+
+	if commentOpts.PageOpts.Site != `` {
+		comments = stripArticleSiteName(comments)
+	} else {
+		comments = stripArticleSiteNameAll(comments)
+	}
+
+	hxTrigger := r.Header.Get("HX-Trigger")
+	if hxTrigger == "pagination" || hxTrigger == "form" {
+		components.CommentsListComponent(comments, nextUrl).Render(r.Context(), w)
+		return
+	}
+
 	views.User(users[0], commentOpts, comments, getNextCommentsUrl(commentOpts), internal.SitesMapKeys).Render(r.Context(), w)
 }

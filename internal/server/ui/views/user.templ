@@ -25,7 +25,7 @@ templ User(user *store.User, queryOpts *store.CommentQueryOptions,
 	@Page(true, nil) {
 		@components.CommentsFormComponent(fmt.Sprintf("/user/%d", user.ID), queryOpts, sites)
 		<h1 class="flex justify-center text-4xl">{ user.UserName }</h1>
-		<div class="w-full flex">
+		<div class="w-full flex my-4">
 			<div class="w-full flex my-1 h-12">
 				<div class="w-full flex">
 					<span
@@ -45,12 +45,18 @@ templ User(user *store.User, queryOpts *store.CommentQueryOptions,
 				</div>
 			</div>
 		</div>
-		<div id="comments" class="py-4">
+		<div id="comments" class="space-y-12">
 			if len(comments) > 0 {
 				@components.CommentsListComponent(comments, nextUrl)
 			} else {
-				@components.NoResultsFound("User")
+				@components.NoResultsFound("comments")
 			}
 		</div>
+		<img
+			id="pagination-spinner"
+			class="htmx-indicator mx-auto"
+			src="/public/images/spinner.svg"
+			alt="Mining more salt..."
+		/>
 	}
 }

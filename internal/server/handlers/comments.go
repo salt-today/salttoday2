@@ -128,6 +128,9 @@ func processGetCommentQueryParameters(r *http.Request, defaultDays uint) (*store
 				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
 			opts.DaysAgo = &daysAgo
+
+		case "text":
+			opts.Text = value
 		}
 	}
 
@@ -145,6 +148,9 @@ func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	}
 	if queryOpts.DaysAgo != nil {
 		paramsString += fmt.Sprintf(`&days_ago=%d`, *queryOpts.DaysAgo)
+	}
+	if queryOpts.Text != `` {
+		paramsString += fmt.Sprintf(`&text=%s`, queryOpts.Text)
 	}
 
 	if len(paramsString) > 0 {
