@@ -76,7 +76,8 @@ templ CommentsFormComponent(targetUrl string, queryOpts *store.CommentQueryOptio
 					id="text"
 					name="text"
 					placeholder="Search by text"
-					class="text-2xl p-1 text-black bg-white rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+					value={ queryOpts.Text }
+					class="bg-slate-200 text-2xl p-1 text-black bg-white rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 				/>
 			</div>
 		</div>

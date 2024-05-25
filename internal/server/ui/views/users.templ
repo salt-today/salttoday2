@@ -53,7 +53,8 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 						id="name"
 						name="name"
 						placeholder="Search by name"
-						class="text-2xl p-1 text-black bg-white rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
+						value={ queryOpts.Name }
+						class="bg-slate-200 text-2xl p-1 text-black bg-white rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 			</div>
