@@ -55,6 +55,7 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	commentOpts.UserID = &userID
 
 	comments, err := h.storage.GetComments(r.Context(), commentOpts)
 	if err != nil && !errors.Is(err, &store.NoQueryResultsError{}) {
