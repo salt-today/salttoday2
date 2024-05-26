@@ -15,6 +15,7 @@ type Storage interface {
 	GetTopUser(ctx context.Context, orderBy int, site string) (*User, error)
 	GetSites(ctx context.Context, opts *PageQueryOptions) ([]*Site, error)
 	GetTopSite(ctx context.Context, orderBy int) (*Site, error)
+	GetStats(ctx context.Context) (*Stats, error)
 	SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error
 }
 
@@ -49,8 +50,4 @@ type UserQueryOptions struct {
 	Name string
 
 	PageOpts *PageQueryOptions
-}
-
-type StorageContent interface {
-	[]*Comment | []*Article
 }

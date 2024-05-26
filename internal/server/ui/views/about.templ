@@ -7,7 +7,7 @@ import (
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
-templ About(user *store.User) {
+templ About(user *store.User, stats *store.Stats) {
 	@Page(true, opengraph.New(
 		opengraph.WithTitle("About"),
 		opengraph.WithDescription("Whats a SaltToday?s?"),
@@ -52,6 +52,32 @@ templ About(user *store.User) {
 					<span>
 						but have expanded to other sites in the Village Media news network. We don't do every single one,
 						since a lot don't have enough traffic to be worthwhile. If we're missing one you want though, let us know.
+					</span>
+				</div>
+			</div>
+			<div>
+				<div>
+					<span class="text-3xl">There are</span>
+				</div>
+				<div>
+					<a href="/" class="hover:underline decoration-2">
+						{ fmt.Sprintf("%d comments with %d likes and %d dislikes", stats.CommentCount, stats.LikeCount,
+        stats.DislikeCount) }
+					</a>
+				</div>
+				<div>
+					<a href="/?only_deleted=true" class="hover:underline decoration-2">
+						{ fmt.Sprintf("%d comments that moderators deleted (and we kept)", stats.DeletedCount) }
+					</a>
+				</div>
+				<div>
+					<a href="/" class="hover:underline decoration-2">
+						{ fmt.Sprintf("%d users", stats.UserCount) }
+					</a>
+				</div>
+				<div>
+					<span>
+						{ fmt.Sprintf("%d articles", stats.ArticleCount) }
 					</span>
 				</div>
 			</div>

@@ -18,5 +18,12 @@ func (h *Handler) HandleAboutPage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	views.About(users).Render(r.Context(), w)
+	stats, err := h.storage.GetStats(r.Context())
+	if err != nil {
+		entry.WithError(err).Warn("error getting stats")
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+	}
+
+	views.About(users, stats).Render(r.Context(), w)
 }

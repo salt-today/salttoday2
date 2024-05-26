@@ -40,6 +40,15 @@ type Site struct {
 	TotalScore    int32
 }
 
+type Stats struct {
+	CommentCount int
+	DeletedCount int
+	LikeCount    int
+	DislikeCount int
+	ArticleCount int
+	UserCount    int
+}
+
 type NoQueryResultsError struct{}
 
 func (e *NoQueryResultsError) Error() string {

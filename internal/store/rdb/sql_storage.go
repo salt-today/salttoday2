@@ -734,6 +734,81 @@ func (s *sqlStorage) SetArticleScrapedAt(ctx context.Context, scrapedTime time.T
 	return err
 }
 
+func (s *sqlStorage) GetStats(ctx context.Context) (*store.Stats, error) {
+	stats := &store.Stats{}
+	sd := s.dialect.Select(goqu.COUNT(CommentsID)).From(CommentsTable)
+	query, _, err := sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	row := s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.CommentCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting comments %v", err)
+	}
+
+	sd = s.dialect.Select(goqu.COUNT(CommentsID)).From(CommentsTable).Where(goqu.Ex{CommentsDeleted: true})
+	query, _, err = sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	row = s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.DeletedCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting deleted comments %v", err)
+	}
+
+	sd = s.dialect.Select(goqu.SUM(CommentsLikes)).From(CommentsTable)
+	query, _, err = sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	row = s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.LikeCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting likes %v", err)
+	}
+
+	sd = s.dialect.Select(goqu.SUM(CommentsDislikes)).From(CommentsTable)
+	query, _, err = sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	row = s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.DislikeCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting dislikes %v", err)
+	}
+
+	sd = s.dialect.Select(goqu.COUNT(ArticlesID)).From(ArticlesTable)
+	query, _, err = sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row = s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.ArticleCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting articles %v", err)
+	}
+
+	sd = s.dialect.Select(goqu.COUNT(UsersID)).From(UsersTable)
+	query, _, err = sd.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row = s.db.QueryRowContext(ctx, query)
+	err = row.Scan(&stats.UserCount)
+	if err != nil {
+		return nil, fmt.Errorf("error counting users %v", err)
+	}
+
+	return stats, nil
+}
+
 func (s *sqlStorage) shutdown() error {
 	return s.db.Close()
 }
