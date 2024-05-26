@@ -48,7 +48,7 @@ func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 	}
 
-	commentOpts, err := processGetCommentQueryParameters(r, 7)
+	commentOpts, err := processGetCommentQueryParameters(r, 0)
 	if err != nil {
 		entry.Error("error parsing query parameters", err)
 		w.WriteHeader(400)
