@@ -87,7 +87,7 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	ticker := time.NewTicker(time.Hour)
 	go func() error {
 		<-ticker.C
-		return s.cacheTopUsers(ctx)
+		return s.cacheTopSites(ctx)
 	}()
 
 	go func() {
@@ -123,41 +123,11 @@ func (s *sqlStorage) fillSiteName(ctx context.Context) error {
 }
 
 func (s *sqlStorage) cacheTopResults(ctx context.Context) error {
-	err := s.cacheTopUsers(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = s.cacheTopSites(ctx)
+	err := s.cacheTopSites(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (s *sqlStorage) GetTopUser(ctx context.Context, orderBy int, site string) (*store.User, error) {
-	if orderBy == store.OrderByBoth {
-		if s.cachedResults.topScoringUser[site] == nil {
-			return nil, &store.NoQueryResultsError{}
-		}
-		return s.cachedResults.topScoringUser[site], nil
-
-	} else if orderBy == store.OrderByLikes {
-		if s.cachedResults.topLikedUser[site] == nil {
-			return nil, &store.NoQueryResultsError{}
-		}
-		return s.cachedResults.topLikedUser[site], nil
-
-	} else if orderBy == store.OrderByDislikes {
-		if s.cachedResults.topDislikedUser == nil {
-			return nil, &store.NoQueryResultsError{}
-		}
-
-		return s.cachedResults.topDislikedUser[site], nil
-
-	} else {
-		return nil, fmt.Errorf("unknown orderBy %d", orderBy)
-	}
 }
 
 func (s *sqlStorage) GetTopSite(ctx context.Context, orderBy int) (*store.Site, error) {
@@ -216,58 +186,6 @@ func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
 		return err
 	}
 	s.cachedResults.topDislikedSite = sites[0]
-
-	return nil
-}
-
-func (s *sqlStorage) cacheTopUsers(ctx context.Context) error {
-	entry := logger.New(ctx)
-
-	s.cacheTopUserForSite(ctx, "")
-	for _, site := range internal.SitesMapKeys {
-		if err := s.cacheTopUserForSite(ctx, site); err != nil {
-			return err
-		}
-	}
-
-	entry.Info("successfully updated top users cache")
-	return nil
-}
-
-func (s *sqlStorage) cacheTopUserForSite(ctx context.Context, site string) error {
-	entry := logger.New(ctx)
-
-	opts := &store.UserQueryOptions{
-		PageOpts: &store.PageQueryOptions{
-			Order: aws.Int(store.OrderByBoth),
-			Limit: aws.Uint(1),
-			Site:  site,
-		},
-	}
-	users, err := s.GetUsers(ctx, opts)
-	if err != nil {
-		entry.WithError(err).Error("unable to calculate highest scoring user")
-		return err
-	} else if len(users) < 1 {
-		entry.Warn("no users found")
-		return nil
-	}
-	s.cachedResults.topScoringUser[site] = users[0]
-
-	opts.PageOpts.Order = aws.Int(store.OrderByLikes)
-	users, err = s.GetUsers(ctx, opts)
-	if err != nil {
-		entry.WithError(err).Error("unable to calculate highest liked user")
-	}
-	s.cachedResults.topLikedUser[site] = users[0]
-
-	opts.PageOpts.Order = aws.Int(store.OrderByDislikes)
-	users, err = s.GetUsers(ctx, opts)
-	if err != nil {
-		entry.WithError(err).Error("unable to calculate highest disliked user")
-		return err
-	}
-	s.cachedResults.topDislikedUser[site] = users[0]
 
 	return nil
 }

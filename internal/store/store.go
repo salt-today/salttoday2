@@ -12,7 +12,6 @@ type Storage interface {
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
-	GetTopUser(ctx context.Context, orderBy int, site string) (*User, error)
 	GetSites(ctx context.Context, opts *PageQueryOptions) ([]*Site, error)
 	GetTopSite(ctx context.Context, orderBy int) (*Site, error)
 	GetStats(ctx context.Context) (*Stats, error)

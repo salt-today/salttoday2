@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/samber/lo"
 
 	"github.com/salt-today/salttoday2/internal"
@@ -35,14 +36,22 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 		entry.Warning("no users found")
 	}
 
-	topUser, err := h.storage.GetTopUser(r.Context(), *userOpts.PageOpts.Order, userOpts.PageOpts.Site)
+	nextUrl := getNextUsersUrl(userOpts)
+
+	// need the top user to correctly show bar graph on page
+	userOpts.PageOpts.Limit = aws.Uint(1)
+	userOpts.PageOpts.Page = aws.Uint(0)
+	topUserArr, err := h.storage.GetUsers(r.Context(), userOpts)
+	var topUser *store.User
 	if err != nil {
 		entry.WithError(err).Error("error getting top user")
 		w.WriteHeader(500)
 		return
+	} else if len(topUserArr) < 1 {
+		entry.Error("no top user found")
+	} else {
+		topUser = topUserArr[0]
 	}
-
-	nextUrl := getNextUsersUrl(userOpts)
 
 	hxTrigger := r.Header.Get("HX-Trigger")
 	if hxTrigger == "pagination" || hxTrigger == "form" {
@@ -82,8 +91,9 @@ func getNextUsersUrl(queryOpts *store.UserQueryOptions) string {
 	paramsString := ``
 
 	if queryOpts.Name != `` {
-		paramsString += `&name=` + queryOpts.Name
+		paramsString += fmt.Sprintf(`&name=%s&`, queryOpts.Name)
 	}
+
 	paramsString += getNextPageQueryString(queryOpts.PageOpts)
 	return fmt.Sprintf("%s?%s", path, paramsString)
 }
