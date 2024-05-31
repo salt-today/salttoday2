@@ -1,71 +1,73 @@
 package views
 
 import (
-"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
+	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 )
 
 templ Page(nav bool, ogMeta opengraph.Metadata) {
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  @opengraph.OpenGraphTagsComponent(ogMeta)
-  <title>SaltToday 2</title>
-  <link rel="icon" type="image/x-icon" href="/public/images/SaltTodayLogoRedBlue.psd" />
-  <link rel="icon" href="/public/output.css" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/public/output.css" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <!-- fonts -->
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..400,0..1,-50..200" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <script src="https://kit.fontawesome.com/2245da1ce6.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-</head>
-
-<body
-  class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen flex flex-col"
-  hx-boost="true">
-  if nav {
-  <nav class="bg-gray-300">
-    <div class="bg-slate-800 md:w-12/12 h-16 shadow-md flex justify-between items-center flex-col md:flex-row">
-      <a href="/">
-        <div class="cursor-pointer flex justify-center items-center ml-3">
-          <img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-10 mx-3" alt="SaltToday Logo" />
-          <h3 class="text-white font-semibold py-2 md:py-0">SaltToday</h3>
-        </div>
-      </a>
-      <ul
-        class="flex lg:justify-end md:justify-end justify-evenly items-center w-full md:w-1/2 lg:w-1/3 bg-slate-700 md:bg-slate-800 mr-0 md:mr-5 py-2 md:py-0">
-        <li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
-          <a href="/">Home</a>
-        </li>
-        <li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
-          <a href="/users">Users</a>
-        </li>
-        <li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
-          <a href="/sites">Sites</a>
-        </li>
-        <li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
-          <a href="/about">About</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-  }
-  <div
-    class="w-full flex-grow max-w-screen-xl p-9 min-h-80 items-center justify-between mx-auto bg-slate-900 bg-transparent">
-    { children... }
-  </div>
-  <footer class="bg-bottom min-h-full" style="align-self: end">
-    <img class="" src="/public/images/footer-pile.png" alt="Pile of salt" />
-  </footer>
-</body>
-
-</html>>
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			@opengraph.OpenGraphTagsComponent(ogMeta)
+			<title>SaltToday 2</title>
+			<link rel="icon" type="image/x-icon" href="/public/images/SaltTodayLogoRedBlue.psd"/>
+			<link rel="icon" href="/public/output.css"/>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/public/output.css"/>
+			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+			<!-- fonts -->
+			<link
+				rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..400,0..1,-50..200"
+			/>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet"/>
+			<script src="https://kit.fontawesome.com/2245da1ce6.js" crossorigin="anonymous"></script>
+			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+		</head>
+		<body
+			class="font-bebas text-2xl leading-tight bg-slate-900 text-white bg-[url('/public/images/salt-falling.png')] bg-center bg-repeat-y min-h-screen flex flex-col"
+			hx-boost="true"
+		>
+			if nav {
+				<nav class="bg-gray-300">
+					<div class="bg-slate-800 md:w-12/12 h-16 shadow-md flex justify-between items-center flex-col md:flex-row">
+						<a href="/">
+							<div class="cursor-pointer flex justify-center items-center ml-3">
+								<img src="/public/images/SaltTodayLogoRedBlue.psd" class="h-10 mx-3" alt="SaltToday Logo"/>
+								<h3 class="text-white font-semibold py-2 md:py-0">SaltToday</h3>
+							</div>
+						</a>
+						<ul
+							class="flex lg:justify-end md:justify-end justify-evenly items-center w-full md:w-1/2 lg:w-1/3 bg-slate-700 md:bg-slate-800 mr-0 md:mr-5 py-2 md:py-0"
+						>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/">Home</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/users">Users</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/sites">Sites</a>
+							</li>
+							<li class="hover:bg-blue-600 px-3 py-1 rounded-sm hover:text-slate-100 font-semibold cursor-pointer">
+								<a href="/about">About</a>
+							</li>
+						</ul>
+					</div>
+				</nav>
+			}
+			<div
+				class="w-full flex-grow max-w-screen-xl p-9 min-h-80 items-center justify-between mx-auto bg-slate-900 bg-transparent"
+			>
+				{ children... }
+			</div>
+			<footer class="bg-bottom min-h-full" style="align-self: end">
+				<img class="" src="/public/images/footer-pile.png" alt="Pile of salt"/>
+			</footer>
+		</body>
+	</html>
 }

@@ -162,7 +162,7 @@ func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) 
 		"comments": len(comments),
 	}).Info("Completed scraping site")
 
-	users := make([]*store.User, 0)
+	users := make([]*store.User, 0, len(userIDToNameMap))
 	for userID, userName := range userIDToNameMap {
 		users = append(users, &store.User{
 			ID:       userID,
@@ -495,7 +495,7 @@ func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article 
 	}
 
 	// Map because we can find articles multiple times on the home page
-	articles := make(map[int]*store.Article)
+	articlesMap := make(map[int]*store.Article)
 	doc.Find("a.section-item").Each(func(i int, sel *goquery.Selection) {
 		if href, exists := sel.Attr("href"); exists {
 			if isArticleUrl(href) {
@@ -512,8 +512,8 @@ func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article 
 					return
 				}
 				articleId := getArticleId(ctx, href)
-				if _, ok := articles[articleId]; !ok {
-					articles[articleId] = &store.Article{
+				if _, ok := articlesMap[articleId]; !ok {
+					articlesMap[articleId] = &store.Article{
 						ID:             getArticleId(ctx, href),
 						Title:          title,
 						Url:            siteUrl + href,
@@ -525,10 +525,10 @@ func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article 
 		}
 	})
 
-	articleIDs := make([]int, 0, len(articles))
-	for id := range articles {
+	articleIDs := make([]int, 0, len(articlesMap))
+	for id := range articlesMap {
 		articleIDs = append(articleIDs, id)
 	}
 	logEntry.WithField("articles", articleIDs).Info("Articles found")
-	return articles
+	return articlesMap
 }

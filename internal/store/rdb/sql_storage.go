@@ -556,10 +556,6 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 }
 
 func addPaging(sd *goqu.SelectDataset, pageOpts *store.PageQueryOptions) *goqu.SelectDataset {
-	if pageOpts == nil {
-		return sd
-	}
-
 	limit := maxPageSize
 	if pageOpts.Limit != nil && *pageOpts.Limit < limit {
 		limit = *pageOpts.Limit
