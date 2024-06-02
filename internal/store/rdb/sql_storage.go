@@ -316,7 +316,7 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 	}
 	defer rows.Close()
 
-	users := make([]*store.User, 0)
+	var users []*store.User
 
 	for rows.Next() {
 		u := &store.User{}
@@ -411,7 +411,7 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	}
 	defer rows.Close()
 
-	comments := make([]*store.Comment, 0)
+	var comments []*store.Comment
 	var score int
 	var weightedEntropy float64
 	for rows.Next() {
@@ -530,7 +530,7 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 	}
 	defer rows.Close()
 
-	sites := make([]*store.Site, 0)
+	var sites []*store.Site
 	for rows.Next() {
 		site := &store.Site{}
 		dests := []interface{}{&site.Name}

@@ -3,7 +3,7 @@ package internal
 import "sort"
 
 func init() {
-	SitesMapKeys = make([]string, 0)
+	SitesMapKeys = make([]string, 0, len(SitesMap))
 	for key := range SitesMap {
 		SitesMapKeys = append(SitesMapKeys, key)
 	}

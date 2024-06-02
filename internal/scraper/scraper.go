@@ -146,7 +146,7 @@ func ScrapeAndStoreComments(ctx context.Context, daysAgo int, forceScrape bool) 
 func ScrapeCommentsFromArticles(ctx context.Context, articles []*store.Article) ([]*store.Comment, []*store.User) {
 	logEntry := logger.New(ctx)
 
-	comments := make([]*store.Comment, 0)
+	var comments []*store.Comment
 	userIDToNameMap := make(map[int]string)
 	for _, article := range articles {
 		articleComments, err := getCommentsFromArticle(ctx, article, userIDToNameMap)
@@ -202,9 +202,9 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 
 	// Loop at least once
 	// Keep looping if theres a load more button
-	comments := make([]*store.Comment, 0)
+	var comments []*store.Comment
+	var foundComments []*store.Comment
 	loadMore := true
-	foundComments := []*store.Comment{}
 	lastParentId := 0
 
 	pagesLeft := 10 // number to prevent infinite loop
@@ -271,7 +271,7 @@ func searchArticleForComments(ctx context.Context, commentsDoc *goquery.Document
 
 func getComments(ctx context.Context, commentDivs *goquery.Selection, article *store.Article, userIDToNameMap map[int]string) ([]*store.Comment, int) {
 	logEntry := logger.New(ctx).WithField("article_id", article.ID)
-	comments := make([]*store.Comment, 0)
+	var comments []*store.Comment
 	lastParentId := 0
 	commentDivs.Each(func(i int, commentDiv *goquery.Selection) {
 		numRepliesStr := commentDiv.AttrOr("data-replies", "0")
@@ -348,7 +348,7 @@ func getReplies(ctx context.Context, article *store.Article, parentID string, us
 	}
 
 	docComments := doc.Find("div.comment")
-	comments := make([]*store.Comment, 0)
+	var comments []*store.Comment
 	docComments.Each(func(i int, reply *goquery.Selection) {
 		comments = append(comments, newCommentFromDiv(ctx, reply, article.ID, userIDToNameMap))
 	})
