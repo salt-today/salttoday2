@@ -48,11 +48,18 @@ templ About(user *store.User, stats *store.Stats) {
 				</div>
 				<div>
 					<span>A website that ranks both the comments and users on various news sites. We started with </span>
-					<a href="https://sootoday.com">SooToday</a>
+					<a class="hover:underline decoration-2" href="https://sootoday.com">SooToday</a>
 					<span>
-						but have expanded to other sites in the Village Media news network. We don't do every single one,
+						but have expanded to other sites in the Village Media news network. We don't do every single one
 						since a lot don't have enough traffic to be worthwhile. If we're missing one you want though, let us know.
 					</span>
+				</div>
+			</div>
+			<div>
+				<div class="text-3xl underline decoration-2">Why?...</div>
+				<div>
+					We found ourselves reading the comment section more than the articles themselves. So we automated the
+					process.
 				</div>
 			</div>
 			<div>
@@ -61,15 +68,23 @@ templ About(user *store.User, stats *store.Stats) {
 				</div>
 				<div>
 					<a href="/" class="hover:underline decoration-2">
-						{ fmt.Sprintf("%d comments with ", stats.CommentCount) }
-						<span class="text-blue-600">{ fmt.Sprintf("%d likes", stats.LikeCount) }</span>
-						and
-						<span class="text-red-600">{ fmt.Sprintf("%d dislikes", stats.DislikeCount) }</span>
+						{ fmt.Sprintf("%d comments", stats.CommentCount) }
+					</a>
+					with
+					<a href="/?order=likes" class="text-blue-600 hover:underline decoration-2">
+						{ fmt.Sprintf("%d likes", stats.LikeCount) }
+					</a>
+					and
+					<a href="/?order=dislikes" class="text-red-600 hover:underline decoration-2">
+						{ fmt.Sprintf("%d dislikes", stats.DislikeCount) }
 					</a>
 				</div>
 				<div>
-					<a href="/?only_deleted=true" class="hover:underline decoration-2 text-red-600">
-						{ fmt.Sprintf("%d comments that moderators deleted (and we kept)", stats.DeletedCount) }
+					<a href="/?only_deleted=true" class="hover:underline decoration-2">
+						{ fmt.Sprintf("%d", stats.DeletedCount) }
+						comments that were
+						<span class="line-through text-red-600">&nbsp;deleted&nbsp;</span>
+						(and we kept)
 					</a>
 				</div>
 				<div>
@@ -81,6 +96,14 @@ templ About(user *store.User, stats *store.Stats) {
 					<span>
 						{ fmt.Sprintf("%d articles", stats.ArticleCount) }
 					</span>
+				</div>
+			</div>
+			<div>
+				<div class="text-3xl underline decoration-2">Awards</div>
+				<div class="underline decoration-2">SMARt Project of the Year Nominee - 2019</div>
+				<div>
+					Project of the year nominee for the Sault Ste. Marie Innovation Centre's SSMARt awards.
+					<img src="/public/images/ssmic.png"/>
 				</div>
 			</div>
 			<div>
