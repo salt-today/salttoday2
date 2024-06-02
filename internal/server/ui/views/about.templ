@@ -16,7 +16,7 @@ templ About(user *store.User, stats *store.Stats) {
 		<div class="space-y-8">
 			<div>
 				<div>
-					<span class="text-3xl">Definition</span>
+					<span class="text-3xl underline">Definition</span>
 				</div>
 				<div>
 					<div>
@@ -44,7 +44,7 @@ templ About(user *store.User, stats *store.Stats) {
 			</div>
 			<div>
 				<div>
-					<span class="text-3xl">What is this?</span>
+					<span class="text-3xl underline">What is this?</span>
 				</div>
 				<div>
 					<span>A website that ranks both the comments and users on various news sites. We started with </span>
@@ -57,16 +57,18 @@ templ About(user *store.User, stats *store.Stats) {
 			</div>
 			<div>
 				<div>
-					<span class="text-3xl">There are</span>
+					<span class="text-3xl underline">There are:</span>
 				</div>
 				<div>
 					<a href="/" class="hover:underline decoration-2">
-						{ fmt.Sprintf("%d comments with %d likes and %d dislikes", stats.CommentCount, stats.LikeCount,
-        stats.DislikeCount) }
+						{ fmt.Sprintf("%d comments with ", stats.CommentCount) }
+						<span class="text-blue-600">{ fmt.Sprintf("%d likes", stats.LikeCount) }</span>
+						and
+						<span class="text-red-600">{ fmt.Sprintf("%d dislikes", stats.DislikeCount) }</span>
 					</a>
 				</div>
 				<div>
-					<a href="/?only_deleted=true" class="hover:underline decoration-2">
+					<a href="/?only_deleted=true" class="hover:underline decoration-2 text-red-600">
 						{ fmt.Sprintf("%d comments that moderators deleted (and we kept)", stats.DeletedCount) }
 					</a>
 				</div>
@@ -83,7 +85,7 @@ templ About(user *store.User, stats *store.Stats) {
 			</div>
 			<div>
 				<div>
-					<span class="text-3xl">Your site is broken!</span>
+					<span class="text-3xl underline">Your site is broken!</span>
 				</div>
 				<div>
 					<span>Probably. Let me know about it </span>
