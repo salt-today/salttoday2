@@ -28,7 +28,7 @@ const (
 type PageQueryOptions struct {
 	Limit *uint
 	Page  *uint
-	Order *int
+	Order int
 	Site  string
 }
 
@@ -36,7 +36,7 @@ type CommentQueryOptions struct {
 	ID          *int
 	UserID      *int
 	OnlyDeleted bool
-	DaysAgo     *uint
+	DaysAgo     uint
 	Text        string
 
 	ArticleID *int

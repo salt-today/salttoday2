@@ -34,7 +34,7 @@ func (h *Handler) HandleSitesPage(w http.ResponseWriter, r *http.Request) {
 		entry.Warning("no sites found")
 	}
 
-	topSite, err := h.storage.GetTopSite(r.Context(), *queryOpts.Order)
+	topSite, err := h.storage.GetTopSite(r.Context(), queryOpts.Order)
 	if err != nil {
 		entry.WithError(err).Error("error getting top site")
 		w.WriteHeader(500)
@@ -45,7 +45,7 @@ func (h *Handler) HandleSitesPage(w http.ResponseWriter, r *http.Request) {
 
 	hxTrigger := r.Header.Get("HX-Trigger")
 	if hxTrigger == "pagination" || hxTrigger == "form" {
-		components.SitesListComponent(sites, *queryOpts.Order, topSite, nextUrl).Render(r.Context(), w)
+		components.SitesListComponent(sites, queryOpts.Order, topSite, nextUrl).Render(r.Context(), w)
 		return
 	}
 

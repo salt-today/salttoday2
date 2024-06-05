@@ -31,9 +31,9 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 						name="order"
 						class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 					>
-						<option value="score" selected?={ *queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
-						<option value="dislikes" selected?={ *queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
-						<option value="likes" selected?={ *queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
+						<option value="score" selected?={ queryOpts.PageOpts.Order==store.OrderByBoth }>Top</option>
+						<option value="dislikes" selected?={ queryOpts.PageOpts.Order==store.OrderByDislikes }>Dislikes</option>
+						<option value="likes" selected?={ queryOpts.PageOpts.Order==store.OrderByLikes }>Likes</option>
 					</select>
 				</div>
 				<div>
@@ -63,7 +63,7 @@ templ Users(users []*store.User, topUser *store.User, queryOpts *store.UserQuery
 		<div id="users">
 			if len(users) > 0 {
 				<table class="w-full border-separate border-spacing-4">
-					@components.UsersListComponent(users, *queryOpts.PageOpts.Order, topUser, nextUrl)
+					@components.UsersListComponent(users, queryOpts.PageOpts.Order, topUser, nextUrl)
 				</table>
 			} else {
 				@components.NoResultsFound("users")

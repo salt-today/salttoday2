@@ -17,7 +17,7 @@ func (h *Handler) HandleAboutPage(w http.ResponseWriter, r *http.Request) {
 		PageOpts: &store.PageQueryOptions{
 			Limit: aws.Uint(1),
 			Page:  aws.Uint(0),
-			Order: aws.Int(store.OrderByBoth),
+			Order: store.OrderByBoth,
 		},
 	}
 

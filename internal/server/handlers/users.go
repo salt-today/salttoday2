@@ -55,7 +55,7 @@ func (h *Handler) HandleUsersPage(w http.ResponseWriter, r *http.Request) {
 
 	hxTrigger := r.Header.Get("HX-Trigger")
 	if hxTrigger == "pagination" || hxTrigger == "form" {
-		components.UsersListComponent(users, *userOpts.PageOpts.Order, topUser, nextUrl).Render(r.Context(), w)
+		components.UsersListComponent(users, userOpts.PageOpts.Order, topUser, nextUrl).Render(r.Context(), w)
 		return
 	}
 

@@ -158,7 +158,7 @@ func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
 	entry := logger.New(ctx)
 
 	opts := &store.PageQueryOptions{
-		Order: aws.Int(store.OrderByBoth),
+		Order: store.OrderByBoth,
 		Limit: aws.Uint(1),
 	}
 
@@ -172,14 +172,14 @@ func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
 	}
 	s.cachedResults.topScoringSite = sites[0]
 
-	opts.Order = aws.Int(store.OrderByLikes)
+	opts.Order = store.OrderByLikes
 	sites, err = s.GetSites(ctx, opts)
 	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest liked site")
 	}
 	s.cachedResults.topLikedSite = sites[0]
 
-	opts.Order = aws.Int(store.OrderByDislikes)
+	opts.Order = store.OrderByDislikes
 	sites, err = s.GetSites(ctx, opts)
 	if err != nil {
 		entry.WithError(err).Error("unable to calculate highest disliked site")
@@ -213,7 +213,7 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 	queryOpts := &store.CommentQueryOptions{
 		ArticleID: &articleID,
 		PageOpts: &store.PageQueryOptions{
-			Order: aws.Int(store.OrderByBoth),
+			Order: store.OrderByBoth,
 		},
 	}
 
@@ -275,17 +275,15 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 
 	// only get the comments we need since we're summing all the values
 	cols := []interface{}{UsersID, UsersName}
-	if opts.PageOpts.Order != nil {
-		if *opts.PageOpts.Order == store.OrderByLikes {
-			cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes))
-			sd = sd.Order(goqu.I(UserLikes).Desc())
-		} else if *opts.PageOpts.Order == store.OrderByDislikes {
-			cols = append(cols, goqu.SUM(CommentsDislikes).As(UserDislikes))
-			sd = sd.Order(goqu.I(UserDislikes).Desc())
-		} else {
-			cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes))
-			sd = sd.Order(goqu.L(UserLikes + "+" + UserDislikes).Desc())
-		}
+	if opts.PageOpts.Order == store.OrderByLikes {
+		cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes))
+		sd = sd.Order(goqu.I(UserLikes).Desc())
+	} else if opts.PageOpts.Order == store.OrderByDislikes {
+		cols = append(cols, goqu.SUM(CommentsDislikes).As(UserDislikes))
+		sd = sd.Order(goqu.I(UserDislikes).Desc())
+	} else {
+		cols = append(cols, goqu.SUM(CommentsLikes).As(UserLikes), goqu.SUM(CommentsDislikes).As(UserDislikes))
+		sd = sd.Order(goqu.L(UserLikes + "+" + UserDislikes).Desc())
 	}
 	sd = sd.Select(cols...)
 
@@ -321,9 +319,9 @@ func (s *sqlStorage) GetUsers(ctx context.Context, opts *store.UserQueryOptions)
 	for rows.Next() {
 		u := &store.User{}
 		dests := []interface{}{&u.ID, &u.UserName}
-		if *opts.PageOpts.Order == store.OrderByLikes {
+		if opts.PageOpts.Order == store.OrderByLikes {
 			dests = append(dests, &u.TotalLikes)
-		} else if *opts.PageOpts.Order == store.OrderByDislikes {
+		} else if opts.PageOpts.Order == store.OrderByDislikes {
 			dests = append(dests, &u.TotalDislikes)
 		} else {
 			dests = append(dests, &u.TotalLikes, &u.TotalDislikes)
@@ -367,8 +365,8 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 		sd = sd.Where(goqu.Ex{CommentsDeleted: true})
 	}
 
-	if opts.DaysAgo != nil && *opts.DaysAgo != 0 {
-		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", *opts.DaysAgo)))
+	if opts.DaysAgo != 0 {
+		sd = sd.Where(goqu.I(CommentsTime).Gt(goqu.L("NOW() - INTERVAL ? DAY", opts.DaysAgo)))
 	}
 
 	if opts.ArticleID != nil {
@@ -381,21 +379,19 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 
 	sd = addPaging(sd, opts.PageOpts)
 
-	if opts.PageOpts.Order != nil {
-		if *opts.PageOpts.Order == store.OrderByLikes {
-			sd = sd.Order(goqu.I(CommentsLikes).Desc())
-		} else if *opts.PageOpts.Order == store.OrderByDislikes {
-			sd = sd.Order(goqu.I(CommentsDislikes).Desc())
-		} else if *opts.PageOpts.Order == store.OrderByBoth {
-			cols = append(cols, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore))
-			sd = sd.Order(goqu.I(CommentsScore).Desc())
-		} else if *opts.PageOpts.Order == store.OrderByControversial {
-			cols = append(cols, CommentControverstyWeightedEntropy)
-			sd = sd.Order(goqu.I(CommentControverstyWeightedEntropy).Desc()).
-				InnerJoin(goqu.T(CommentControverstyView).As(CommentControverstyView), goqu.On(goqu.I(CommentsID).Eq(goqu.I(CommentControverstyID))))
-		} else {
-			return nil, fmt.Errorf("unexpected ordering directive %d", *opts.PageOpts.Order)
-		}
+	if opts.PageOpts.Order == store.OrderByLikes {
+		sd = sd.Order(goqu.I(CommentsLikes).Desc())
+	} else if opts.PageOpts.Order == store.OrderByDislikes {
+		sd = sd.Order(goqu.I(CommentsDislikes).Desc())
+	} else if opts.PageOpts.Order == store.OrderByBoth {
+		cols = append(cols, goqu.L(CommentsLikes+" + "+CommentsDislikes).As(CommentsScore))
+		sd = sd.Order(goqu.I(CommentsScore).Desc())
+	} else if opts.PageOpts.Order == store.OrderByControversial {
+		cols = append(cols, CommentControverstyWeightedEntropy)
+		sd = sd.Order(goqu.I(CommentControverstyWeightedEntropy).Desc()).
+			InnerJoin(goqu.T(CommentControverstyView).As(CommentControverstyView), goqu.On(goqu.I(CommentsID).Eq(goqu.I(CommentControverstyID))))
+	} else {
+		return nil, fmt.Errorf("unexpected ordering directive %d", opts.PageOpts.Order)
 	}
 
 	sd = sd.Select(cols...)
@@ -417,11 +413,10 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 	for rows.Next() {
 		c := &store.Comment{Article: store.Article{}, User: store.User{}}
 		dests := []interface{}{&c.ID, &c.Time, &c.Text, &c.Likes, &c.Dislikes, &c.Deleted, &c.Article.ID, &c.Article.Title, &c.Article.SiteName, &c.Article.Url, &c.User.ID, &c.User.UserName}
-		if opts.PageOpts.Order == nil {
-			// no-op
-		} else if *opts.PageOpts.Order == store.OrderByBoth {
+		// no-op
+		if opts.PageOpts.Order == store.OrderByBoth {
 			dests = append(dests, &score)
-		} else if *opts.PageOpts.Order == store.OrderByControversial {
+		} else if opts.PageOpts.Order == store.OrderByControversial {
 			dests = append(dests, &weightedEntropy)
 		}
 		err := rows.Scan(dests...)
@@ -503,17 +498,15 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 
 	// only get the comments we need since we're summing all the values
 	cols := []interface{}{ArticlesSiteName}
-	if opts.Order != nil {
-		if *opts.Order == store.OrderByLikes {
-			cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes))
-			sd = sd.Order(goqu.I(SiteLikes).Desc())
-		} else if *opts.Order == store.OrderByDislikes {
-			cols = append(cols, goqu.SUM(CommentsDislikes).As(SiteDislikes))
-			sd = sd.Order(goqu.I(SiteDislikes).Desc())
-		} else {
-			cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes), goqu.SUM(CommentsDislikes).As(SiteDislikes))
-			sd = sd.Order(goqu.L(SiteLikes + "+" + SiteDislikes).Desc())
-		}
+	if opts.Order == store.OrderByLikes {
+		cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes))
+		sd = sd.Order(goqu.I(SiteLikes).Desc())
+	} else if opts.Order == store.OrderByDislikes {
+		cols = append(cols, goqu.SUM(CommentsDislikes).As(SiteDislikes))
+		sd = sd.Order(goqu.I(SiteDislikes).Desc())
+	} else {
+		cols = append(cols, goqu.SUM(CommentsLikes).As(SiteLikes), goqu.SUM(CommentsDislikes).As(SiteDislikes))
+		sd = sd.Order(goqu.L(SiteLikes + "+" + SiteDislikes).Desc())
 	}
 	sd = sd.Select(cols...)
 
@@ -534,9 +527,9 @@ func (s *sqlStorage) GetSites(ctx context.Context, opts *store.PageQueryOptions)
 	for rows.Next() {
 		site := &store.Site{}
 		dests := []interface{}{&site.Name}
-		if *opts.Order == store.OrderByLikes {
+		if opts.Order == store.OrderByLikes {
 			dests = append(dests, &site.TotalLikes)
-		} else if *opts.Order == store.OrderByDislikes {
+		} else if opts.Order == store.OrderByDislikes {
 			dests = append(dests, &site.TotalDislikes)
 		} else {
 			dests = append(dests, &site.TotalLikes, &site.TotalDislikes)

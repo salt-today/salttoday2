@@ -108,7 +108,7 @@ func processGetCommentQueryParameters(r *http.Request, defaultDays uint) (*store
 
 	opts := &store.CommentQueryOptions{
 		PageOpts: pageOpts,
-		DaysAgo:  &defaultDays,
+		DaysAgo:  defaultDays,
 	}
 
 	for param, value := range parameters {
@@ -127,7 +127,7 @@ func processGetCommentQueryParameters(r *http.Request, defaultDays uint) (*store
 			if err != nil {
 				return nil, fmt.Errorf("days_ago was not a valid number: %w", err)
 			}
-			opts.DaysAgo = &daysAgo
+			opts.DaysAgo = daysAgo
 
 		case "text":
 			opts.Text = value
@@ -146,9 +146,7 @@ func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	if queryOpts.OnlyDeleted {
 		paramsString += `&only_deleted=true`
 	}
-	if queryOpts.DaysAgo != nil {
-		paramsString += fmt.Sprintf(`&days_ago=%d`, *queryOpts.DaysAgo)
-	}
+	paramsString += fmt.Sprintf(`&days_ago=%d`, queryOpts.DaysAgo)
 	if queryOpts.Text != `` {
 		paramsString += fmt.Sprintf(`&text=%s`, queryOpts.Text)
 	}

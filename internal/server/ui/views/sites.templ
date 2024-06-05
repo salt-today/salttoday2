@@ -30,9 +30,9 @@ templ Sites(sites []*store.Site, topSite *store.Site, queryOpts *store.PageQuery
 						name="order"
 						class="text-2xl p-1 text-white bg-slate-700 rounded block w-full border border-slate-600 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500"
 					>
-						<option value="score" selected?={ *queryOpts.Order==store.OrderByBoth }>Top</option>
-						<option value="dislikes" selected?={ *queryOpts.Order==store.OrderByDislikes }>Dislikes</option>
-						<option value="likes" selected?={ *queryOpts.Order==store.OrderByLikes }>Likes</option>
+						<option value="score" selected?={ queryOpts.Order==store.OrderByBoth }>Top</option>
+						<option value="dislikes" selected?={ queryOpts.Order==store.OrderByDislikes }>Dislikes</option>
+						<option value="likes" selected?={ queryOpts.Order==store.OrderByLikes }>Likes</option>
 					</select>
 				</div>
 			</div>
@@ -41,7 +41,7 @@ templ Sites(sites []*store.Site, topSite *store.Site, queryOpts *store.PageQuery
 		<div id="sites">
 			if len(sites) > 0 {
 				<table class="w-full border-separate border-spacing-4">
-					@components.SitesListComponent(sites, *queryOpts.Order, topSite, nextUrl)
+					@components.SitesListComponent(sites, queryOpts.Order, topSite, nextUrl)
 				</table>
 			} else {
 				@components.NoResultsFound("sites")
