@@ -46,10 +46,6 @@ func processPageQueryParams(parameters map[string]string) (*store.PageQueryOptio
 			if value != "" {
 				opts.Site = value
 			}
-		case "days_ago":
-			if value != "" {
-				opts.Site = value
-			}
 		}
 	}
 
