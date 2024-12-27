@@ -2,12 +2,13 @@ package views
 
 import (
 	"fmt"
-
 	"github.com/salt-today/salttoday2/internal/server/ui/components/opengraph"
 	"github.com/salt-today/salttoday2/internal/store"
+	"golang.org/x/text/message"
+	"golang.org/x/text/number"
 )
 
-templ About(user *store.User, stats *store.Stats) {
+templ About(printer *message.Printer, user *store.User, stats *store.Stats) {
 	@Page(true, opengraph.New(
 		opengraph.WithTitle("About"),
 		opengraph.WithDescription("Whats a SaltToday?s?"),
@@ -68,20 +69,20 @@ templ About(user *store.User, stats *store.Stats) {
 				</div>
 				<div>
 					<a href="/" class="hover:underline decoration-2">
-						{ fmt.Sprintf("%d comments", stats.CommentCount) }
+						{ printer.Sprintf("%v comments", number.Decimal(stats.CommentCount)) }
 					</a>
 					with
 					<a href="/?order=likes" class="text-blue-600 hover:underline decoration-2">
-						{ fmt.Sprintf("%d likes", stats.LikeCount) }
+						{ printer.Sprintf("%v likes", number.Decimal(stats.LikeCount)) }
 					</a>
 					and
 					<a href="/?order=dislikes" class="text-red-600 hover:underline decoration-2">
-						{ fmt.Sprintf("%d dislikes", stats.DislikeCount) }
+						{ printer.Sprintf("%v dislikes", number.Decimal(stats.DislikeCount)) }
 					</a>
 				</div>
 				<div>
 					<a href="/?only_deleted=true" class="hover:underline decoration-2">
-						{ fmt.Sprintf("%d", stats.DeletedCount) }
+						{ printer.Sprintf("%v", number.Decimal(stats.DeletedCount)) }
 						comments that were
 						<span class="line-through text-red-600">&nbsp;deleted&nbsp;</span>
 						(and we kept)
@@ -89,7 +90,7 @@ templ About(user *store.User, stats *store.Stats) {
 				</div>
 				<div>
 					<a href="/" class="hover:underline decoration-2">
-						{ fmt.Sprintf("%d users", stats.UserCount) }
+						{ printer.Sprintf("%v users", number.Decimal(stats.UserCount)) }
 					</a>
 				</div>
 				<div>

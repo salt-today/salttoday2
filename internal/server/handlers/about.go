@@ -7,6 +7,8 @@ import (
 	"github.com/salt-today/salttoday2/internal/logger"
 	"github.com/salt-today/salttoday2/internal/server/ui/views"
 	"github.com/salt-today/salttoday2/internal/store"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func (h *Handler) HandleAboutPage(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +41,7 @@ func (h *Handler) HandleAboutPage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 	}
+	printer := message.NewPrinter(language.English)
 
-	views.About(topUser, stats).Render(r.Context(), w)
+	views.About(printer, topUser, stats).Render(r.Context(), w)
 }
