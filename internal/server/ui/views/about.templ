@@ -95,7 +95,7 @@ templ About(printer *message.Printer, user *store.User, stats *store.Stats) {
 				</div>
 				<div>
 					<span>
-						{ fmt.Sprintf("%d articles", stats.ArticleCount) }
+						{ printer.Sprintf("%v articles", number.Decimal(stats.ArticleCount)) }
 					</span>
 				</div>
 			</div>
