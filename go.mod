@@ -6,10 +6,9 @@ toolchain go1.24.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.1
-	github.com/a-h/templ v0.3.833
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/doug-martin/goqu/v9 v9.19.0
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/rubenv/sql-migrate v1.6.1
 	github.com/samber/lo v1.39.0
