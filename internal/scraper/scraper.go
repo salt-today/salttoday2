@@ -222,7 +222,7 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 		res, err := http.Get(commentsUrl)
 		if err != nil {
 			logEntry.WithError(err).Error("failed to download comments")
-			return nil, err
+			continue
 		}
 
 		defer func() {
