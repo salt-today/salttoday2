@@ -235,14 +235,14 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 			logEntry.WithFields(logrus.Fields{
 				"status_code": res.StatusCode,
 				"status":      res.Status,
-			}).Fatal("status code error")
-			return nil, nil
+			}).Error("status code error")
+			continue
 		}
 
 		initialCommentDoc, err := goquery.NewDocumentFromReader(res.Body)
 		if err != nil {
 			logEntry.WithError(err).Error("Error loading HTTP response body")
-			return nil, err
+			continue
 		}
 
 		foundComments, lastParentId = searchArticleForComments(ctx, initialCommentDoc, article, userIDToNameMap)
