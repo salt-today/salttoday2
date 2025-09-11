@@ -1,6 +1,6 @@
 # salttoday2
 
-Electric Boogaloo
+[Electric Boogaloo](https://salttoday.ca)
 
 ## Run locally
 
