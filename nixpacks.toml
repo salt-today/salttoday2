@@ -1,7 +1,11 @@
 providers = ['go']
 
 [phases.setup]
-nixPkgs = ["...", "tailwindcss"]
+nixPkgs = [
+  "...", 
+  "tailwindcss",
+  "chromium",
+]
 
 [phases.go-templ]
 cmds = [
@@ -17,6 +21,13 @@ cmds = [
 [phases.tailwind]
 cmds = [
 	'tailwindcss -c ./tailwind.config.js -i ./public/styles.css -o ./public/output.css',
+]
+
+[phases.playwright]
+cmds = [
+  'go install github.com/playwright-community/playwright-go/cmd/playwright@latest',
+  '/root/go/bin/playwright install chromium',
+  '/root/go/bin/playwright install-deps chromium'
 ]
 
 [start]

@@ -95,8 +95,8 @@ func (bp *BrowserPool) Close() {
 // createContext creates a new browser context with standard configuration
 func (bp *BrowserPool) createContext() (playwright.BrowserContext, error) {
 	return bp.browser.NewContext(playwright.BrowserNewContextOptions{
-		UserAgent:        playwright.String(getRandomUserAgentInternal()),
-		Viewport:         &playwright.Size{Width: 1920, Height: 1080},
+		UserAgent: playwright.String(getRandomUserAgentInternal()),
+		Viewport:  &playwright.Size{Width: 1920, Height: 1080},
 	})
 }
 
