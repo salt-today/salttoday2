@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/salt-today/salttoday2/internal/logger"
-	"github.com/salt-today/salttoday2/internal/scraper"
+	scrpr "github.com/salt-today/salttoday2/internal/scraper"
 	"github.com/salt-today/salttoday2/internal/store"
 )
 
@@ -23,14 +23,18 @@ func main() {
 	ctx := context.Background()
 	logEntry := logger.New(ctx)
 
-	// Use Playwright scraper to avoid 403 errors
-	playwrightScraper, err := scraper.NewPlaywrightScraper(ctx)
+	scraper, err := scrpr.NewScraper(ctx, nil) // Use default config
 	if err != nil {
-		logEntry.WithError(err).Fatal("Failed to create Playwright scraper")
+		logEntry.WithError(err).Fatal("Failed to create scraper")
 	}
-	defer playwrightScraper.Close()
+	defer scraper.Close()
 
-	comments, _ := playwrightScraper.ScrapeCommentsFromArticles(ctx, []*store.Article{{ID: articleID, Url: articleUrl}})
+	// Create a temporary user map for this single article scrape
+	userMap := make(map[int]string)
+	comments, err := scraper.ScrapeCommentsFromArticle(ctx, &store.Article{ID: articleID, Url: articleUrl}, userMap)
+	if err != nil {
+		logEntry.WithError(err).Fatal("Failed to scrape comments")
+	}
 
 	logEntry.WithField("commentsFound", len(comments)).Info("Scraping completed")
 

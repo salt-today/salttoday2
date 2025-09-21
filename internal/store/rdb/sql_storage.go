@@ -103,26 +103,6 @@ func New(ctx context.Context) (*sqlStorage, error) {
 	return s, err
 }
 
-func (s *sqlStorage) fillSiteName(ctx context.Context) error {
-	for siteName, siteUrl := range internal.SitesMap {
-		ds := s.dialect.Update(ArticlesTable).
-			Set(goqu.Record{ArticlesSiteName: siteName}).
-			Where(goqu.I(ArticlesUrl).Like(siteUrl + "%"))
-
-		query, _, err := ds.ToSQL()
-		if err != nil {
-			return err
-		}
-		_, err = s.db.ExecContext(ctx, query)
-		if err != nil {
-			return err
-		}
-
-	}
-	logger.New(ctx).Info("Successfully updated site names")
-	return nil
-}
-
 func (s *sqlStorage) cacheTopResults(ctx context.Context) error {
 	err := s.cacheTopSites(ctx)
 	if err != nil {

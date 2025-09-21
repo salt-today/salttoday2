@@ -7,10 +7,11 @@ import (
 	"strconv"
 
 	"github.com/salt-today/salttoday2/internal/logger"
-	"github.com/salt-today/salttoday2/internal/scraper"
+	scrpr "github.com/salt-today/salttoday2/internal/scraper"
 )
 
 func main() {
+	logger := logger.New(context.Background())
 	if len(os.Args) < 2 {
 		fmt.Println("Expected days ago as an argument")
 		os.Exit(1)
@@ -34,9 +35,22 @@ func main() {
 
 	ctx := context.Background()
 
-	// Use Playwright scraper for both articles and comments
-	scraper.ScrapeAndStoreArticlesWithPlaywright(ctx)
-	scraper.ScrapeAndStoreCommentsWithPlaywright(ctx, daysAgo, forceScrape)
+	// Use the main scraper
+	scraper, err := scrpr.NewScraper(ctx, nil) // Use default config
+	if err != nil {
+		logger.WithError(err).Fatal("Failed to create scraper")
+	}
+	defer scraper.Close()
 
-	logger.New(ctx).Info("Scraping complete")
+	// Scrape articles
+	if err := scraper.ScrapeAndStoreArticles(ctx); err != nil {
+		logger.WithError(err).Error("Article scraping failed")
+	}
+
+	// Scrape comments
+	if err := scraper.ScrapeAndStoreComments(ctx, daysAgo, forceScrape); err != nil {
+		logger.WithError(err).Error("Comment scraping failed")
+	}
+
+	logger.Info("Scraping complete")
 }
