@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -435,23 +436,51 @@ func (s *sqlStorage) GetComments(ctx context.Context, opts *store.CommentQueryOp
 }
 
 func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article) error {
-	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesSiteName, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
-		As(NewAlias).
-		OnConflict(
-			goqu.DoUpdate(ArticlesSiteName,
-				goqu.C(SiteNameSuffix).Set(goqu.L("IF(?, ?, ?)", goqu.I(NewAliasSiteName).Eq(internal.AllSitesName), goqu.I(NewAliasSiteName), goqu.I(ArticlesSiteName)))))
+	// If no articles to add, return early
+	if len(articles) == 0 {
+		logger.New(ctx).Info("No articles to add, skipping")
+		return nil
+	}
+
+	logEntry := logger.New(ctx)
+
+	// Use INSERT IGNORE to handle duplicate article IDs gracefully
+	// This will insert new articles and skip duplicates without failing
+	ds := s.dialect.Insert(ArticlesTable).Cols(ArticlesID, ArticlesSiteName, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime)
 
 	// We want to set the lastScrapedTime to nil so that the article will be scraped immediately
 	for _, article := range articles {
 		ds = ds.Vals(goqu.Vals{article.ID, article.SiteName, article.Url, article.Title, article.DiscoveryTime, nil})
 	}
+
+	// Generate SQL with INSERT IGNORE to handle duplicates
 	query, _, err := ds.ToSQL()
 	if err != nil {
 		return err
 	}
 
-	_, err = s.db.ExecContext(ctx, query)
-	return err
+	// Replace INSERT with INSERT IGNORE to handle duplicate keys gracefully
+	query = strings.Replace(query, "INSERT INTO", "INSERT IGNORE INTO", 1)
+
+	logEntry.WithFields(logrus.Fields{
+		"articles_count": len(articles),
+		"query_preview":  query[:min(200, len(query))] + "...",
+	}).Info("Inserting articles with duplicate handling")
+
+	result, err := s.db.ExecContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	// Log how many articles were actually inserted
+	rowsAffected, _ := result.RowsAffected()
+	logEntry.WithFields(logrus.Fields{
+		"articles_attempted": len(articles),
+		"articles_inserted":  rowsAffected,
+		"duplicates_skipped": int64(len(articles)) - rowsAffected,
+	}).Info("Articles insertion completed")
+
+	return nil
 }
 
 func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*store.Article, error) {
@@ -600,12 +629,15 @@ func hydrateArticles(rows *sql.Rows) ([]*store.Article, error) {
 }
 
 func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshold time.Time) ([]*store.Article, error) {
+	// Convert threshold to UTC for database comparison
+	thresholdUTC := threshold.UTC().Truncate(time.Second)
+
 	sd := s.dialect.
 		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
 		Where(
 			goqu.Ex{
-				ArticlesDiscoveryTime: goqu.Op{"gte": threshold.Truncate(time.Second)},
+				ArticlesDiscoveryTime: goqu.Op{"gte": thresholdUTC},
 			},
 		)
 	query, _, err := sd.ToSQL()

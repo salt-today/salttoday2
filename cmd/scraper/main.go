@@ -34,8 +34,9 @@ func main() {
 
 	ctx := context.Background()
 
-	scraper.ScrapeAndStoreArticles(ctx)
-	scraper.ScrapeAndStoreComments(ctx, daysAgo, forceScrape)
+	// Use Playwright scraper for both articles and comments
+	scraper.ScrapeAndStoreArticlesWithPlaywright(ctx)
+	scraper.ScrapeAndStoreCommentsWithPlaywright(ctx, daysAgo, forceScrape)
 
 	logger.New(ctx).Info("Scraping complete")
 }

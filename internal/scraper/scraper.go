@@ -3,7 +3,6 @@ package scraper
 import (
 	"context"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -65,6 +64,7 @@ var articleCategories = []string{
 	"/opp-beat/",
 	"/arts-culture/",
 	"/local-sports/",
+	"/closer-look/",
 	"/local-entertainment",
 	"/bulletin/",
 	"/more-local/",
@@ -272,6 +272,7 @@ func getCommentsFromArticle(ctx context.Context, article *store.Article, userIDT
 
 		if res.StatusCode != 200 {
 			logEntry.WithFields(logrus.Fields{
+				"url": req.URL,
 				"status_code": res.StatusCode,
 				"status":      res.Status,
 			}).Error("status code error")
@@ -384,6 +385,7 @@ func getReplies(ctx context.Context, article *store.Article, parentID string, us
 
 	if res.StatusCode != 200 {
 		logEntry.WithFields(logrus.Fields{
+			"url": req.URL,
 			"status_code": res.StatusCode,
 			"status":      res.StatusCode,
 		}).Fatal("status code error")
@@ -533,15 +535,16 @@ func ScrapeArticles(ctx context.Context, siteUrl string) map[int]*store.Article 
 	}()
 
 	if res.StatusCode != 200 {
-		bodyBytes, err := io.ReadAll(res.Body)
+		// bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			logEntry.Error("Error reading response body")
 		}
 
 		logEntry.WithFields(logrus.Fields{
 			"status_code": res.StatusCode,
-			"status":      res.StatusCode,
-			"body":        string(bodyBytes),
+			"status":      res.Status,
+			"url":         req.URL,
+			// "body":        string(bodyBytes),
 		}).Error("status code error")
 		return nil
 	}

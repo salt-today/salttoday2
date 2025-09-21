@@ -10,6 +10,7 @@ type Storage interface {
 	GetComments(ctx context.Context, opts *CommentQueryOptions) ([]*Comment, error)
 	AddArticles(ctx context.Context, articles ...*Article) error
 	GetArticles(ctx context.Context, articleIDs ...int) ([]*Article, error)
+	GetRecentlyDiscoveredArticles(ctx context.Context, threshold time.Time) ([]*Article, error)
 	AddUsers(ctx context.Context, users ...*User) error
 	GetUsers(ctx context.Context, opts *UserQueryOptions) ([]*User, error)
 	GetSites(ctx context.Context, opts *PageQueryOptions) ([]*Site, error)
