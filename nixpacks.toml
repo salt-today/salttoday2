@@ -12,7 +12,19 @@ cmds = [
   'go install github.com/a-h/templ/cmd/templ@latest',
   '/root/go/bin/templ generate',
 ]
+
+[phases.playwright]
+dependsOn = ['go-templ']
+cmds = [
+  'go install github.com/playwright-community/playwright-go/cmd/playwright@latest',
+  'mkdir -p /app/.playwright',
+  'PLAYWRIGHT_BROWSERS_PATH=/app/.playwright /root/go/bin/playwright install chromium',
+  'PLAYWRIGHT_BROWSERS_PATH=/app/.playwright /root/go/bin/playwright install-deps chromium'
+]
+paths = ['/app/.playwright']
+
 [phases.build]
+dependsOn = ['playwright']
 cmds = [
   'go build -o service-bin cmd/server/main.go',
   'go build -o scraper-bin cmd/scraper/main.go',
@@ -23,12 +35,8 @@ cmds = [
 	'tailwindcss -c ./tailwind.config.js -i ./public/styles.css -o ./public/output.css',
 ]
 
-[phases.playwright]
-cmds = [
-  'go install github.com/playwright-community/playwright-go/cmd/playwright@latest',
-  '/root/go/bin/playwright install chromium',
-  '/root/go/bin/playwright install-deps chromium'
-]
-
 [start]
 cmd = './service-bin'
+
+[variables]
+PLAYWRIGHT_BROWSERS_PATH = '/app/.playwright'
