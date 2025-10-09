@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   mysql:
     image: mysql:8.0
@@ -18,14 +17,37 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-psalt"]
       interval: 2s
       retries: 20
-  webserver:
-    build: .
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    platform: linux/amd64
+    image: salttoday2-app:latest
+    command: ["/app/service-bin"]
     ports:
-      - "3000:3000"
+      - "8080:8080"
     expose:
-      - "3000"
+      - "8080"
+    environment:
+      - MYSQL_URL=root:salt@tcp(mysql:3306)/salt
+      - RAILWAY_PUBLIC_DOMAIN=localhost  # Makes server bind to 0.0.0.0 instead of localhost
     depends_on:
       mysql:
         condition: service_healthy
-    links:
-      - mysql
+  
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile.scraper
+      platforms:
+        - linux/amd64
+    platform: linux/amd64
+    image: salttoday2-scraper:latest
+    command: ["/scraper-bin", "7"]
+    environment:
+      - MYSQL_URL=root:salt@tcp(mysql:3306)/salt
+    depends_on:
+      mysql:
+        condition: service_healthy

@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.24 AS modules
+
+COPY go.mod go.sum /modules/
+WORKDIR /modules
+
+RUN go mod download
+
+FROM golang:1.24 AS builder
+
+COPY . /workdir
+WORKDIR /workdir
+
+RUN PWGO_VER=$(grep -oE "playwright-go v\S+" /workdir/go.mod | sed 's/playwright-go //g') \
+    && echo "Installing playwright CLI version: ${PWGO_VER}" \
+    && go install github.com/playwright-community/playwright-go/cmd/playwright@${PWGO_VER}
+
+RUN go mod download && \
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o /bin/scraper-bin cmd/scraper/main.go
+
+FROM ubuntu:noble
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY --from=builder /go/bin/playwright /playwright
+RUN /playwright install --with-deps chromium
+
+COPY --from=builder /bin/scraper-bin /scraper-bin
+
+WORKDIR /app
+
+CMD ["/scraper-bin", "14"]

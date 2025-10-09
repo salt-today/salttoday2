@@ -2,24 +2,34 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/salt-today/salttoday2/internal/logger"
 	scrpr "github.com/salt-today/salttoday2/internal/scraper"
 )
 
 func main() {
-	logger := logger.New(context.Background())
+	startTime := time.Now()
+	ctx := context.Background()
+	log := logger.New(ctx)
+
+	log.Info("========================================")
+	log.Info("Scraper starting...")
+	log.WithField("args", os.Args).Info("Command-line arguments")
+
+	// Validate command-line arguments
 	if len(os.Args) < 2 {
-		fmt.Println("Expected days ago as an argument")
+		log.Error("Expected days ago as an argument (e.g., ./scraper 14)")
+		log.Info("Usage: scraper <days-ago> [force-scrape-bool]")
 		os.Exit(1)
 	}
+
 	daysAgoArg := os.Args[1]
 	daysAgo, err := strconv.Atoi(daysAgoArg)
 	if err != nil {
-		fmt.Println(fmt.Errorf("unable to convert days ago from string to int %w", err))
+		log.WithError(err).WithField("arg", daysAgoArg).Error("Unable to convert days ago from string to int")
 		os.Exit(1)
 	}
 
@@ -28,29 +38,45 @@ func main() {
 		forceStr := os.Args[2]
 		forceScrape, err = strconv.ParseBool(forceStr)
 		if err != nil {
-			fmt.Println(fmt.Errorf("unable to convert force scrape from string to bool %w", err))
+			log.WithError(err).WithField("arg", forceStr).Error("Unable to convert force scrape from string to bool")
 			os.Exit(1)
 		}
 	}
 
-	ctx := context.Background()
+	log.WithField("days_ago", daysAgo).WithField("force_scrape", forceScrape).Info("Configuration validated")
 
-	// Use the main scraper
+	mysqlURL := os.Getenv("MYSQL_URL")
+	if mysqlURL == "" {
+		log.Error("MYSQL_URL environment variable is not set")
+		os.Exit(1)
+	}
+
+	log.Info("Creating scraper instance...")
 	scraper, err := scrpr.NewScraper(ctx, nil) // Use default config
 	if err != nil {
-		logger.WithError(err).Fatal("Failed to create scraper")
+		log.WithError(err).Fatal("Failed to create scraper")
 	}
 	defer scraper.Close()
+	log.Info("Scraper instance created successfully")
 
 	// Scrape articles
+	log.Info("Starting article scraping...")
 	if err := scraper.ScrapeAndStoreArticles(ctx); err != nil {
-		logger.WithError(err).Error("Article scraping failed")
+		log.WithError(err).Error("Article scraping failed (continuing to comments)")
+	} else {
+		log.Info("Article scraping completed successfully")
 	}
 
 	// Scrape comments
+	log.Info("Starting comment scraping...")
 	if err := scraper.ScrapeAndStoreComments(ctx, daysAgo, forceScrape); err != nil {
-		logger.WithError(err).Error("Comment scraping failed")
+		log.WithError(err).Error("Comment scraping failed")
+	} else {
+		log.Info("Comment scraping completed successfully")
 	}
 
-	logger.Info("Scraping complete")
+	duration := time.Since(startTime)
+	log.WithField("duration", duration).Info("========================================")
+	log.WithField("duration", duration).Info("Scraping complete - exiting normally")
+	log.Info("========================================")
 }

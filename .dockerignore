@@ -1,0 +1,11 @@
+.git
+.gitignore
+README.md
+.air.toml
+node_modules
+bin/
+localdev/
+postman/
+*.log
+.DS_Store
+public/output.css
