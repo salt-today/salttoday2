@@ -1,8 +1,8 @@
 module github.com/salt-today/salttoday2
 
-go 1.24
+go 1.25
 
-toolchain go1.24.1
+toolchain go1.25.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.1

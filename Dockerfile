@@ -1,13 +1,16 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.24 AS dependencies
+FROM golang:1.25 AS dependencies
 
 COPY go.mod go.sum /modules/
 WORKDIR /modules
 
 RUN go mod download
 
-RUN go install github.com/a-h/templ/cmd/templ@latest
+# Pin to the templ version in go.mod. Using @latest breaks the build whenever a new
+# templ release bumps its required Go version above this image's (and risks a
+# generator/runtime mismatch).
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.943
 
 # Download Tailwind CSS v3.4.3 standalone binary
 # IMPORTANT: Must match version in package.json
@@ -19,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-FROM golang:1.24 AS builder
+FROM golang:1.25 AS builder
 
 COPY --from=dependencies /go/bin/templ /go/bin/templ
 COPY --from=dependencies /usr/local/bin/tailwindcss /usr/local/bin/tailwindcss
