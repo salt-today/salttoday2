@@ -84,7 +84,7 @@ templ CommentComponent(comment *store.Comment) {
 		</div>
 		<div class="w-full flex flex-row justify-between">
 			<div class="px-2 hover:underline decoration-2">
-				<a href={ templ.URL(fmt.Sprintf(" /user/%d", comment.User.ID)) }>
+				<a href={ templ.URL(fmt.Sprintf(" /user/%s", comment.User.ID)) }>
 					- { comment.User.UserName }
 				</a>
 			</div>

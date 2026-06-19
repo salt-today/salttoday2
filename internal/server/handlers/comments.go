@@ -56,11 +56,7 @@ func (h *Handler) HandleCommentsPage(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleComment(w http.ResponseWriter, r *http.Request) {
 	entry := logger.New(r.Context()).WithField("handler", "GetComment")
 
-	commentIDStr := chi.URLParam(r, "commentID")
-	commentID, err := strconv.Atoi(commentIDStr)
-	if err != nil {
-		entry.WithError(err).Warn("invalid comment id")
-	}
+	commentID := chi.URLParam(r, "commentID")
 	entry = entry.WithField("commentID", commentID)
 
 	queryOpts := &store.CommentQueryOptions{
@@ -141,7 +137,7 @@ func getNextCommentsUrl(queryOpts *store.CommentQueryOptions) string {
 	paramsString := ``
 	path := `/`
 	if queryOpts.UserID != nil {
-		path = fmt.Sprintf(`/user/%d`, *queryOpts.UserID)
+		path = fmt.Sprintf(`/user/%s`, *queryOpts.UserID)
 	}
 	if queryOpts.OnlyDeleted {
 		paramsString += `&only_deleted=true`

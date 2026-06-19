@@ -14,14 +14,14 @@ func TestAddArticle(t *testing.T) {
 	require.NoError(t, err)
 
 	article1 := &store.Article{
-		ID:            1,
+		ID:            "1",
 		Title:         "Article 1",
 		Url:           "testurl1",
 		SiteName:      "all",
 		DiscoveryTime: time.Now(),
 	}
 	article2 := &store.Article{
-		ID:            1,
+		ID:            "1",
 		Title:         "Article 2",
 		Url:           "testurl1",
 		SiteName:      "site2",

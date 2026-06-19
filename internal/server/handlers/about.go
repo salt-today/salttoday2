@@ -30,7 +30,7 @@ func (h *Handler) HandleAboutPage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	topUser := &store.User{ID: 5876, UserName: "Soojavu"}
+	topUser := &store.User{ID: "5876", UserName: "Soojavu"}
 	if len(users) >= 1 {
 		topUser = users[0]
 	}

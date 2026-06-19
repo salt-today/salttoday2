@@ -35,7 +35,7 @@ templ About(printer *message.Printer, user *store.User, stats *store.Stats) {
 					</div>
 					<div>
 						<span>
-							<a class="hover:underline decoration-2" href={ templ.URL(fmt.Sprintf("/user/%d", user.ID)) }>
+							<a class="hover:underline decoration-2" href={ templ.URL(fmt.Sprintf("/user/%s", user.ID)) }>
 								{ user.UserName }
 							</a> was so salty after reading a
 							SooToday article.

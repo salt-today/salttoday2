@@ -28,9 +28,9 @@ templ User(user *store.User, queryOpts *store.CommentQueryOptions,
 			opengraph.WithTitle(user.UserName),
 			opengraph.WithDescription(fmt.Sprintf("%s's comments on SaltToday", user.UserName)),
 			opengraph.WithType("profile"),
-			opengraph.WithUrl(fmt.Sprintf("salttoday.ca/user/%d", user.ID)),
+			opengraph.WithUrl(fmt.Sprintf("salttoday.ca/user/%s", user.ID)),
 		)) {
-		@components.CommentsFormComponent(fmt.Sprintf("/user/%d", user.ID), queryOpts, sites)
+		@components.CommentsFormComponent(fmt.Sprintf("/user/%s", user.ID), queryOpts, sites)
 		<h1 class="flex justify-center text-4xl">{ user.UserName }</h1>
 		<div class="w-full flex my-4">
 			<div class="w-full flex my-1 h-12">

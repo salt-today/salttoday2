@@ -20,7 +20,7 @@ func commentOpenGraphTags(comment *store.Comment) map[string]string {
 		"type":  "website",
 		"title": fmt.Sprintf("%s's comment on %s", comment.User.UserName, comment.Article.Title),
 		// TODO do we need to include the entire url here?
-		"url":         fmt.Sprintf("https://www.salttoday.ca/comment/%d", comment.ID),
+		"url":         fmt.Sprintf("https://www.salttoday.ca/comment/%s", comment.ID),
 		"description": comment.Text,
 		"image":       image,
 	}
@@ -31,7 +31,7 @@ templ Comment(comment *store.Comment) {
 	@Page(true, opengraph.New(
 		opengraph.WithTitle(fmt.Sprintf("%s's comment", comment.User.UserName)),
 		opengraph.WithDescription(comment.Text),
-		opengraph.WithUrl(fmt.Sprintf("https://www.salttoday.ca/comment/%d", comment.ID)),
+		opengraph.WithUrl(fmt.Sprintf("https://www.salttoday.ca/comment/%s", comment.ID)),
 		opengraph.WithLikesDislikesImage(comment.Likes, comment.Dislikes),
 	)) {
 		@components.CommentComponent(comment)

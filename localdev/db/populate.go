@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,7 +32,7 @@ func main() {
 	for fileScanner.Scan() {
 		users = append(users, &stor.User{
 			UserName: fileScanner.Text(),
-			ID:       userIDCounter,
+			ID:       strconv.Itoa(userIDCounter),
 		})
 		userIDCounter++
 	}
@@ -56,7 +57,7 @@ func main() {
 		articles = append(articles, &stor.Article{
 			Url:   url,
 			Title: title,
-			ID:    articleIDCounter,
+			ID:    strconv.Itoa(articleIDCounter),
 		})
 		articleIDCounter++
 	}
@@ -86,9 +87,9 @@ func main() {
 		}
 
 		comments[i] = &stor.Comment{
-			ID:       i,
-			Article:  stor.Article{ID: i % len(articles)},
-			User:     stor.User{ID: i % len(users)},
+			ID:       strconv.Itoa(i),
+			Article:  stor.Article{ID: strconv.Itoa(i % len(articles))},
+			User:     stor.User{ID: strconv.Itoa(i % len(users))},
 			Text:     commentsText[i%len(commentsText)],
 			Time:     randomDate(),
 			Likes:    rand.Int31() % 100,

@@ -6,7 +6,7 @@ import (
 )
 
 type Comment struct {
-	ID       int
+	ID       string
 	Article  Article
 	User     User
 	Time     time.Time
@@ -17,7 +17,7 @@ type Comment struct {
 }
 
 type Article struct {
-	ID             int
+	ID             string
 	Title          string
 	SiteName       string
 	Url            string
@@ -26,7 +26,7 @@ type Article struct {
 }
 
 type User struct {
-	ID            int
+	ID            string
 	UserName      string
 	TotalLikes    int32
 	TotalDislikes int32

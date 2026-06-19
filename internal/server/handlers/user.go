@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
@@ -17,11 +16,7 @@ import (
 func (h *Handler) HandleUserPage(w http.ResponseWriter, r *http.Request) {
 	entry := logger.New(r.Context()).WithField("handler", "User")
 
-	userIDStr := chi.URLParam(r, "userID")
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		entry.WithError(err).Warn("invalid user id")
-	}
+	userID := chi.URLParam(r, "userID")
 	entry = entry.WithField("userID", userID)
 
 	userOpts, err := processGetUsersQueryParameters(r)

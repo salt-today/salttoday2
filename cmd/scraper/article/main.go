@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/salt-today/salttoday2/internal/logger"
@@ -18,7 +17,9 @@ func main() {
 		os.Exit(1)
 	}
 	articleUrl := os.Args[1]
-	articleID := getArticleId(articleUrl)
+	// This debug tool targets Village Media URLs, whose article ID is the trailing
+	// integer (e.g. .../some-title-12345).
+	articleID := articleUrl[strings.LastIndex(articleUrl, "-")+1:]
 
 	ctx := context.Background()
 	logEntry := logger.New(ctx)
@@ -29,9 +30,7 @@ func main() {
 	}
 	defer scraper.Close()
 
-	// Create a temporary user map for this single article scrape
-	userMap := make(map[int]string)
-	comments, err := scraper.ScrapeCommentsFromArticle(ctx, &store.Article{ID: articleID, Url: articleUrl}, userMap)
+	comments, _, err := scraper.ScrapeCommentsFromArticle(ctx, &store.Article{ID: articleID, Url: articleUrl})
 	if err != nil {
 		logEntry.WithError(err).Fatal("Failed to scrape comments")
 	}
@@ -39,16 +38,6 @@ func main() {
 	logEntry.WithField("commentsFound", len(comments)).Info("Scraping completed")
 
 	for _, comment := range comments {
-		fmt.Printf("ID: %d\nText: %s\n\n", comment.ID, comment.Text)
+		fmt.Printf("ID: %s\nText: %s\n\n", comment.ID, comment.Text)
 	}
-}
-
-func getArticleId(url string) int {
-	articleIdStr := url[strings.LastIndex(url, "-")+1:]
-	articleId, err := strconv.Atoi(articleIdStr)
-	if err != nil {
-		fmt.Println(fmt.Errorf("unable to convert article id from string to int %w", err))
-		return 0
-	}
-	return articleId
 }

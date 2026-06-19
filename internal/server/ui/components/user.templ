@@ -50,7 +50,7 @@ templ scoreBar(likes, dislikes, userNum, topUserNum int32) {
 templ UserComponent(user *store.User, orderBy int, topUser *store.User) {
 	<tr>
 		<td class="text-nowrap text-end">
-			<a href={ templ.URL(fmt.Sprintf("/user/%d", user.ID)) } class="hover:underline text-decoration-2">
+			<a href={ templ.URL(fmt.Sprintf("/user/%s", user.ID)) } class="hover:underline text-decoration-2">
 				{ user.UserName }
 			</a>
 		</td>

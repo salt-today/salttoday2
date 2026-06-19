@@ -173,7 +173,7 @@ func (s *sqlStorage) cacheTopSites(ctx context.Context) error {
 
 func (s *sqlStorage) AddComments(ctx context.Context, comments []*store.Comment) error {
 	// We need to add comments aritlce by article so we can easily determine if a comment was deleted or not
-	articleCommentsMap := make(map[int][]*store.Comment)
+	articleCommentsMap := make(map[string][]*store.Comment)
 	for _, comment := range comments {
 		articleCommentsMap[comment.Article.ID] = append(articleCommentsMap[comment.Article.ID], comment)
 	}
@@ -187,7 +187,7 @@ func (s *sqlStorage) AddComments(ctx context.Context, comments []*store.Comment)
 	return err
 }
 
-func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, comments []*store.Comment) error {
+func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID string, comments []*store.Comment) error {
 	entry := logger.New(ctx).WithField("articleID", articleID)
 
 	// Determine if any comments were deleted
@@ -207,7 +207,7 @@ func (s *sqlStorage) addCommentsToArticle(ctx context.Context, articleID int, co
 		return err
 	}
 
-	commentsMap := make(map[int]*store.Comment)
+	commentsMap := make(map[string]*store.Comment)
 	for _, comment := range comments {
 		commentsMap[comment.ID] = comment
 	}
@@ -463,9 +463,9 @@ func (s *sqlStorage) AddArticles(ctx context.Context, articles ...*store.Article
 	return nil
 }
 
-func (s *sqlStorage) GetArticles(ctx context.Context, ids ...int) ([]*store.Article, error) {
+func (s *sqlStorage) GetArticles(ctx context.Context, ids ...string) ([]*store.Article, error) {
 	sd := s.dialect.
-		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesSiteName, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
 		Where(goqu.Ex{ArticlesID: ids})
 
@@ -574,11 +574,12 @@ func addPaging(sd *goqu.SelectDataset, pageOpts *store.PageQueryOptions) *goqu.S
 
 func hydrateArticles(rows *sql.Rows) ([]*store.Article, error) {
 	articles := make([]*store.Article, 0)
-	var id int
+	var id string
 	var url, title string
+	var siteName sql.NullString
 	var first, last sql.NullTime
 	for rows.Next() {
-		err := rows.Scan(&id, &url, &title, &first, &last)
+		err := rows.Scan(&id, &url, &title, &siteName, &first, &last)
 		if err != nil {
 			return nil, err
 		}
@@ -587,6 +588,7 @@ func hydrateArticles(rows *sql.Rows) ([]*store.Article, error) {
 			ID:            id,
 			Url:           url,
 			Title:         title,
+			SiteName:      siteName.String,
 			DiscoveryTime: first.Time.Local(),
 		}
 
@@ -613,7 +615,7 @@ func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshol
 	thresholdUTC := threshold.UTC().Truncate(time.Second)
 
 	sd := s.dialect.
-		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
+		Select(ArticlesID, ArticlesUrl, ArticlesTitle, ArticlesSiteName, ArticlesDiscoveryTime, ArticlesLastScrapeTime).
 		From(ArticlesTable).
 		Where(
 			goqu.Ex{
@@ -639,7 +641,7 @@ func (s *sqlStorage) GetRecentlyDiscoveredArticles(ctx context.Context, threshol
 	return articles, nil
 }
 
-func (s *sqlStorage) SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...int) error {
+func (s *sqlStorage) SetArticleScrapedAt(ctx context.Context, scrapedTime time.Time, articleIDs ...string) error {
 	ds := s.dialect.Update(ArticlesTable).
 		Where(goqu.Ex{ArticlesID: articleIDs}).
 		Set(goqu.Record{ArticlesLastScrapeTime: scrapedTime.Truncate(time.Second)})

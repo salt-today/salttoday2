@@ -50,8 +50,13 @@ func main() {
 		domain = ""
 	}
 
-	println("Listening on: 8080")
-	err = http.ListenAndServe(fmt.Sprintf("%s:8080", domain), r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	println("Listening on: " + port)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%s", domain, port), r)
 	if err != nil {
 		panic(err)
 	}

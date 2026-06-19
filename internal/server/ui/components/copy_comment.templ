@@ -1,6 +1,6 @@
 package components
 
-script CopyLinkClicked(id int) {
+script CopyLinkClicked(id string) {
 let siteUrl = `${window.location.origin}/comment/${id}`;
 navigator.clipboard.writeText(siteUrl);
 }
