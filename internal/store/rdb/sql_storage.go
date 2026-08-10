@@ -57,7 +57,7 @@ func getSqlConnString(ctx context.Context) string {
 func New(ctx context.Context) (*sqlStorage, error) {
 	entry := logrus.WithField(`component`, `sql-storage`)
 
-	db, err := sql.Open("mysql", getSqlConnString(ctx)+"?parseTime=true")
+	db, err := sql.Open("mysql", getSqlConnString(ctx))
 	if err != nil {
 		return nil, err
 	}
