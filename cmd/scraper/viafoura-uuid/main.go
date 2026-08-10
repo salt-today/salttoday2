@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // https://livecomments.viafoura.co/v4/livecomments/{section}/{container}/comments?...
