@@ -270,6 +270,13 @@ var articleCategories = []string{
 	"/bulletin/",
 	"/more-local/",
 	"/city-police-beat/",
+	"/2026-municipal-election-news/",
+	"/world-news/",
+	"/ontario-news/",
+	"/national-news/",
+	"/local-news-videos/",
+	"/other/",
+	"/cares/",
 }
 
 func isArticleUrl(href string) bool {
