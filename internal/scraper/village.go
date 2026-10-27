@@ -33,11 +33,7 @@ func (v *villageScraper) DiscoverArticles(ctx context.Context, site internal.Sit
 	var articles []*store.Article
 
 	err := v.pool.WithPage(ctx, func(page playwright.Page) error {
-		_, err := page.Goto(site.BaseURL, playwright.PageGotoOptions{
-			Timeout:   playwright.Float(float64(v.config.NavigationTimeout.Milliseconds())),
-			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-		})
-		if err != nil {
+		if err := v.gotoWithRetry(ctx, page, site.BaseURL, v.config.NavigationTimeout); err != nil {
 			return &ScrapingError{Op: "Navigate", URL: site.BaseURL, Err: err.Error()}
 		}
 
@@ -59,6 +55,32 @@ func (v *villageScraper) DiscoverArticles(ctx context.Context, site internal.Sit
 	}
 
 	return articles, nil
+}
+
+// gotoWithRetry navigates to url, retrying with exponential backoff when the
+// navigation fails (typically a timeout from a slow or throttled site).
+func (v *villageScraper) gotoWithRetry(ctx context.Context, page playwright.Page, url string, timeout time.Duration) error {
+	delay := v.config.RetryDelay
+	var err error
+	for attempt := 0; attempt <= v.config.MaxRetries; attempt++ {
+		if attempt > 0 {
+			logger.New(ctx).WithError(err).WithField("url", url).WithField("attempt", attempt).Warn("Navigation failed, retrying")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(delay):
+			}
+			delay = time.Duration(float64(delay) * v.config.BackoffMultiple)
+		}
+		_, err = page.Goto(url, playwright.PageGotoOptions{
+			Timeout:   playwright.Float(float64(timeout.Milliseconds())),
+			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
+		})
+		if err == nil {
+			return nil
+		}
+	}
+	return err
 }
 
 // parseArticlesFromDoc extracts articles from parsed homepage HTML.
@@ -134,11 +156,7 @@ func (v *villageScraper) scrapeCommentsFromPage(ctx context.Context, commentsUrl
 	var lastParentId int
 
 	err := v.pool.WithPage(ctx, func(page playwright.Page) error {
-		_, err := page.Goto(commentsUrl, playwright.PageGotoOptions{
-			Timeout:   playwright.Float(float64(v.config.PageLoadTimeout.Milliseconds())),
-			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-		})
-		if err != nil {
+		if err := v.gotoWithRetry(ctx, page, commentsUrl, v.config.PageLoadTimeout); err != nil {
 			return &ScrapingError{Op: "NavigateComments", URL: commentsUrl, Err: err.Error()}
 		}
 
@@ -222,11 +240,7 @@ func (v *villageScraper) getRepliesEnhanced(ctx context.Context, article *store.
 
 	var comments []*store.Comment
 	err = v.pool.WithPage(ctx, func(page playwright.Page) error {
-		_, err := page.Goto(commentsUrl, playwright.PageGotoOptions{
-			Timeout:   playwright.Float(float64(v.config.PageLoadTimeout.Milliseconds())),
-			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-		})
-		if err != nil {
+		if err := v.gotoWithRetry(ctx, page, commentsUrl, v.config.PageLoadTimeout); err != nil {
 			return &ScrapingError{Op: "NavigateReplies", URL: commentsUrl, Err: err.Error()}
 		}
 

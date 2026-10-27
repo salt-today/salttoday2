@@ -29,13 +29,13 @@ type ScrapingConfig struct {
 // DefaultConfig returns sensible defaults for scraping
 func DefaultConfig() *ScrapingConfig {
 	return &ScrapingConfig{
-		MaxArticleWorkers: 5,
-		MaxCommentWorkers: 8,
+		MaxArticleWorkers: 2,
+		MaxCommentWorkers: 3,
 
-		NavigationTimeout: 10 * time.Second,
-		PageLoadTimeout:   8 * time.Second,
+		NavigationTimeout: 30 * time.Second,
+		PageLoadTimeout:   20 * time.Second,
 
-		MaxRetries:      3,
+		MaxRetries:      2,
 		RetryDelay:      1 * time.Second,
 		BackoffMultiple: 2.0,
 
