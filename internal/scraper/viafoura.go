@@ -44,6 +44,11 @@ func newViafouraScraper(client *http.Client, config *ScrapingConfig) *viafouraSc
 
 // --- sitemap discovery ---
 
+// maxRecentSitemaps bounds how many child sitemaps of a sitemap index are
+// followed. Children are dated and listed newest first, and the comment scraper
+// only needs recent articles.
+const maxRecentSitemaps = 5
+
 type sitemapIndex struct {
 	Sitemaps []struct {
 		Loc string `xml:"loc"`
@@ -123,8 +128,14 @@ func (vf *viafouraScraper) collectArticleURLs(ctx context.Context, sitemapURL st
 	// A sitemap index points at child sitemaps.
 	var idx sitemapIndex
 	if err := xml.Unmarshal(body, &idx); err == nil && len(idx.Sitemaps) > 0 {
+		// Indexes list child sitemaps newest first and reach back decades
+		// (lfpress goes to 1999), so only follow the most recent ones.
+		children := idx.Sitemaps
+		if len(children) > maxRecentSitemaps {
+			children = children[:maxRecentSitemaps]
+		}
 		var urls []string
-		for _, sm := range idx.Sitemaps {
+		for _, sm := range children {
 			child, err := vf.collectArticleURLs(ctx, sm.Loc, depth+1)
 			if err != nil {
 				logger.New(ctx).WithError(err).WithField("sitemap", sm.Loc).Warn("Failed child sitemap")
