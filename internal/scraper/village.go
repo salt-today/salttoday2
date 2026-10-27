@@ -253,39 +253,29 @@ func (v *villageScraper) getRepliesEnhanced(ctx context.Context, article *store.
 	return comments
 }
 
-var articleCategories = []string{
-	"/good-morning", // doesn't have a trailing slash because -thunder-bay, -sudbury, etc
-	"/local-news/",
-	"/columns/",
-	"/local-business/",
-	"/spotlight/",
-	"/around-ontario/",
-	"/great-stories/",
-	"/videos/",
-	"/opp-beat/",
-	"/arts-culture/",
-	"/local-sports/",
-	"/closer-look/",
-	"/local-entertainment",
-	"/bulletin/",
-	"/more-local/",
-	"/city-police-beat/",
-	"/2026-municipal-election-news/",
-	"/world-news/",
-	"/ontario-news/",
-	"/national-news/",
-	"/local-news-videos/",
-	"/other/",
-	"/cares/",
+// nonArticleSections are top-level paths on Village sites that never hold
+// commentable articles (ads, listings, account pages).
+var nonArticleSections = map[string]bool{
+	"classifieds": true,
+	"directory":   true,
+	"flyers":      true,
+	"account":     true,
+	"ads":         true,
+	"submissions": true,
+	"cssb":        true,
+	"other":       true,
+	"cares":       true,
 }
 
+// isArticleUrl reports whether href is an internal link outside the
+// non-article sections. Whether it is really an article is decided by
+// getArticleId, which requires a trailing numeric ID.
 func isArticleUrl(href string) bool {
-	for _, prefix := range articleCategories {
-		if strings.Contains(href, prefix) {
-			return true
-		}
+	if !strings.HasPrefix(href, "/") {
+		return false
 	}
-	return false
+	section, _, _ := strings.Cut(strings.TrimPrefix(href, "/"), "/")
+	return !nonArticleSections[section]
 }
 
 func getBaseUrl(urlString string) (string, error) {
